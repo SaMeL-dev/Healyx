@@ -34,6 +34,8 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
+  # Flutter에서 간단한 값을 휴대폰이나 PC에 로컬 저장할 때 쓰는 패키지 추가
+  shared_preferences: ^2.2.3
 
 dev_dependencies:
   flutter_test:
@@ -56,6 +58,11 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+# 이미지 적용을 위한 추가 내용
+  assets:
+    - assets/images/healyx_logo.png
+    - assets/images/healyx_logo2.png
 
   # To add assets to your application, add an assets section, like this:
   # assets:
