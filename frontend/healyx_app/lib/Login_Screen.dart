@@ -1,6 +1,6 @@
 // 로그인 화면 구현
-
 import 'package:flutter/material.dart';
+import 'sign_up_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -251,7 +251,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       _buildBottomTextButton(
                         text: '회원가입',
                         onTap: () {
-                          _showMessage('회원가입');
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => const SignUpScreen()
+                              ),
+                          );
                         },
                       ),
                     ],
