@@ -1,21 +1,21 @@
-// 로그인 화면 구현
+// 아이디 찾기 화면 구현
 import 'package:flutter/material.dart';
+import 'find_id_result_screen.dart';
 import 'sign_up_screen.dart';
-import 'find_id_screen.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class FindIdScreen extends StatefulWidget {
+  const FindIdScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<FindIdScreen> createState() => _FindIdScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController idController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
+class _FindIdScreenState extends State<FindIdScreen> {
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController codeController = TextEditingController();
 
-  bool isAutoLogin = false;
-  bool isObscure = true;
+  bool get isEmailFilled => emailController.text.trim().isNotEmpty;
 
   void _showMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -27,10 +27,34 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+
+    emailController.addListener(() {
+      setState(() {});
+    });
+  }
+
+  @override
   void dispose() {
-    idController.dispose();
-    passwordController.dispose();
+    nameController.dispose();
+    emailController.dispose();
+    codeController.dispose();
     super.dispose();
+  }
+
+  void _requestVerification() {
+    if (!isEmailFilled) return;
+    _showMessage('인증요청이 전송되었습니다.');
+  }
+
+  void _confirmFindId() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const FindIdResultScreen(),
+      ),
+    );
   }
 
   @override
@@ -48,7 +72,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     const SizedBox(height: 8),
 
-                    // 상단 바
                     Row(
                       children: [
                         IconButton(
@@ -64,7 +87,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         const Expanded(
                           child: Center(
                             child: Text(
-                              '로그인',
+                              '아이디 찾기',
                               style: TextStyle(
                                 fontSize: 28,
                                 fontWeight: FontWeight.w800,
@@ -81,7 +104,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                     const Center(
                       child: Text(
-                        '계정으로 로그인 하여 서비스를 이용하세요.',
+                        '아이디 확인을 위해 본인 확인이 필요합니다',
                         style: TextStyle(
                           fontSize: 14,
                           color: Color(0xFF9AA7E8),
@@ -93,7 +116,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 56),
 
                     const Text(
-                      '아이디',
+                      '이름',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
@@ -101,17 +124,15 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
-
                     _buildInputField(
-                      controller: idController,
-                      hintText: '아이디를 입력하세요',
-                      obscureText: false,
+                      controller: nameController,
+                      hintText: '이름을 입력하세요',
                     ),
 
                     const SizedBox(height: 28),
 
                     const Text(
-                      '비밀번호',
+                      '이메일',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
@@ -119,71 +140,31 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
+                    _buildEmailField(),
 
-                    _buildInputField(
-                      controller: passwordController,
-                      hintText: '비밀번호를 입력하세요',
-                      obscureText: isObscure,
-                      suffixIcon: IconButton(
-                        onPressed: () {
-                          setState(() {
-                            isObscure = !isObscure;
-                          });
-                        },
-                        icon: Icon(
-                          isObscure
-                              ? Icons.visibility_off_outlined
-                              : Icons.visibility_outlined,
-                          color: const Color(0xFF9AA7E8),
-                        ),
+                    const SizedBox(height: 28),
+
+                    const Text(
+                      '인증번호',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black87,
                       ),
                     ),
-
-                    const SizedBox(height: 16),
-
-                    Row(
-                      children: [
-                        SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: Checkbox(
-                            value: isAutoLogin,
-                            onChanged: (value) {
-                              setState(() {
-                                isAutoLogin = value ?? false;
-                              });
-                            },
-                            activeColor: const Color(0xFF4E7CFF),
-                            side: const BorderSide(
-                              color: Color(0xFF4E7CFF),
-                              width: 1.4,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        const Text(
-                          '자동 로그인',
-                          style: TextStyle(
-                            fontSize: 15,
-                            color: Color(0xFF4E7CFF),
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
+                    const SizedBox(height: 12),
+                    _buildInputField(
+                      controller: codeController,
+                      hintText: '인증번호를 입력하세요',
                     ),
 
-                    const SizedBox(height: 36),
+                    const SizedBox(height: 40),
 
                     SizedBox(
                       width: double.infinity,
                       height: 56,
                       child: ElevatedButton(
-                        onPressed: () {
-                          _showMessage('로그인 버튼 클릭');
-                        },
+                        onPressed: _confirmFindId,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF98A9F4),
                           elevation: 0,
@@ -192,7 +173,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         child: const Text(
-                          '로그인',
+                          '확인',
                           style: TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.w700,
@@ -206,7 +187,6 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
 
-            // 하단 영역
             Container(
               width: double.infinity,
               padding: const EdgeInsets.fromLTRB(24, 20, 24, 28),
@@ -223,16 +203,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      _buildBottomTextButton(
-                        text: '아이디 찾기',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const FindIdScreen(),
-                            ),
-                          );
-                        },
+                      const Text(
+                        '아이디 찾기',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Color(0xFF8EA0F5),
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                       const Text(
                         ' | ',
@@ -241,11 +218,13 @@ class _LoginScreenState extends State<LoginScreen> {
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      _buildBottomTextButton(
-                        text: '비밀번호 찾기',
-                        onTap: () {
-                          _showMessage('비밀번호 찾기');
-                        },
+                      const Text(
+                        '비밀번호 찾기',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Color(0xFF8EA0F5),
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                       const Text(
                         ' | ',
@@ -254,8 +233,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      _buildBottomTextButton(
-                        text: '회원가입',
+                      GestureDetector(
                         onTap: () {
                           Navigator.push(
                             context,
@@ -264,6 +242,14 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           );
                         },
+                        child: const Text(
+                          '회원가입',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Color(0xFF8EA0F5),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -299,8 +285,6 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _buildInputField({
     required TextEditingController controller,
     required String hintText,
-    required bool obscureText,
-    Widget? suffixIcon,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -309,7 +293,6 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
       child: TextField(
         controller: controller,
-        obscureText: obscureText,
         style: const TextStyle(
           fontSize: 16,
           color: Colors.black87,
@@ -326,25 +309,69 @@ class _LoginScreenState extends State<LoginScreen> {
             vertical: 16,
           ),
           border: InputBorder.none,
-          suffixIcon: suffixIcon,
         ),
       ),
     );
   }
 
-  Widget _buildBottomTextButton({
-    required String text,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Text(
-        text,
-        style: const TextStyle(
-          fontSize: 14,
-          color: Color(0xFF8EA0F5),
-          fontWeight: FontWeight.w600,
-        ),
+  Widget _buildEmailField() {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFEFF2FF),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: emailController,
+              keyboardType: TextInputType.emailAddress,
+              style: const TextStyle(
+                fontSize: 16,
+                color: Colors.black87,
+              ),
+              decoration: const InputDecoration(
+                hintText: '이메일을 입력하세요',
+                hintStyle: TextStyle(
+                  fontSize: 16,
+                  color: Color(0xFFB0B9F5),
+                  fontWeight: FontWeight.w500,
+                ),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 16,
+                ),
+                border: InputBorder.none,
+              ),
+            ),
+          ),
+          GestureDetector(
+            onTap: isEmailFilled ? _requestVerification : null,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              alignment: Alignment.center,
+              width: 92,
+              height: 54,
+              decoration: BoxDecoration(
+                color: isEmailFilled
+                    ? const Color(0xFF6F8EF6)
+                    : const Color(0xFFBFCBF8),
+                borderRadius: const BorderRadius.only(
+                  topRight: Radius.circular(14),
+                  bottomRight: Radius.circular(14),
+                ),
+              ),
+              child: const Text(
+                '인증요청',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
