@@ -1,7 +1,7 @@
-// 아이디 찾기 화면 구현
 import 'package:flutter/material.dart';
 import 'find_id_result_screen.dart';
 import 'sign_up_screen.dart';
+import 'find_password_screen.dart';
 
 class FindIdScreen extends StatefulWidget {
   const FindIdScreen({super.key});
@@ -57,6 +57,24 @@ class _FindIdScreenState extends State<FindIdScreen> {
     );
   }
 
+  void _goToFindPasswordScreen() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const FindPasswordScreen(),
+      ),
+    );
+  }
+
+  void _goToSignUpScreen() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const SignUpScreen(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -89,7 +107,7 @@ class _FindIdScreenState extends State<FindIdScreen> {
                             child: Text(
                               '아이디 찾기',
                               style: TextStyle(
-                                fontSize: 28,
+                                fontSize: 20,
                                 fontWeight: FontWeight.w800,
                                 color: Color(0xFF4E7CFF),
                               ),
@@ -166,7 +184,7 @@ class _FindIdScreenState extends State<FindIdScreen> {
                       child: ElevatedButton(
                         onPressed: _confirmFindId,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF98A9F4),
+                          backgroundColor: const Color(0xFF2260FF),
                           elevation: 0,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(28),
@@ -218,12 +236,15 @@ class _FindIdScreenState extends State<FindIdScreen> {
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const Text(
-                        '비밀번호 찾기',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Color(0xFF8EA0F5),
-                          fontWeight: FontWeight.w600,
+                      GestureDetector(
+                        onTap: _goToFindPasswordScreen,
+                        child: const Text(
+                          '비밀번호 찾기',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Color(0xFF8EA0F5),
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                       const Text(
@@ -234,14 +255,7 @@ class _FindIdScreenState extends State<FindIdScreen> {
                         ),
                       ),
                       GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const SignUpScreen(),
-                            ),
-                          );
-                        },
+                        onTap: _goToSignUpScreen,
                         child: const Text(
                           '회원가입',
                           style: TextStyle(

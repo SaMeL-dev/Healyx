@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'sign_up_screen.dart';
 import 'find_id_screen.dart';
+import 'find_password_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -185,7 +186,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           _showMessage('로그인 버튼 클릭');
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF98A9F4),
+                          backgroundColor: const Color(0xFF2260FF),
                           elevation: 0,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(28),
@@ -244,7 +245,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       _buildBottomTextButton(
                         text: '비밀번호 찾기',
                         onTap: () {
-                          _showMessage('비밀번호 찾기');
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const FindPasswordScreen(),
+                            ),
+                          );
                         },
                       ),
                       const Text(

@@ -1,8 +1,7 @@
-// 아이디 찾기 결과 화면
-
 import 'package:flutter/material.dart';
 import 'login_screen.dart';
 import 'sign_up_screen.dart';
+import 'find_password_screen.dart';
 
 class FindIdResultScreen extends StatelessWidget {
   const FindIdResultScreen({super.key});
@@ -38,7 +37,7 @@ class FindIdResultScreen extends StatelessWidget {
                             child: Text(
                               '아이디 찾기',
                               style: TextStyle(
-                                fontSize: 28,
+                                fontSize: 20,
                                 fontWeight: FontWeight.w800,
                                 color: Color(0xFF2F66FF),
                               ),
@@ -132,7 +131,14 @@ class FindIdResultScreen extends StatelessWidget {
                       ),
                       _buildBottomTextButton(
                         text: '비밀번호 찾기',
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const FindPasswordScreen(),
+                            ),
+                          );
+                        },
                       ),
                       const Text(
                         ' | ',

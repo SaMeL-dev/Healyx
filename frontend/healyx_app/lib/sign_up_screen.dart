@@ -317,7 +317,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     _showMessage('회원가입 버튼 클릭');
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF98A9F4),
+                    backgroundColor: const Color(0xFF2260FF),
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(28),
