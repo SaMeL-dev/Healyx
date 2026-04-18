@@ -63,6 +63,18 @@ flutter:
   assets:
     - assets/images/healyx_logo.png
     - assets/images/healyx_logo2.png
+    - assets/images/find_hospital/broken-bone.png
+    - assets/images/find_hospital/cold.png
+    - assets/images/find_hospital/disk.png
+    - assets/images/find_hospital/droplet.png
+    - assets/images/find_hospital/ear.png
+    - assets/images/find_hospital/head-side-cough.png
+    - assets/images/find_hospital/headache.png
+    - assets/images/find_hospital/nose.png
+    - assets/images/find_hospital/skin.png
+    - assets/images/find_hospital/stomachache.png
+    - assets/images/find_hospital/toothache.png
+    - assets/images/find_hospital/visible.png
 
   # To add assets to your application, add an assets section, like this:
   # assets:

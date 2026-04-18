@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'find_hospital_main.dart';
 
 class MainScreen extends StatelessWidget {
   const MainScreen({super.key});
@@ -92,7 +93,13 @@ class MainScreen extends StatelessWidget {
                               icon: Icons.search,
                               title: '병원 찾기',
                               onTap: () {
-                                _showMessage(context, '병원 찾기 클릭');
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                    const FindHospitalMain(),
+                                  ),
+                                );
                               },
                             ),
                           ),
