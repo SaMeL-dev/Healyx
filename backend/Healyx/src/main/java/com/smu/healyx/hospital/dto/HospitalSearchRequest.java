@@ -15,7 +15,9 @@ public class HospitalSearchRequest {
      */
     private String dgsbjtCd;
 
-    /** 종별코드 (필수) — 01:상급종합, 11:종합병원, 21:병원, 31:의원 */
+    /** 종별코드 (필수) — 01:상급종합, 11:종합병원, 21:병원, 31:의원
+     *  위험도에 따른 요청 종별 코드 값이 있어야 함
+     * */
     private String clCd;
 
     /** 경도 — 클라이언트 현재 위치 (Flutter GPS) */
@@ -24,7 +26,7 @@ public class HospitalSearchRequest {
     /** 위도 — 클라이언트 현재 위치 (Flutter GPS) */
     private String yPos;
 
-    /** 검색 반경 (단위: km, 선택) */
+    /** 검색 반경 (단위: km, 위험도에 따른 반경 나누어 기입) */
     private String radius;
 
     /** 페이지 번호 (기본 1) */
