@@ -1,6 +1,6 @@
-package com.smu.healyx.domain.user.repository;
+package com.smu.healyx.user.repository;
 
-import com.smu.healyx.domain.user.entity.User;
+import com.smu.healyx.user.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 

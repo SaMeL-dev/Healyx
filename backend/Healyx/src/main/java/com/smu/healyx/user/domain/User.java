@@ -1,4 +1,4 @@
-package com.smu.healyx.domain.user.entity;
+package com.smu.healyx.user.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
