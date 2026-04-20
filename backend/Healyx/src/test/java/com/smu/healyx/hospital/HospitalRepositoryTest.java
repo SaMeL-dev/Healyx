@@ -1,4 +1,4 @@
-package com.smu.healyx;
+package com.smu.healyx.hospital;
 
 import com.smu.healyx.hospital.domain.Hospital;
 import com.smu.healyx.hospital.repository.HospitalRepository;
