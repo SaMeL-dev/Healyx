@@ -1,4 +1,4 @@
-package com.smu.healyx;
+package com.smu.healyx.user;
 
 import com.smu.healyx.user.domain.User;
 import com.smu.healyx.user.repository.UserRepository;
