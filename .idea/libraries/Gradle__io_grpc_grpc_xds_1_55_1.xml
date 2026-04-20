@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="Gradle: io.grpc:grpc-xds:1.55.1" type="java-imported" external-system-id="GRADLE">
+    <properties groupId="io.grpc" artifactId="grpc-xds" version="1.55.1" baseVersion="1.55.1" />
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.grpc/grpc-xds/1.55.1/38229a134dbf67a40aaaa963afd2522ca03230bd/grpc-xds-1.55.1.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.grpc/grpc-xds/1.55.1/4459532a60ff3158f969cc6f3f9ecc811d6b793f/grpc-xds-1.55.1-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
