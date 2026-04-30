@@ -18,10 +18,10 @@ public class HospitalRecommendRequest {
     private Double longitude;
 
     @Pattern(
-            regexp = "^(en|zh|vi|th|ja)$",
-            message = "지원하지 않는 언어 코드입니다. 지원 언어: en, zh, vi, th, ja"
+            regexp = "^(ko|en|zh|vi|th|ja)$",
+            message = "지원하지 않는 언어 코드입니다. 지원 언어: ko, en, zh, vi, th, ja"
     )
-    private String languageCode = "en";
+    private String languageCode = "ko";
 
     /**
      * 사용자 슬라이더 선택값 1~5.
