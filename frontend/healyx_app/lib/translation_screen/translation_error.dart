@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'translation_loading_screen.dart';
+import 'translation_loading.dart';
 
 class TranslationErrorScreen extends StatefulWidget {
   final bool isCameraError;

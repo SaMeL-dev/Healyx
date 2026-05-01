@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'translation_loading_screen.dart';
+import 'translation_loading.dart';
 
 class TranslationUploadScreen extends StatefulWidget {
   const TranslationUploadScreen({super.key});
@@ -126,7 +126,7 @@ class _TranslationUploadScreenState extends State<TranslationUploadScreen> {
               _UploadOptionCard(
                 icon: Icons.camera_alt_outlined,
                 title: '카메라 촬영',
-                subtitle: '처방전을 촬영하세요',
+                subtitle: '사진을 촬영하세요',
                 backgroundColor: cardBlue,
                 titleColor: primaryBlue,
                 subtitleColor: grayText,
@@ -136,7 +136,7 @@ class _TranslationUploadScreenState extends State<TranslationUploadScreen> {
               _UploadOptionCard(
                 icon: Icons.image_outlined,
                 title: '이미지 선택',
-                subtitle: '처방전 사진을 선택하세요',
+                subtitle: '사진을 선택하세요',
                 backgroundColor: cardBlue,
                 titleColor: primaryBlue,
                 subtitleColor: grayText,

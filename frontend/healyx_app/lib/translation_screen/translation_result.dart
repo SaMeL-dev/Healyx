@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import '../../../dialogs/login_required_dialog.dart';
 
 class TranslationResultScreen extends StatelessWidget {
-  final String imagePath;
+  final String originalImagePath;
+  final String translatedImagePath;
 
   const TranslationResultScreen({
     super.key,
-    required this.imagePath,
+    required this.originalImagePath,
+    required this.translatedImagePath,
   });
 
   @override
@@ -72,7 +74,7 @@ class TranslationResultScreen extends StatelessWidget {
                       ),
                       child: ClipRRect(
                         child: Image.file(
-                          File(imagePath),
+                          File(originalImagePath),
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
                             return const Center(
@@ -179,7 +181,7 @@ class TranslationResultScreen extends StatelessWidget {
                         ),
                         child: ClipRRect(
                           child: Image.file(
-                            File(imagePath),
+                            File(translatedImagePath),
                             fit: BoxFit.contain,
                             errorBuilder: (context, error, stackTrace) {
                               return Container(
@@ -206,7 +208,7 @@ class TranslationResultScreen extends StatelessWidget {
                         height: 45,
                         child: ElevatedButton(
                           onPressed: () {
-                            bool isLoggedIn = false; // 퍼블리싱 단계용 임시값
+                            bool isLoggedIn = true; // 퍼블리싱 단계용 임시값
 
                             if (isLoggedIn) {
                               ScaffoldMessenger.of(context).showSnackBar(

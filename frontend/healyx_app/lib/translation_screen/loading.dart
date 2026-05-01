@@ -2,9 +2,9 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'translation_result_screen.dart';
-import 'translation_upload_screen.dart';
-import 'translation_error_screen.dart';
+import 'translation_result.dart';
+import 'translation_upload.dart';
+import 'translation_error.dart';
 
 class TranslationLoadingScreen extends StatefulWidget {
   final bool isFromCamera;
@@ -38,7 +38,8 @@ class _TranslationLoadingScreenState extends State<TranslationLoadingScreen> {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (context) => TranslationResultScreen(
-              imagePath: widget.imagePath,
+              originalImagePath: widget.imagePath,
+              translatedImagePath: widget.imagePath,
             ),
           ),
         );
