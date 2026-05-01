@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../../dialogs/login_required_dialog.dart';
+import '../common/common_toast.dart';
 
 class TranslationResultScreen extends StatelessWidget {
   final String originalImagePath;
@@ -175,9 +176,7 @@ class TranslationResultScreen extends StatelessWidget {
                         height: 320,
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          border: Border.all(
-                            color: const Color(0xFFBDBDBD),
-                          ),
+                          border: Border.all(color: const Color(0xFFBDBDBD)),
                         ),
                         child: ClipRRect(
                           child: Image.file(
@@ -211,10 +210,9 @@ class TranslationResultScreen extends StatelessWidget {
                             bool isLoggedIn = true; // 퍼블리싱 단계용 임시값
 
                             if (isLoggedIn) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('저장되었습니다.'),
-                                ),
+                              CommonToast.show(
+                                context,
+                                message: '보관함에 저장되었습니다.',
                               );
                             } else {
                               showDialog(
