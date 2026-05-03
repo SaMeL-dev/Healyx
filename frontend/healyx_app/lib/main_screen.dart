@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'find_hospital_screen/find_hospital_main.dart';
 import 'translation_screen/translation_upload.dart';
+import 'community_screen/community_main.dart';
+import 'review_screen/review_search.dart';
+import 'community_screen/community_notification.dart';
+import 'menu_screen/menu_main.dart';
 
 class MainScreen extends StatelessWidget {
   const MainScreen({super.key});
@@ -29,8 +33,14 @@ class MainScreen extends StatelessWidget {
               child: Row(
                 children: [
                   IconButton(
+                    // 햄버거 메뉴 → menu_screen/menu_main.dart
                     onPressed: () {
-                      _showMessage(context, '메뉴 버튼 클릭');
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const MenuScreen(),
+                        ),
+                      );
                     },
                     icon: const Icon(
                       Icons.menu,
@@ -64,8 +74,14 @@ class MainScreen extends StatelessWidget {
                     ),
                   ),
                   IconButton(
+                    // 알림 아이콘 → notification_screen/community_notification_screen.dart
                     onPressed: () {
-                      _showMessage(context, '알림 버튼 클릭');
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const CommunityNotificationScreen(),
+                        ),
+                      );
                     },
                     icon: const Icon(
                       Icons.notifications_none,
@@ -97,8 +113,7 @@ class MainScreen extends StatelessWidget {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) =>
-                                    const FindHospitalMain(),
+                                    builder: (context) => const FindHospitalMain(),
                                   ),
                                 );
                               },
@@ -106,18 +121,18 @@ class MainScreen extends StatelessWidget {
                           ),
                           const SizedBox(width: 14),
                           Expanded(
-                          child: _buildTopMenuCard(
-                            icon: Icons.translate,
-                            title: '의료 번역',
-                            onTap: () {
-                              Navigator.push(
-                               context,
-                               MaterialPageRoute(
-                                 builder: (context) => const TranslationUploadScreen(),
-                               ),
-                             );
-                            },
-                           ),
+                            child: _buildTopMenuCard(
+                              icon: Icons.translate,
+                              title: '의료 번역',
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const TranslationUploadScreen(),
+                                  ),
+                                );
+                              },
+                            ),
                           ),
                         ],
                       ),
@@ -133,8 +148,14 @@ class MainScreen extends StatelessWidget {
                         children: [
                           _buildSectionTitle(
                             title: '리뷰',
+                            // 리뷰 더보기 → review_screen/review_search.dart
                             onArrowTap: () {
-                              _showMessage(context, '리뷰 더보기 클릭');
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const ReviewSearchScreen(),
+                                ),
+                              );
                             },
                           ),
                           const SizedBox(height: 8),
@@ -154,8 +175,14 @@ class MainScreen extends StatelessWidget {
                           const SizedBox(height: 18),
                           _buildSectionTitle(
                             title: '커뮤니티',
+                            // 커뮤니티 더보기 → community_screen/community_main.dart
                             onArrowTap: () {
-                              _showMessage(context, '커뮤니티 더보기 클릭');
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const CommunityMainScreen(),
+                                ),
+                              );
                             },
                           ),
                           const SizedBox(height: 8),
@@ -212,11 +239,7 @@ class MainScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              icon,
-              size: 42,
-              color: const Color(0xFF4E7CFF),
-            ),
+            Icon(icon, size: 42, color: const Color(0xFF4E7CFF)),
             const SizedBox(height: 12),
             Text(
               title,
@@ -249,11 +272,7 @@ class MainScreen extends StatelessWidget {
         ),
         IconButton(
           onPressed: onArrowTap,
-          icon: const Icon(
-            Icons.chevron_right,
-            color: Color(0xFF7C9CFF),
-            size: 22,
-          ),
+          icon: const Icon(Icons.chevron_right, color: Color(0xFF7C9CFF), size: 22),
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(),
           splashRadius: 18,
@@ -274,10 +293,7 @@ class MainScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: const Color(0xFFD8E4FF),
-          width: 1.2,
-        ),
+        border: Border.all(color: const Color(0xFFD8E4FF), width: 1.2),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.06),
@@ -289,50 +305,19 @@ class MainScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF4E7CFF),
-            ),
-          ),
+          Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF4E7CFF))),
           const SizedBox(height: 4),
-          Text(
-            subtitle,
-            style: const TextStyle(
-              fontSize: 11,
-              color: Colors.black87,
-            ),
-          ),
+          Text(subtitle, style: const TextStyle(fontSize: 11, color: Colors.black87)),
           const SizedBox(height: 8),
           Row(
             children: [
               const Icon(Icons.star, size: 14, color: Color(0xFF7C9CFF)),
               const SizedBox(width: 4),
-              Text(
-                rating,
-                style: const TextStyle(
-                  fontSize: 11,
-                  color: Color(0xFF7C9CFF),
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+              Text(rating, style: const TextStyle(fontSize: 11, color: Color(0xFF7C9CFF), fontWeight: FontWeight.w600)),
               const SizedBox(width: 14),
-              const Icon(
-                Icons.chat_bubble_outline,
-                size: 14,
-                color: Color(0xFF7C9CFF),
-              ),
+              const Icon(Icons.chat_bubble_outline, size: 14, color: Color(0xFF7C9CFF)),
               const SizedBox(width: 4),
-              Text(
-                comments,
-                style: const TextStyle(
-                  fontSize: 11,
-                  color: Color(0xFF7C9CFF),
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+              Text(comments, style: const TextStyle(fontSize: 11, color: Color(0xFF7C9CFF), fontWeight: FontWeight.w600)),
             ],
           ),
         ],
@@ -364,54 +349,19 @@ class MainScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF4E7CFF),
-            ),
-          ),
+          Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF4E7CFF))),
           const SizedBox(height: 4),
-          Text(
-            subtitle,
-            style: const TextStyle(
-              fontSize: 11,
-              color: Colors.black87,
-            ),
-          ),
+          Text(subtitle, style: const TextStyle(fontSize: 11, color: Colors.black87)),
           const SizedBox(height: 8),
           Row(
             children: [
-              const Icon(
-                Icons.thumb_up_alt_outlined,
-                size: 14,
-                color: Color(0xFF7C9CFF),
-              ),
+              const Icon(Icons.thumb_up_alt_outlined, size: 14, color: Color(0xFF7C9CFF)),
               const SizedBox(width: 4),
-              Text(
-                likes,
-                style: const TextStyle(
-                  fontSize: 11,
-                  color: Color(0xFF7C9CFF),
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+              Text(likes, style: const TextStyle(fontSize: 11, color: Color(0xFF7C9CFF), fontWeight: FontWeight.w600)),
               const SizedBox(width: 14),
-              const Icon(
-                Icons.chat_bubble_outline,
-                size: 14,
-                color: Color(0xFF7C9CFF),
-              ),
+              const Icon(Icons.chat_bubble_outline, size: 14, color: Color(0xFF7C9CFF)),
               const SizedBox(width: 4),
-              Text(
-                comments,
-                style: const TextStyle(
-                  fontSize: 11,
-                  color: Color(0xFF7C9CFF),
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+              Text(comments, style: const TextStyle(fontSize: 11, color: Color(0xFF7C9CFF), fontWeight: FontWeight.w600)),
             ],
           ),
         ],

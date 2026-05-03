@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 class CommunityNotificationScreen extends StatelessWidget {
   const CommunityNotificationScreen({super.key});
 
-  static const Color mainBlue = Color(0xFF2260FF);
+  static const Color mainBlue  = Color(0xFF2260FF);
+  static const Color lightBlue = Color(0xFFE2EAFF);
+  static const Color midBlue   = Color(0xFF6281E3);
 
   @override
   Widget build(BuildContext context) {
@@ -11,37 +13,37 @@ class CommunityNotificationScreen extends StatelessWidget {
       {
         'type': 'like',
         'title': '닉네임 555님이 좋아를 눌렀습니다.',
-        'content': '‘닉네임000’ 서울 24시간 하는 병원 있을까요?',
+        'content': '\'닉네임000\' 서울 24시간 하는 병원 있을까요?',
         'time': '방금 전',
       },
       {
         'type': 'like',
         'title': '닉네임 555님이 좋아를 눌렀습니다.',
-        'content': '‘닉네임000’ 서울 24시간 하는 병원 있을까요?',
+        'content': '\'닉네임000\' 서울 24시간 하는 병원 있을까요?',
         'time': '1분',
       },
       {
         'type': 'comment',
         'title': '닉네임 555님이 댓글을 달았습니다.',
-        'content': '‘@닉네임000’ 서울 24시간 하는 병원 있을까요?',
+        'content': '\'@닉네임000\' 서울 24시간 하는 병원 있을까요?',
         'time': '5분',
       },
       {
         'type': 'like',
         'title': '닉네임 555님이 좋아를 눌렀습니다.',
-        'content': '‘닉네임000’ 서울 24시간 하는 병원 있을까요?',
+        'content': '\'닉네임000\' 서울 24시간 하는 병원 있을까요?',
         'time': '10분',
       },
       {
         'type': 'comment',
         'title': '닉네임 555님이 댓글을 달았습니다.',
-        'content': '‘@닉네임000’ 서울 24시간 하는 병원 있을까요?',
+        'content': '\'@닉네임000\' 서울 24시간 하는 병원 있을까요?',
         'time': '15분',
       },
       {
         'type': 'comment',
         'title': '닉네임 555님이 대댓글을 달았습니다.',
-        'content': '‘@닉네임000’ 서울 24시간 하는 병원 있을까요?',
+        'content': '\'@닉네임000\' 서울 24시간 하는 병원 있을까요?',
         'time': '1시간',
       },
     ];
@@ -53,6 +55,7 @@ class CommunityNotificationScreen extends StatelessWidget {
           children: [
             const SizedBox(height: 18),
 
+            // 앱바
             Stack(
               alignment: Alignment.center,
               children: [
@@ -61,14 +64,8 @@ class CommunityNotificationScreen extends StatelessWidget {
                   child: Padding(
                     padding: const EdgeInsets.only(left: 20),
                     child: IconButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      icon: const Icon(
-                        Icons.arrow_back_ios_new,
-                        color: mainBlue,
-                        size: 22,
-                      ),
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.arrow_back_ios_new, color: mainBlue, size: 22),
                     ),
                   ),
                 ),
@@ -83,16 +80,15 @@ class CommunityNotificationScreen extends StatelessWidget {
               ],
             ),
 
-            const SizedBox(height: 34),
+            const SizedBox(height: 20),
 
             Expanded(
               child: ListView.separated(
-                padding: EdgeInsets.zero,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 itemCount: notifications.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 0),
+                separatorBuilder: (_, __) => const SizedBox(height: 10),
                 itemBuilder: (context, index) {
                   final item = notifications[index];
-
                   return _NotificationCard(
                     type: item['type']!,
                     title: item['title']!,
@@ -122,58 +118,75 @@ class _NotificationCard extends StatelessWidget {
     required this.time,
   });
 
-  static const Color mainBlue = Color(0xFF2260FF);
+  static const Color mainBlue  = Color(0xFF2260FF);
+  static const Color lightBlue = Color(0xFFE2EAFF);
 
   @override
   Widget build(BuildContext context) {
     final bool isLike = type == 'like';
 
+    // 닉네임 부분(따옴표 포함)과 나머지 분리
+    final parts = content.split('\' ');
+    final String boldPart  = parts.isNotEmpty ? '${parts[0]}\'' : content;
+    final String plainPart = parts.length > 1 ? ' ${parts[1]}' : '';
+
     return Container(
-      height: 132,
-      padding: const EdgeInsets.fromLTRB(26, 22, 26, 16),
+      padding: const EdgeInsets.fromLTRB(18, 16, 18, 14),
       decoration: BoxDecoration(
         color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.22),
-            blurRadius: 4,
-            offset: const Offset(0, 3),
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            isLike ? Icons.favorite : Icons.chat_bubble,
-            color: mainBlue,
-            size: 28,
+          // 아이콘
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: lightBlue,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              isLike ? Icons.favorite : Icons.chat_bubble_rounded,
+              color: mainBlue,
+              size: 18,
+            ),
           ),
 
-          const SizedBox(width: 8),
+          const SizedBox(width: 12),
 
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // 타이틀
                 Text(
                   title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: mainBlue,
-                    fontSize: 20,
+                    fontSize: 15,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
 
-                const SizedBox(height: 8),
+                const SizedBox(height: 5),
 
+                // 내용 (닉네임 bold + 나머지)
                 Text.rich(
                   TextSpan(
                     children: [
                       TextSpan(
-                        text: content.split(' ').first,
+                        text: boldPart,
                         style: const TextStyle(
                           color: mainBlue,
                           fontSize: 13,
@@ -181,11 +194,11 @@ class _NotificationCard extends StatelessWidget {
                         ),
                       ),
                       TextSpan(
-                        text: content.replaceFirst(content.split(' ').first, ''),
+                        text: plainPart,
                         style: const TextStyle(
-                          color: Colors.black,
+                          color: Colors.black54,
                           fontSize: 13,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w400,
                         ),
                       ),
                     ],
@@ -194,16 +207,17 @@ class _NotificationCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
 
-                const Spacer(),
+                const SizedBox(height: 8),
 
+                // 시간
                 Align(
                   alignment: Alignment.centerRight,
                   child: Text(
                     time,
                     style: const TextStyle(
-                      color: Colors.black,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
+                      color: Colors.black38,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400,
                     ),
                   ),
                 ),
