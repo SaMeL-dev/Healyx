@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../login_signup_screen/sign_up_screen.dart';
 import '../find_account_screen/find_id_screen.dart';
 import '../find_account_screen/find_password_screen.dart';
+import '../Main_Screen.dart'; // MainScreen 파일명에 맞게 경로 확인
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -18,13 +19,53 @@ class _LoginScreenState extends State<LoginScreen> {
   bool isAutoLogin = false;
   bool isObscure = true;
 
-  void _showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        duration: const Duration(seconds: 1),
-      ),
-    );
+  // true: 로그인 성공 테스트
+  // false: 로그인 실패 테스트
+  final bool mockLoginSuccess = true;
+
+  String? idErrorText;
+  String? passwordErrorText;
+  String? loginErrorText;
+
+  void _handleLogin() {
+    final String id = idController.text.trim();
+    final String password = passwordController.text.trim();
+
+    setState(() {
+      idErrorText = null;
+      passwordErrorText = null;
+      loginErrorText = null;
+    });
+
+    bool hasError = false;
+
+    if (id.isEmpty) {
+      idErrorText = '필수 항목입니다.';
+      hasError = true;
+    }
+
+    if (password.isEmpty) {
+      passwordErrorText = '필수 항목입니다.';
+      hasError = true;
+    }
+
+    if (hasError) {
+      setState(() {});
+      return;
+    }
+
+    if (mockLoginSuccess) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const MainScreen(),
+        ),
+      );
+    } else {
+      setState(() {
+        loginErrorText = '아이디 및 비밀번호가 일치하지 않습니다.';
+      });
+    }
   }
 
   @override
@@ -107,6 +148,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       controller: idController,
                       hintText: '아이디를 입력하세요',
                       obscureText: false,
+                      errorText: idErrorText,
                     ),
 
                     const SizedBox(height: 28),
@@ -125,6 +167,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       controller: passwordController,
                       hintText: '비밀번호를 입력하세요',
                       obscureText: isObscure,
+                      errorText: passwordErrorText,
                       suffixIcon: IconButton(
                         onPressed: () {
                           setState(() {
@@ -182,9 +225,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       width: double.infinity,
                       height: 56,
                       child: ElevatedButton(
-                        onPressed: () {
-                          _showMessage('로그인 버튼 클릭');
-                        },
+                        onPressed: _handleLogin,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF2260FF),
                           elevation: 0,
@@ -202,6 +243,20 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                     ),
+
+                    if (loginErrorText != null) ...[
+                      const SizedBox(height: 10),
+                      Center(
+                        child: Text(
+                          loginErrorText!,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: Colors.red,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -274,9 +329,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     ],
                   ),
                   const SizedBox(height: 18),
-                  Row(
+                  const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
+                    children: [
                       Icon(
                         Icons.lock,
                         size: 16,
@@ -306,35 +361,71 @@ class _LoginScreenState extends State<LoginScreen> {
     required TextEditingController controller,
     required String hintText,
     required bool obscureText,
+    String? errorText,
     Widget? suffixIcon,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFFEFF2FF),
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: TextField(
-        controller: controller,
-        obscureText: obscureText,
-        style: const TextStyle(
-          fontSize: 16,
-          color: Colors.black87,
-        ),
-        decoration: InputDecoration(
-          hintText: hintText,
-          hintStyle: const TextStyle(
-            fontSize: 16,
-            color: Color(0xFFB0B9F5),
-            fontWeight: FontWeight.w500,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFFEFF2FF),
+            borderRadius: BorderRadius.circular(14),
           ),
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 16,
+          child: TextField(
+            controller: controller,
+            obscureText: obscureText,
+            style: const TextStyle(
+              fontSize: 16,
+              color: Colors.black87,
+            ),
+            onChanged: (_) {
+              if (errorText != null || loginErrorText != null) {
+                setState(() {
+                  if (controller == idController) {
+                    idErrorText = null;
+                  }
+
+                  if (controller == passwordController) {
+                    passwordErrorText = null;
+                  }
+
+                  loginErrorText = null;
+                });
+              }
+            },
+            decoration: InputDecoration(
+              hintText: hintText,
+              hintStyle: const TextStyle(
+                fontSize: 16,
+                color: Color(0xFFB0B9F5),
+                fontWeight: FontWeight.w500,
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 16,
+              ),
+              border: InputBorder.none,
+              suffixIcon: suffixIcon,
+            ),
           ),
-          border: InputBorder.none,
-          suffixIcon: suffixIcon,
         ),
-      ),
+
+        if (errorText != null) ...[
+          const SizedBox(height: 6),
+          Padding(
+            padding: const EdgeInsets.only(left: 4),
+            child: Text(
+              errorText,
+              style: const TextStyle(
+                fontSize: 12,
+                color: Colors.red,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ],
     );
   }
 
