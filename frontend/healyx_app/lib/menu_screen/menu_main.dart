@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:healyx_app/menu_screen/profile_edit.dart';
 import 'package:healyx_app/menu_screen/settings.dart';
+import 'package:healyx_app/menu_screen/reset_password_screen/password_verify.dart';
 import 'package:healyx_app/archive_screen/archive_main.dart';
 import 'package:healyx_app/dialogs/logout_dialog.dart';
 import 'package:healyx_app/login_signup_screen/login_screen.dart';
@@ -8,8 +9,7 @@ import 'package:healyx_app/login_signup_screen/login_screen.dart';
 class MenuScreen extends StatelessWidget {
   final bool isLoggedIn;
 
-
-  const MenuScreen({super.key, this.isLoggedIn = true}); //true=로그인, false=비로그인 
+  const MenuScreen({super.key, this.isLoggedIn = true}); //true=로그인, false=비로그인
 
   @override
   Widget build(BuildContext context) {
@@ -201,7 +201,13 @@ class _LoggedInBody extends StatelessWidget {
                 _MenuTile(
                   icon: Icons.lock_outline,
                   label: '비밀번호 변경',
-                  onTap: () {},
+                  // 비밀번호 변경 → menu_screen/reset_password_screen/password_verify.dart (STEP1)
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const PasswordVerifyScreen()),
+                    );
+                  },
                 ),
                 _MenuTile(
                   icon: Icons.logout,
