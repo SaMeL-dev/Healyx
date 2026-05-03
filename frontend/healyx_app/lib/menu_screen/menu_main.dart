@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:healyx_app/menu_screen/profile_edit.dart';
-import 'package:healyx_app/menu_screen/settings.dart';
-import 'package:healyx_app/menu_screen/reset_password_screen/password_verify.dart';
-import 'package:healyx_app/archive_screen/archive_main.dart';
-import 'package:healyx_app/dialogs/logout_dialog.dart';
-import 'package:healyx_app/login_signup_screen/login_screen.dart';
+
+import 'profile_edit.dart';
+import 'settings.dart';
+import 'reset_password_screen/password_verify.dart';
+
+import '../archive_screen/archive_main.dart';
+import '../dialogs/logout_dialog.dart';
+import '../login_signup_screen/login_screen.dart';
 
 class MenuScreen extends StatelessWidget {
   final bool isLoggedIn;

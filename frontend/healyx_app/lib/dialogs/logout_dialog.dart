@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:healyx_app/menu_screen/menu_main.dart';
 
 class LogoutDialog extends StatelessWidget {
   const LogoutDialog({super.key});
 
   @override
   Widget build(BuildContext context) {
-    const Color mainBlue = Color(0xFF4F5BFF);
-    const Color lightPurple = Color(0xFFD7DDFF);
+    const Color mainBlue    = Color(0xFF2260FF); // 메인 컬러
+    const Color lightPurple = Color(0xFFE2EAFF); // 연한 배경
 
     return Dialog(
       backgroundColor: Colors.transparent,
@@ -39,8 +40,14 @@ class LogoutDialog extends StatelessWidget {
                     child: ElevatedButton(
                       onPressed: () {
                         Navigator.pop(context);
-
-                        // TODO: 추후 로그아웃 처리 후 로그인 화면 또는 초기 화면으로 이동
+                        // 로그아웃 → menu_screen/menu_main.dart (비로그인 화면)
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const MenuScreen(isLoggedIn: false),
+                          ),
+                          (route) => false,
+                        );
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: mainBlue,
@@ -52,10 +59,7 @@ class LogoutDialog extends StatelessWidget {
                       ),
                       child: const Text(
                         '예',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                        ),
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
                       ),
                     ),
                   ),
@@ -78,10 +82,7 @@ class LogoutDialog extends StatelessWidget {
                       ),
                       child: const Text(
                         '아니요',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                        ),
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
                       ),
                     ),
                   ),
