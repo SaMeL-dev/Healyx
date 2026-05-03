@@ -14,15 +14,14 @@ import com.smu.healyx.hira.dto.HospitalDto;
 import com.smu.healyx.hira.dto.HospitalSearchRequest;
 import com.smu.healyx.hira.dto.HospitalSearchResponse;
 import com.smu.healyx.hira.service.HiraApiService;
+import com.smu.healyx.hospital.domain.ForeignCertifiedHospital;
+import com.smu.healyx.hospital.repository.ForeignCertifiedHospitalRepository;
 import com.smu.healyx.user.dto.UserProfileDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -46,6 +45,8 @@ public class HospitalAgentService {
     private final GptService gptService;
     private final HiraApiService hiraApiService;
     private final ObjectMapper objectMapper;
+    private final
+    ForeignCertifiedHospitalRepository foreignCertifiedHospitalRepository;
 
     private static final String AGENT_MODEL = "gpt-4o";
     private static final int MAX_ITERATIONS = 6;
@@ -197,7 +198,26 @@ public class HospitalAgentService {
             }
         }
 
-        List<HospitalDto> hospitals = new ArrayList<>(merged.values());
+        // 단일 IN 쿼리로 인증 병원 ykiho Set 확보 (N+1 방지)
+        Set<String> certifiedYkihos = foreignCertifiedHospitalRepository
+                .findAllByYkihoIn(merged.keySet()) // DB 조히
+                .stream()
+                .map(ForeignCertifiedHospital::getYkiho)
+                .collect(Collectors.toSet());
+
+        List<HospitalDto> hospitals = merged.values().stream()
+                .map(dto -> HospitalDto.builder()
+                        .ykiho(dto.getYkiho())
+                        .hospitalName(dto.getHospitalName())
+                        .address(dto.getAddress())
+                        .telephone(dto.getTelephone())
+                        .longitude(dto.getLongitude())
+                        .latitude(dto.getLatitude())
+                        .distance(dto.getDistance())
+                        .hospitalType(dto.getHospitalType())
+                        .foreignCertified(certifiedYkihos.contains(dto.getYkiho()))  // 병원별 판별
+                        .build())
+                .collect(Collectors.toList());
         return HospitalSearchResponse.builder()
                 .hospitals(hospitals)
                 .pageNo(1)

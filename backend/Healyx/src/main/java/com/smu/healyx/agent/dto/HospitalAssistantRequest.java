@@ -29,5 +29,14 @@ public class HospitalAssistantRequest {
     @NotNull(message = "경도를 입력해 주세요.")
     private Double longitude;
 
+    public static HospitalAssistantRequest of(String symptom, int riskLevel, Double latitude, Double longitude) {
+        HospitalAssistantRequest request = new HospitalAssistantRequest();
+        request.symptom = symptom;
+        request.riskLevel = riskLevel;
+        request.latitude = latitude;
+        request.longitude = longitude;
+        return request;
+    }
+
     // 나이·성별·보험 가입 여부는 JWT → userId → DB 조회로 획득 (HospitalAgentController 참고)
 }
