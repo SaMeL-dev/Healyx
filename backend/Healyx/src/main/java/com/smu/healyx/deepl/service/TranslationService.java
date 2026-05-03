@@ -72,6 +72,47 @@ public class TranslationService {
         return parseResponse(rawResponse, deeplTargetLang);
     }
 
+    /**
+     * 여러 텍스트를 한 번의 DeepL API 호출로 번역합니다.
+     * 오버레이 번역처럼 블록이 많을 때 API 호출 횟수를 최소화합니다.
+     */
+    public List<String> translateBatch(List<String> texts, String targetLanguage) {
+        String deeplTargetLang = LANGUAGE_MAP.get(targetLanguage);
+        if (deeplTargetLang == null) {
+            throw new ExternalApiException("DEEPL_UNSUPPORTED_LANG", "지원하지 않는 언어 코드입니다: " + targetLanguage);
+        }
+
+        Map<String, Object> requestBody = Map.of(
+                "text", texts,
+                "target_lang", deeplTargetLang
+        );
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "DeepL-Auth-Key " + deeplApiKey);
+
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+
+        String rawResponse;
+        try {
+            rawResponse = restTemplate.postForObject(DEEPL_URL, entity, String.class);
+        } catch (Exception e) {
+            log.error("DeepL API 호출 실패: {}", e.getMessage());
+            throw new ExternalApiException("DEEPL_API_ERROR", "번역 서비스가 일시적으로 이용 불가합니다. 잠시 후 다시 시도해 주세요.");
+        }
+
+        try {
+            DeeplApiResponse response = objectMapper.readValue(rawResponse, DeeplApiResponse.class);
+            log.debug("DeepL 일괄 번역 완료: {}개 블록", texts.size());
+            return response.getTranslations().stream()
+                    .map(DeeplApiResponse.Translation::getText)
+                    .toList();
+        } catch (Exception e) {
+            log.error("DeepL 응답 파싱 실패: {}", e.getMessage());
+            throw new ExternalApiException("DEEPL_PARSE_ERROR", "번역 결과를 처리할 수 없습니다. 다시 시도해 주세요.");
+        }
+    }
+
     /** DeepL 응답 JSON을 파싱하여 TranslationResponse를 반환합니다. */
     private TranslationResponse parseResponse(String rawResponse, String deeplTargetLang) {
         try {
