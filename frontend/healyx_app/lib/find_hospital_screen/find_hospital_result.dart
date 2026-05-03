@@ -360,7 +360,7 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 2),
               Row(
                 children: [
                   Expanded(
