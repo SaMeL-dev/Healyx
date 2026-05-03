@@ -63,4 +63,12 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+	// Mockito ByteBuddy 동적 에이전트 로딩 경고 억제 (Java 21+)
+	// -Xshare:off : ByteBuddy가 bootstrap classpath에 추가할 때 발생하는 CDS 경고 억제
+	jvmArgs '-XX:+EnableDynamicAgentLoading', '-Xshare:off'
+}
+
+// spring-jcl과 commons-logging 클래스패스 충돌 방지
+configurations.all {
+	exclude group: 'commons-logging', module: 'commons-logging'
 }
