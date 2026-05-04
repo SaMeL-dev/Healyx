@@ -1,3 +1,5 @@
+/// 부적절한 콘텐츠 신고 팝업
+/// 부적절한 콘텐츠(비방, 욕설, 광고)로 신고하시겠습니까? 예/아니오 버튼  
 import 'package:flutter/material.dart';
 
 class ReportDialog extends StatelessWidget {

@@ -1,3 +1,7 @@
+// 프로필 편집 화면
+// - 프로필 이미지 (기본 아이콘으로 표시, 추후 사진 업로드 기능 추가 예정)
+// - 실명, 이메일, 닉네임 (읽기 전용으로 표시)
+// - 건강보험 여부 (토글로 표시, 수정 가능)
 import 'package:flutter/material.dart';
 
 class ProfileEditScreen extends StatefulWidget {

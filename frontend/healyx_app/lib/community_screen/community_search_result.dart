@@ -1,3 +1,4 @@
+// 커뮤니티 검색 결과 화면 (검색창에서 검색 후 나오는 화면)
 import 'package:flutter/material.dart';
 
 import 'community_search.dart';

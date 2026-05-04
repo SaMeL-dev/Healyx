@@ -1,3 +1,5 @@
+// 게시물 북마크 보관함 화면 
+// 게시물 북마크 리스트 형태로 보여주는 화면
 import 'package:flutter/material.dart';
 import 'package:healyx_app/community_screen/community_detail.dart';
 import 'package:healyx_app/dialogs/archive_delete_dialog.dart';

@@ -1,3 +1,6 @@
+// 커뮤니티 게시글 상세 화면
+// 게시글 제목, 작성자 닉네임, 작성 날짜, 본문 내용, 좋아요 수, 댓글 수 등이 표시됨
+// 게시글이 본인 글인지 여부에 따라 메뉴 버튼에서 수정/삭제 또는 신고/원문보기 옵션이 다르게 보임
 import 'package:flutter/material.dart';
 
 import '../../dialogs/report_dialog.dart';

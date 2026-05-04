@@ -1,3 +1,6 @@
+// 리뷰 카드 위젯
+// 리뷰 검색 결과 화면에서 각 리뷰 항목을 카드 형태로 보여주는 위젯
+// 리뷰 작성자 닉네임, 리뷰 내용, 별점, 이미지 유무 등을 표시
 import 'package:flutter/material.dart';
 
 import 'review_image_slider.dart';

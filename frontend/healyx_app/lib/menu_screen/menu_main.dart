@@ -1,3 +1,6 @@
+// 메뉴 메인 화면
+// 로그인 비로그인 (true/false) 상태에 따라 보여지는 메뉴 항목이 달라지는 화면
+// 17번째 줄 부분에서만 true/false로 로그인 상태를 바꿔가며 테스트하면 됨! 그 이외의 부분은 자동으로 반영됨!!
 import 'package:flutter/material.dart';
 
 import 'profile_edit.dart';

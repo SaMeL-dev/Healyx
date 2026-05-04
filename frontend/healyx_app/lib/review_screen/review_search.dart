@@ -1,3 +1,5 @@
+// 리뷰 검색 화면
+// 리뷰 검색 화면에서는 사용자가 지역과 검색어를 입력하여 리뷰 검색 결과 화면으로 이동할 수 있도록 구성
 import 'package:flutter/material.dart';
 import 'review_search_result.dart';
 
@@ -11,7 +13,7 @@ class ReviewSearchScreen extends StatefulWidget {
 class _ReviewSearchScreenState extends State<ReviewSearchScreen> {
   final TextEditingController _searchController = TextEditingController();
 
-  String selectedRegion = '지역';
+  String selectedRegion = '지역'; // 이거 퍼블리싱 임시로 넣어둔 거임!! 나중에는 실제 지역 데이터로 바꿔야 함!! 
 
   final List<String> regions = [
     '지역',

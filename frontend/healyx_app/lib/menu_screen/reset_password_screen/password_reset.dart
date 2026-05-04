@@ -1,3 +1,6 @@
+// 비밀번호 재설정 화면
+// STEP 2. 새로운 비밀번호 설정
+// 로그인 유효성 검사 실패 시 에러 메시지 노출 (true/false로 분기)
 import 'package:flutter/material.dart';
 import 'package:healyx_app/menu_screen/reset_password_screen/password_reset_success.dart';
 
@@ -16,8 +19,8 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
 
   // true: 유효성 검사 실패 / false: 기본 상태
   // TODO: 추후 API 연동 시 실제 검증 로직으로 교체
-  final bool _hasNewError = true;
-  final bool _hasConfirmError = true;
+  final bool _hasNewError = false;
+  final bool _hasConfirmError = false;
 
   // ── 색상 팔레트 ──────────────────────────
   static const Color mainBlue  = Color(0xFF2260FF); // 메인 컬러

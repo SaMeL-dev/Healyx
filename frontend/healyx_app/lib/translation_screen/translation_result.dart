@@ -1,3 +1,6 @@
+// 번역 결과 화면
+// 번역이 완료된 후 원본 이미지와 번역된 이미지를 보여주는 화면
+// 로그인/비로그인 상태에 따라 '저장하기' 버튼 클릭 시 보관함 저장 또는 로그인 유도 다이얼로그로 분기 (true/false -> 퍼블리싱 테스트용)
 import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../../dialogs/login_required_dialog.dart';

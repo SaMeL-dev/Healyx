@@ -1,3 +1,7 @@
+// 병원 찾기 결과 화면
+// 로그인 비로그인 상태에 따라 화면이 조금 다름
+// 19번째 줄 isLoggedIn 변수에서 true/false로 로그인 상태 바꿔가며 테스트하면 됨! 그 이외 bool은 XX
+
 import 'package:flutter/material.dart';
 import 'find_hospital_detail.dart';
 import 'pain_score_slide.dart';

@@ -1,3 +1,5 @@
+// 로그아웃 확인 팝업
+// 로그아웃 하시겠습니까? 예/아니오 버튼
 import 'package:flutter/material.dart';
 import 'package:healyx_app/menu_screen/menu_main.dart';
 

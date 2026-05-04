@@ -1,3 +1,5 @@
+// 리뷰 검색 결과 화면
+// 리뷰 검색 결과 목록을 보여주는 화면
 import 'package:flutter/material.dart';
 import '../find_hospital_screen/find_hospital_detail.dart';
 import '../constants/hospital_constants.dart'; // 👈 더미 데이터 import

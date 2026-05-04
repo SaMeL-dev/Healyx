@@ -1,3 +1,7 @@
+// 번역 인식 실패 화면
+// 번역 인식이 실패했을 때 사용자에게 안내 메시지를 보여주는 화면
+// - 카메라 촬영 실패: 사진이 흐리거나 일부만 촬영된 경우
+// - 갤러리 선택 실패: 사진이 흐리거나 전체가 아닌 일부의 이미지인 경우 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'translation_loading.dart';

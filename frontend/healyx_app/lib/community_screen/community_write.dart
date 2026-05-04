@@ -1,3 +1,5 @@
+// 커뮤니티 글쓰기 화면
+// 제목 입력, 내용 입력, 사진 첨부 기능이 있는 화면
 import 'dart:io';
 
 import 'package:flutter/material.dart';

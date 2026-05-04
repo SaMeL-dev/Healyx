@@ -1,3 +1,5 @@
+// 번역 업로드 화면
+// 번역 업로드 화면에서는 사용자가 카메라 촬영 또는 갤러리 선택을 통해 이미지를 업로드할 수 있도록 구성
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'translation_loading.dart';

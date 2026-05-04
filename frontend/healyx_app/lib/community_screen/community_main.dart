@@ -1,3 +1,4 @@
+// 커뮤니티 메인 화면 (홈/인기 탭, 게시글 리스트, 검색/글쓰기 버튼)
 import 'package:flutter/material.dart';
 
 import 'community_search.dart';

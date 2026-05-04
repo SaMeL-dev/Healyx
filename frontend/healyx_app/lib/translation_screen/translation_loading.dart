@@ -1,3 +1,6 @@
+// 번역 인식 로딩 화면
+// 번역 인식이 진행되는 동안 로딩 애니메이션과 함께 이미지 미리보기를 보여주는 화면
+// 성공 시 번역 결과 화면으로 이동, 실패 시 번역 인식 에러 화면으로 이동 (True/false로 분기)
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';

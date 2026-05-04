@@ -1,3 +1,6 @@
+// 번역 보관함 리스트 화면
+// 번역 보관함에 저장된 번역 결과들을 리스트 형태로 보여주는 화면
+
 import 'package:flutter/material.dart';
 import 'package:healyx_app/dialogs/archive_delete_dialog.dart';
 import 'translation_detail.dart';

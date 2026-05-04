@@ -21,7 +21,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   // true: 로그인 성공 테스트
   // false: 로그인 실패 테스트
-  final bool mockLoginSuccess = true;
+  final bool mockLoginSuccess = false;
 
   String? idErrorText;
   String? passwordErrorText;

@@ -1,3 +1,5 @@
+// 공통으로 사용할 토스트 메시지 위젯 
+// '리뷰가 등록되었습니다', '보관함에 저장되었습니다' 등의 메시지를 보여줄 때 사용
 import 'package:flutter/material.dart';
 
 class CommonToast {

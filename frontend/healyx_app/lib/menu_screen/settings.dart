@@ -1,3 +1,8 @@
+// 설정 화면
+// 로그인 상태일 때: 사용 언어 변경, 알림 설정, 회원 탈퇴
+// 비로그인 상태일 때: 사용 언어 변경만 표시
+// 12번째 줄 true/false 있는데 그냥 false로 냅두면 메인메뉴 로그인 여부에 따라서 자동으로 반영됨!
+
 import 'package:flutter/material.dart';
 import 'package:healyx_app/choose_language_screen.dart';
 import 'package:healyx_app/dialogs/withdraw_dialog.dart';

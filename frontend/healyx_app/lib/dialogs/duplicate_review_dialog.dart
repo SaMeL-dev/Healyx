@@ -1,3 +1,5 @@
+// 리뷰 등록 시, 이미 해당 병원에 리뷰를 작성한 경우 나타나는 팝업
+// 해당 병원에 이미 리뷰를 작성하셨습니다. 확인 버튼
 import 'package:flutter/material.dart';
 
 class DuplicateReviewDialog extends StatelessWidget {

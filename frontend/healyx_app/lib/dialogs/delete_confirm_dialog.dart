@@ -1,3 +1,5 @@
+// 게시글 삭제 확인 팝업
+// 정말로 삭제하시겠습니까? 삭제 후에는 복구할 수 없습니다. 예/아니오 버튼
 import 'package:flutter/material.dart';
 
 class DeleteConfirmDialog extends StatelessWidget {

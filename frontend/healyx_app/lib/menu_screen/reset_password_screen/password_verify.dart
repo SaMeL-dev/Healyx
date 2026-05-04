@@ -1,3 +1,7 @@
+// 비밀번호 재설정 본인 인증 화면
+// STEP 1. 기존 비밀번호 입력하여 본인 인증
+// 로그인 유효성 검사 실패 시 에러 메시지 노출 (true/false로 분기)
+
 import 'package:flutter/material.dart';
 import 'package:healyx_app/menu_screen/reset_password_screen/password_reset.dart';
 
