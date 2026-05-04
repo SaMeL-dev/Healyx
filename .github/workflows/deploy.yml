@@ -8,32 +8,25 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-
       - name: Set up JDK 21
         uses: actions/setup-java@v3
         with:
           java-version: '21'
           distribution: 'temurin'
-
       - name: Grant execute permission for gradlew
         run: chmod +x backend/Healyx/gradlew
-
       - name: Build with Gradle
         run: |
           cd backend/Healyx
           ./gradlew bootJar --no-daemon
-
       - name: Docker login
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-
       - name: Docker 이미지 빌드
         run: |
           cd backend/Healyx
           docker build -t ${{ secrets.DOCKER_USERNAME }}/healyx-app:latest .
-
       - name: Docker Hub push
         run: docker push ${{ secrets.DOCKER_USERNAME }}/healyx-app:latest
-
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -49,5 +42,16 @@ jobs:
               -p 8080:8080 \
               --restart always \
               -e SPRING_PROFILES_ACTIVE=prod \
-              -e S3_BUCKET_NAME=${{ secrets.S3_BUCKET_NAME }} \
+              -e DB_URL="${{ secrets.DB_URL }}" \
+              -e DB_USERNAME="${{ secrets.DB_USERNAME }}" \
+              -e DB_PASSWORD="${{ secrets.DB_PASSWORD }}" \
+              -e REDIS_HOST="${{ secrets.REDIS_HOST }}" \
+              -e REDIS_PORT="${{ secrets.REDIS_PORT }}" \
+              -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
+              -e JWT_EXPIRATION="${{ secrets.JWT_EXPIRATION }}" \
+              -e GPT_KEY="${{ secrets.GPT_KEY }}" \
+              -e HIRA_KEY="${{ secrets.HIRA_KEY }}" \
+              -e DEEPL_KEY="${{ secrets.DEEPL_KEY }}" \
+              -e GOOGLE_OCR_KEY="${{ secrets.GOOGLE_OCR_KEY }}" \
+              -e S3_BUCKET_NAME="${{ secrets.S3_BUCKET_NAME }}" \
               ${{ secrets.DOCKER_USERNAME }}/healyx-app:latest
