@@ -31,6 +31,20 @@ public class HospitalRecommendRequest {
     @Max(value = 5, message = "riskLevel 범위 오류: 슬라이더 범위(1~5)를 벗어난 값이 전달되었습니다.")
     private Integer riskLevel;
 
+    /**
+     * 정렬 기준: "recommend"(기본) 또는 "distance"
+     * null 또는 미전달 시 recommend(AI 적합도순) 적용
+     */
+    @Pattern(
+            regexp = "^(recommend|distance)$",
+            message = "정렬 기준은 recommend 또는 distance만 허용됩니다."
+    )
+    private String sortBy;
+
+    public String getEffectiveSortBy() {
+        return (sortBy == null || sortBy.isBlank()) ? "recommend" : sortBy;
+    }
+
     public String getEffectiveLanguageCode() {
         return (languageCode == null || languageCode.isBlank()) ? "en" : languageCode;
     }

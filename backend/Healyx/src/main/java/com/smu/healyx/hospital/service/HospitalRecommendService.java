@@ -3,6 +3,7 @@ package com.smu.healyx.hospital.service;
 import com.smu.healyx.agent.dto.HospitalAssistantRequest;
 import com.smu.healyx.agent.dto.HospitalAssistantResponse;
 import com.smu.healyx.agent.service.HospitalAgentService;
+import com.smu.healyx.hira.dto.HospitalDto;
 import com.smu.healyx.hira.dto.HospitalSearchResponse;
 import com.smu.healyx.hospital.dto.HospitalRecommendRequest;
 import com.smu.healyx.hospital.dto.HospitalRecommendResponse;
@@ -10,7 +11,9 @@ import com.smu.healyx.user.dto.UserProfileDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -33,9 +36,22 @@ public class HospitalRecommendService {
                 hospitalAgentService.run(agentRequest, userProfile);
 
         HospitalSearchResponse searchResponse = agentResponse.getHospitals();
-        boolean hasResult = searchResponse != null
-                && searchResponse.getHospitals() != null
-                && !searchResponse.getHospitals().isEmpty();
+        boolean hasResult = searchResponse != null && !searchResponse.getHospitals().isEmpty();
+        List<HospitalDto> hospitals = hasResult ? searchResponse.getHospitals() : List.of();
+
+        // HOS-008: 정렬 적용 후 상위 5개 제한
+        if (hasResult) {
+            if ("distance".equals(request.getEffectiveSortBy())) {
+                hospitals = hospitals.stream()
+                        .sorted(Comparator.comparingInt(HospitalDto::getDistance))
+                        .limit(5)
+                        .collect(Collectors.toList());
+            } else {
+                hospitals = hospitals.stream()
+                        .limit(5)
+                        .collect(Collectors.toList());
+            }
+        }
 
         String emptyReason = hasResult ? null :
                 agentResponse.getDepartmentName()
@@ -45,7 +61,7 @@ public class HospitalRecommendService {
                 .departmentCode(agentResponse.getDepartmentCode())
                 .departmentName(agentResponse.getDepartmentName())
                 .icd10Code(agentResponse.getIcd10Code())
-                .hospitals(hasResult ? searchResponse.getHospitals() : List.of())
+                .hospitals(hospitals)
                 .totalCount(hasResult ? searchResponse.getTotalCount() : 0)
                 .hasResult(hasResult)
                 .emptyReason(emptyReason)
