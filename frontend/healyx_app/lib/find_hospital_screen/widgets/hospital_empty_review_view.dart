@@ -1,3 +1,5 @@
+// 병원 리뷰가 없는 경우 나타나는 뷰
+// 첫번째 리뷰를 써보세요. 텍스트와 함께 드래그 가능한 시트 형태로 나타남
 import 'package:flutter/material.dart';
 
 class HospitalEmptyReviewView extends StatelessWidget {

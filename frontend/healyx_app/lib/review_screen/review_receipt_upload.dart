@@ -1,3 +1,6 @@
+// 리뷰 영수증 업로드 화면
+// 리뷰 결과 목록에서 선택한 병원 정보와 함께 영수증 인증 방식을 선택하는 화면
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'review_receipt_loading.dart';

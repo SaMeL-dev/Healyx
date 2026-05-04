@@ -1,3 +1,7 @@
+// 리뷰 영수증 인식 실패 화면
+// 영수증 인식이 실패했을 때 사용자에게 안내 메시지를 보여주는 화면
+// 성공/실패 여부에 따라 '다시 촬영하기' 또는 '다시 선택하기' 버튼으로 분기 (true/false -> 퍼블리싱 테스트용)
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'review_receipt_loading.dart';

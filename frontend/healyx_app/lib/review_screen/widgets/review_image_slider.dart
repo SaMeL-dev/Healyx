@@ -1,3 +1,6 @@
+// 리뷰 이미지 슬라이더 위젯
+// 리뷰 작성 화면에서 리뷰에 첨부된 이미지들을 가로로 스크롤 가능한 슬라이더 형태로 보여주는 위젯
+// 이미지가 없는 경우 기본 이미지 아이콘을 보여주도록 구성
 import 'package:flutter/material.dart';
 
 class ReviewImageSlider extends StatefulWidget {

@@ -1,3 +1,5 @@
+// 로그인 필요 팝업
+// 로그인이 필요한 기능입니다. 로그인 하시겠습니까? 예/아니오 버튼
 import 'package:flutter/material.dart';
 import '../login_signup_screen/login_screen.dart';
 

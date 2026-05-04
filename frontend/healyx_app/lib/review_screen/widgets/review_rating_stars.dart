@@ -1,3 +1,5 @@
+// 리뷰 별점 위젯
+// 리뷰 검색 결과 화면과 리뷰 작성 화면에서 리뷰의 별점을 표시하는 위젯
 import 'package:flutter/material.dart';
 
 class ReviewRatingStars extends StatelessWidget {

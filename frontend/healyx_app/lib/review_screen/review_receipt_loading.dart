@@ -1,3 +1,6 @@
+// 리뷰 영수증 인증 로딩 화면
+// 영수증 인증이 진행되는 동안 로딩 애니메이션과 함께 영수증 미리보기를 보여주는 화면
+// 성공 시 리뷰 작성 화면으로 이동, 실패 시 영수증 인증 에러 화면으로 이동 (True/false로 분기)
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';

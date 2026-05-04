@@ -1,3 +1,5 @@
+// 병원 리뷰 헤더 (리뷰가 몇 개 쓰여있는지 보여주고, 리뷰쓰기 버튼이 있는 헤더)
+// 리뷰 개수와 리뷰쓰기 버튼이 포함된 헤더
 import 'package:flutter/material.dart';
 
 class HospitalReviewHeader extends StatelessWidget {

@@ -1,3 +1,6 @@
+// 병원 찾기 상세 화면
+// 로그인에 따라 리뷰쓰기 버튼 클릭 시 로그인 팝업 또는 리뷰 작성 화면으로 분기 (테스트용)
+// 로그인 여부는 병원 찾기 결과 화면에서 전달받는 isLoggedIn 변수로 판단 
 import 'package:flutter/material.dart';
 
 import '../review_screen/review_receipt_upload.dart';

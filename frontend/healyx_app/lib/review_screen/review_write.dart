@@ -1,3 +1,5 @@
+// 리뷰 작성 화면
+// 리뷰 검색 결과 화면에서 선택한 병원 정보와 함께 리뷰 작성 폼을 보여주는 화면
 import 'dart:io';
 
 import 'package:flutter/material.dart';

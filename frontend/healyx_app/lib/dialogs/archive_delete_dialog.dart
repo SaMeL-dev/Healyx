@@ -1,3 +1,5 @@
+//게시물 삭제 확인 팝업
+//정말로 삭제하시겠습니까? 예/아니오 버튼
 import 'package:flutter/material.dart';
 
 class ArchiveDeleteDialog extends StatelessWidget {

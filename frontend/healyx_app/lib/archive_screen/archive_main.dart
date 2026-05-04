@@ -1,3 +1,5 @@
+// 보관함 메인 화면
+// - 의료 번역 보관함, 커뮤니티 북마크, 내 게시글/댓글, 내 리뷰로 이동할 수 있는 메뉴 리스트 형태의 화면 
 import 'package:flutter/material.dart';
 import 'translation_list.dart';
 import 'bookmark.dart';

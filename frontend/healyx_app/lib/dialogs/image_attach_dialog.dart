@@ -1,3 +1,4 @@
+// 이미지 첨부 팝업 (글 작성 시 카메라 촬영/갤러리 선택) -> 리뷰 작성과 커뮤니티 글 작성에서 사용
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 

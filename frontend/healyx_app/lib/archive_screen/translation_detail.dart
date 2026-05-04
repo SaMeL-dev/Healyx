@@ -1,3 +1,5 @@
+// 번역 보관함 상세 화면 (가로/세로 버전 두 개)
+// 원본 이미지와 번역 이미지가 각각 가로/세로 버전으로 보여짐
 import 'package:flutter/material.dart';
 import 'translation_list.dart'; // TranslationItem 모델이 여기 있음
 

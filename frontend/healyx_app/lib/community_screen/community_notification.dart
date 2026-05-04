@@ -1,3 +1,5 @@
+// 커뮤니티 알림창 화면 (알림창 아이콘은 메인화면에 있음!)
+// 좋아요, 댓글, 대댓글 알림이 리스트 형태로 보여지는 화면
 import 'package:flutter/material.dart';
 
 class CommunityNotificationScreen extends StatelessWidget {
