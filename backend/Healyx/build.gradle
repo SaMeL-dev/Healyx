@@ -59,6 +59,9 @@ dependencies {
 
 	// Email (SMTP)
 	implementation 'org.springframework.boot:spring-boot-starter-mail'
+
+	// Load Balancer 상태 검사용
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 }
 
 tasks.named('test') {
