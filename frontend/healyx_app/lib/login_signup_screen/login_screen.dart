@@ -21,7 +21,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   // true: 로그인 성공 테스트
   // false: 로그인 실패 테스트
-  final bool mockLoginSuccess = false;
+  final bool mockLoginSuccess = true;
 
   String? idErrorText;
   String? passwordErrorText;
@@ -58,7 +58,9 @@ class _LoginScreenState extends State<LoginScreen> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => const MainScreen(),
+          builder: (context) => const MainScreen(
+            isLoggedIn: true,
+          ),
         ),
       );
     } else {

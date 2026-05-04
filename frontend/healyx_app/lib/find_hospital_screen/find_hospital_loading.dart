@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'find_hospital_result.dart';
 
 class FindHospitalLoading extends StatefulWidget {
   const FindHospitalLoading({super.key});
@@ -10,18 +12,33 @@ class FindHospitalLoading extends StatefulWidget {
 class _FindHospitalLoadingState extends State<FindHospitalLoading>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
+  Timer? _moveTimer;
 
   @override
   void initState() {
     super.initState();
+
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 900),
     )..repeat();
+
+    // 임시 처리: 3초 후 병원 찾기 결과 화면으로 이동
+    _moveTimer = Timer(const Duration(seconds: 3), () {
+      if (!mounted) return;
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const FindHospitalResultScreen(),
+        ),
+      );
+    });
   }
 
   @override
   void dispose() {
+    _moveTimer?.cancel();
     _controller.dispose();
     super.dispose();
   }

@@ -14,7 +14,7 @@ import '../login_signup_screen/login_screen.dart';
 class MenuScreen extends StatelessWidget {
   final bool isLoggedIn;
 
-  const MenuScreen({super.key, this.isLoggedIn = true}); //true=로그인, false=비로그인
+  const MenuScreen({super.key, this.isLoggedIn = false}); //true=로그인, false=비로그인
 
   @override
   Widget build(BuildContext context) {

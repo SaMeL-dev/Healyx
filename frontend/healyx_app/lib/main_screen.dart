@@ -5,17 +5,131 @@ import 'community_screen/community_main.dart';
 import 'review_screen/review_search.dart';
 import 'community_screen/community_notification.dart';
 import 'menu_screen/menu_main.dart';
+import 'login_signup_screen/login_screen.dart';
 
 class MainScreen extends StatelessWidget {
-  const MainScreen({super.key});
+  // true = 로그인 상태, false = 비로그인 상태
+  final bool isLoggedIn;
 
-  void _showMessage(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        duration: const Duration(seconds: 1),
-      ),
+  const MainScreen({
+    super.key,
+    this.isLoggedIn = false,
+  });
+
+  void _showLoginRequiredDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black.withOpacity(0.55),
+      builder: (dialogContext) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(24, 34, 24, 28),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(26),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  '로그인이 필요한 기능입니다.\n로그인 하시겠습니까?',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 18,
+                    height: 1.45,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF2260FF),
+                  ),
+                ),
+                const SizedBox(height: 34),
+                Row(
+                  children: [
+                    Expanded(
+                      child: SizedBox(
+                        height: 54,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.pop(dialogContext);
+
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const LoginScreen(),
+                              ),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF2260FF),
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(28),
+                            ),
+                          ),
+                          child: const Text(
+                            '예',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: SizedBox(
+                        height: 54,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.pop(dialogContext);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFC9D6FF),
+                            foregroundColor: const Color(0xFF2260FF),
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(28),
+                            ),
+                          ),
+                          child: const Text(
+                            '아니오',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
+  }
+
+  void _moveIfLoggedIn({
+    required BuildContext context,
+    required Widget screen,
+  }) {
+    if (isLoggedIn) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => screen,
+        ),
+      );
+    } else {
+      _showLoginRequiredDialog(context);
+    }
   }
 
   @override
@@ -38,7 +152,9 @@ class MainScreen extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => const MenuScreen(),
+                          builder: (_) => MenuScreen(
+                            isLoggedIn: isLoggedIn,
+                          ),
                         ),
                       );
                     },
@@ -74,13 +190,11 @@ class MainScreen extends StatelessWidget {
                     ),
                   ),
                   IconButton(
-                    // 알림 아이콘 → notification_screen/community_notification_screen.dart
+                    // 알림 아이콘 → 로그인 필요
                     onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const CommunityNotificationScreen(),
-                        ),
+                      _moveIfLoggedIn(
+                        context: context,
+                        screen: const CommunityNotificationScreen(),
                       );
                     },
                     icon: const Icon(
@@ -113,7 +227,8 @@ class MainScreen extends StatelessWidget {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => const FindHospitalMain(),
+                                    builder: (context) =>
+                                    const FindHospitalMain(),
                                   ),
                                 );
                               },
@@ -128,7 +243,8 @@ class MainScreen extends StatelessWidget {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => const TranslationUploadScreen(),
+                                    builder: (context) =>
+                                    const TranslationUploadScreen(),
                                   ),
                                 );
                               },
@@ -148,13 +264,11 @@ class MainScreen extends StatelessWidget {
                         children: [
                           _buildSectionTitle(
                             title: '리뷰',
-                            // 리뷰 더보기 → review_screen/review_search.dart
+                            // 리뷰 더보기 → 로그인 필요
                             onArrowTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const ReviewSearchScreen(),
-                                ),
+                              _moveIfLoggedIn(
+                                context: context,
+                                screen: const ReviewSearchScreen(),
                               );
                             },
                           ),
@@ -175,13 +289,11 @@ class MainScreen extends StatelessWidget {
                           const SizedBox(height: 18),
                           _buildSectionTitle(
                             title: '커뮤니티',
-                            // 커뮤니티 더보기 → community_screen/community_main.dart
+                            // 커뮤니티 더보기 → 로그인 필요
                             onArrowTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const CommunityMainScreen(),
-                                ),
+                              _moveIfLoggedIn(
+                                context: context,
+                                screen: const CommunityMainScreen(),
                               );
                             },
                           ),
@@ -272,7 +384,11 @@ class MainScreen extends StatelessWidget {
         ),
         IconButton(
           onPressed: onArrowTap,
-          icon: const Icon(Icons.chevron_right, color: Color(0xFF7C9CFF), size: 22),
+          icon: const Icon(
+            Icons.chevron_right,
+            color: Color(0xFF7C9CFF),
+            size: 22,
+          ),
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(),
           splashRadius: 18,
@@ -305,19 +421,47 @@ class MainScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF4E7CFF))),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF4E7CFF),
+            ),
+          ),
           const SizedBox(height: 4),
-          Text(subtitle, style: const TextStyle(fontSize: 11, color: Colors.black87)),
+          Text(
+            subtitle,
+            style: const TextStyle(fontSize: 11, color: Colors.black87),
+          ),
           const SizedBox(height: 8),
           Row(
             children: [
               const Icon(Icons.star, size: 14, color: Color(0xFF7C9CFF)),
               const SizedBox(width: 4),
-              Text(rating, style: const TextStyle(fontSize: 11, color: Color(0xFF7C9CFF), fontWeight: FontWeight.w600)),
+              Text(
+                rating,
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: Color(0xFF7C9CFF),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
               const SizedBox(width: 14),
-              const Icon(Icons.chat_bubble_outline, size: 14, color: Color(0xFF7C9CFF)),
+              const Icon(
+                Icons.chat_bubble_outline,
+                size: 14,
+                color: Color(0xFF7C9CFF),
+              ),
               const SizedBox(width: 4),
-              Text(comments, style: const TextStyle(fontSize: 11, color: Color(0xFF7C9CFF), fontWeight: FontWeight.w600)),
+              Text(
+                comments,
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: Color(0xFF7C9CFF),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ],
           ),
         ],
@@ -349,19 +493,51 @@ class MainScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF4E7CFF))),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF4E7CFF),
+            ),
+          ),
           const SizedBox(height: 4),
-          Text(subtitle, style: const TextStyle(fontSize: 11, color: Colors.black87)),
+          Text(
+            subtitle,
+            style: const TextStyle(fontSize: 11, color: Colors.black87),
+          ),
           const SizedBox(height: 8),
           Row(
             children: [
-              const Icon(Icons.thumb_up_alt_outlined, size: 14, color: Color(0xFF7C9CFF)),
+              const Icon(
+                Icons.thumb_up_alt_outlined,
+                size: 14,
+                color: Color(0xFF7C9CFF),
+              ),
               const SizedBox(width: 4),
-              Text(likes, style: const TextStyle(fontSize: 11, color: Color(0xFF7C9CFF), fontWeight: FontWeight.w600)),
+              Text(
+                likes,
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: Color(0xFF7C9CFF),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
               const SizedBox(width: 14),
-              const Icon(Icons.chat_bubble_outline, size: 14, color: Color(0xFF7C9CFF)),
+              const Icon(
+                Icons.chat_bubble_outline,
+                size: 14,
+                color: Color(0xFF7C9CFF),
+              ),
               const SizedBox(width: 4),
-              Text(comments, style: const TextStyle(fontSize: 11, color: Color(0xFF7C9CFF), fontWeight: FontWeight.w600)),
+              Text(
+                comments,
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: Color(0xFF7C9CFF),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ],
           ),
         ],
