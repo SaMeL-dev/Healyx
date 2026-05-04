@@ -1,287 +1,91 @@
+// 회원 탈퇴 완료 화면
+// 탈퇴 완료 체크 아이콘과 확인 버튼 표시
+// 확인 버튼 탭 → main_screen.dart (메인 화면)으로 이동
 import 'package:flutter/material.dart';
-import 'package:healyx_app/menu_screen/profile_edit.dart';
-import 'package:healyx_app/menu_screen/settings.dart';
-import 'package:healyx_app/archive_screen/archive_main.dart';
-import 'package:healyx_app/dialogs/logout_dialog.dart';
-import 'package:healyx_app/login_signup_screen/login_screen.dart';
+import 'package:healyx_app/main_screen.dart';
 
-class MenuScreen extends StatelessWidget {
-  final bool isLoggedIn;
+class WithdrawCompleteScreen extends StatelessWidget {
+  const WithdrawCompleteScreen({super.key});
 
-  const MenuScreen({super.key, this.isLoggedIn = true});
+  static const Color mainBlue  = Color(0xFF2260FF);
+  static const Color lightBlue = Color(0xFFE2EAFF);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.chevron_left, color: Colors.black, size: 28),
-          onPressed: () => Navigator.pop(context),
-        ),
-        centerTitle: true,
-        title: const Text(
-          '메뉴',
-          style: TextStyle(
-            color: Color(0xFF2260FF),
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
-      body: isLoggedIn ? const _LoggedInBody() : const _GuestBody(),
-    );
-  }
-}
-
-// ─────────────────────────────────────────
-// 비로그인 UI
-// ─────────────────────────────────────────
-class _GuestBody extends StatelessWidget {
-  const _GuestBody();
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 28),
-
-          // → LoginScreen으로 이동
-          GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const LoginScreen()),
-              );
-            },
-            child: const Row(
-              children: [
-                Text(
-                  '로그인을 해주세요',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.black87,
-                  ),
-                ),
-                SizedBox(width: 4),
-                Icon(
-                  Icons.chevron_right,
-                  color: Color(0xFF2260FF),
-                  size: 26,
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 40),
-
-          _MenuTile(
-            icon: Icons.settings_outlined,
-            label: '설정',
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const SettingsScreen(isLoggedIn: false)),
-              );
-            },
-            isLast: true,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────
-// 로그인 UI
-// ─────────────────────────────────────────
-class _LoggedInBody extends StatelessWidget {
-  const _LoggedInBody();
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          const SizedBox(height: 24),
-
-          GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const ProfileEditScreen()),
-              );
-            },
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                Container(
-                  width: 90,
-                  height: 90,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFCAD6FF),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.person_outline,
-                    size: 50,
-                    color: Color(0xFF2260FF),
-                  ),
-                ),
-                Positioned(
-                  bottom: 2,
-                  right: 2,
-                  child: Container(
-                    width: 26,
-                    height: 26,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: const Color(0xFFE0E0E0)),
-                    ),
-                    child: const Icon(
-                      Icons.edit_outlined,
-                      size: 14,
-                      color: Color(0xFF2260FF),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 14),
-
-          const Text(
-            '닉네임123님 안녕하세요',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: Colors.black87,
-            ),
-          ),
-
-          const SizedBox(height: 36),
-
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Column(
-              children: [
-                _MenuTile(
-                  icon: Icons.inventory_2_outlined,
-                  label: '보관함',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const ArchiveMainScreen(),
-                      ),
-                    );
-                  },
-                ),
-                _MenuTile(
-                  icon: Icons.settings_outlined,
-                  label: '설정',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const SettingsScreen(isLoggedIn: true),
-                      ),
-                    );
-                  },
-                ),
-                _MenuTile(
-                  icon: Icons.lock_outline,
-                  label: '비밀번호 변경',
-                  onTap: () {},
-                ),
-                _MenuTile(
-                  icon: Icons.logout,
-                  label: '로그아웃',
-                  onTap: () {
-                   showDialog(
-                    context: context,
-                    barrierColor: const Color(0xFF2260FF).withOpacity(0.4),
-                    builder: (_) => const LogoutDialog(),
-                   );
-                  },
-                  isLast: true,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────
-// 공통 메뉴 타일
-// ─────────────────────────────────────────
-class _MenuTile extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-  final bool isLast;
-
-  const _MenuTile({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-    this.isLast = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
+      body: SafeArea(
+        child: Center(
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Row(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                // 체크 카드
                 Container(
-                  width: 40,
-                  height: 40,
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 48),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE2EAFF),
-                    borderRadius: BorderRadius.circular(12),
+                    color: lightBlue,
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                  child: Icon(icon, color: const Color(0xFF2260FF), size: 22),
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 100,
+                        height: 100,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: mainBlue, width: 4),
+                        ),
+                        child: const Icon(Icons.check, color: mainBlue, size: 56),
+                      ),
+                      const SizedBox(height: 24),
+                      const Text(
+                        '회원탈퇴 완료',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                          color: mainBlue,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Text(
-                    label,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.black87,
+
+                const SizedBox(height: 28),
+
+                // 확인 버튼 → MainScreen으로 이동
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (_) => const MainScreen()),
+                        (route) => false,
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: mainBlue,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                    ),
+                    child: const Text(
+                      '확인',
+                      style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
                     ),
                   ),
-                ),
-                const Icon(
-                  Icons.chevron_right,
-                  color: Color(0xFFBBBBBB),
-                  size: 22,
                 ),
               ],
             ),
           ),
         ),
-        if (!isLast)
-          const Divider(height: 1, thickness: 1, color: Color(0xFFF2F2F2)),
-      ],
+      ),
     );
   }
 }

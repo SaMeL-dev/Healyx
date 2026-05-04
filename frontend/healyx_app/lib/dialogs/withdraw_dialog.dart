@@ -1,5 +1,7 @@
+// 회원탈퇴 확인 팝업
+// 회원탈퇴 하시겠습니까? 계정 삭제 작업은 영구적이며 되돌릴 수 없습니다. 회원 탈퇴 즉시 귀하의 계정에 액세스할 수 없게 됩니다. 예/아니오 버튼
 import 'package:flutter/material.dart';
-import 'package:healyx_app/main_screen.dart';
+import 'package:healyx_app/menu_screen/withdraw_complete.dart';
 
 class WithdrawDialog extends StatelessWidget {
   const WithdrawDialog({super.key});
@@ -66,12 +68,13 @@ class WithdrawDialog extends StatelessWidget {
                     height: 48,
                     child: ElevatedButton(
                       onPressed: () {
+                        // 예 → menu_screen/withdraw_complete.dart (회원탈퇴 완료 화면)
                         Navigator.pushAndRemoveUntil(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => const MainScreen(),
+                            builder: (_) => const WithdrawCompleteScreen(),
                           ),
-                          (route) => false, // 모든 이전 스택 제거
+                          (route) => false,
                         );
                       },
                       style: ElevatedButton.styleFrom(
@@ -84,10 +87,7 @@ class WithdrawDialog extends StatelessWidget {
                       ),
                       child: const Text(
                         '예',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                        ),
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
                       ),
                     ),
                   ),
@@ -108,10 +108,7 @@ class WithdrawDialog extends StatelessWidget {
                       ),
                       child: const Text(
                         '아니요',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                        ),
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
                       ),
                     ),
                   ),
