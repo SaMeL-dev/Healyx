@@ -51,6 +51,7 @@ jobs:
               -e JWT_EXPIRATION="${{ secrets.JWT_EXPIRATION }}" \
               -e GPT_KEY="${{ secrets.GPT_KEY }}" \
               -e HIRA_KEY="${{ secrets.HIRA_KEY }}" \
+              -e HIRA_URL="${{ secrets.HIRA_URL }}" \
               -e DEEPL_KEY="${{ secrets.DEEPL_KEY }}" \
               -e GOOGLE_OCR_KEY="${{ secrets.GOOGLE_OCR_KEY }}" \
               -e S3_BUCKET_NAME="${{ secrets.S3_BUCKET_NAME }}" \
