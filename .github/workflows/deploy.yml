@@ -34,6 +34,9 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            mkdir -p /home/ubuntu/firebase
+            echo '${{ secrets.FIREBASE_JSON }}' > /home/ubuntu/firebase/healyx-firebase.json
+
             docker pull ${{ secrets.DOCKER_USERNAME }}/healyx-app:latest
             docker stop healyx-app || true
             docker rm healyx-app || true
@@ -41,6 +44,7 @@ jobs:
               --name healyx-app \
               -p 8080:8080 \
               --restart always \
+              -v /home/ubuntu/firebase:/app/firebase \
               -e SPRING_PROFILES_ACTIVE=prod \
               -e DB_URL="${{ secrets.DB_URL }}" \
               -e DB_USERNAME="${{ secrets.DB_USERNAME }}" \
@@ -48,11 +52,16 @@ jobs:
               -e REDIS_HOST="${{ secrets.REDIS_HOST }}" \
               -e REDIS_PORT="${{ secrets.REDIS_PORT }}" \
               -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
-              -e JWT_EXPIRATION="${{ secrets.JWT_EXPIRATION }}" \
+              -e JWT_ACCESS_EXPIRATION="${{ secrets.JWT_ACCESS_EXPIRATION }}" \
+              -e JWT_REFRESH_EXPIRATION="${{ secrets.JWT_REFRESH_EXPIRATION }}" \
               -e GPT_KEY="${{ secrets.GPT_KEY }}" \
               -e HIRA_KEY="${{ secrets.HIRA_KEY }}" \
               -e HIRA_URL="${{ secrets.HIRA_URL }}" \
               -e DEEPL_KEY="${{ secrets.DEEPL_KEY }}" \
               -e GOOGLE_OCR_KEY="${{ secrets.GOOGLE_OCR_KEY }}" \
+              -e VISION_KEY="${{ secrets.VISION_KEY }}" \
+              -e FIREBASE_KEY_PATH="${{ secrets.FIREBASE_KEY }}" \
+              -e MAIL_USERNAME="${{ secrets.MAIL_USERNAME }}" \
+              -e MAIL_PASSWORD="${{ secrets.MAIL_PASSWORD }}" \
               -e S3_BUCKET_NAME="${{ secrets.S3_BUCKET_NAME }}" \
               ${{ secrets.DOCKER_USERNAME }}/healyx-app:latest
