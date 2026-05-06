@@ -42,6 +42,8 @@ public class SecurityConfig {
                                  "/api/auth/reset-password").permitAll()
                 // 게스트 허용: 병원 찾기
                 .requestMatchers("/api/hospitals/**").permitAll()
+                // 게스트 허용: 의료비 예측
+                .requestMatchers("/api/cost/**").permitAll()
                 // 게스트 허용: 의료 번역
                 .requestMatchers("/api/translation/**", "/api/translations/**").permitAll()
                 // 게스트 허용: GPT 증상 분석
