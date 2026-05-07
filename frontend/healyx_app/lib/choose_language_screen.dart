@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'main_screen.dart';
 
 class ChooseLanguageScreen extends StatefulWidget {
@@ -12,15 +13,21 @@ class _ChooseLanguageScreenState extends State<ChooseLanguageScreen> {
   int selectedIndex = 0;
 
   final List<Map<String, String>> languages = [
-    {'flag': '🇰🇷', 'title': '한국어'},
-    {'flag': '🇺🇸', 'title': 'English'},
-    {'flag': '🇨🇳', 'title': '中文'},
-    {'flag': '🇯🇵', 'title': '日本語'},
-    {'flag': '🇻🇳', 'title': 'Tiếng Việt'},
-    {'flag': '🇹🇭', 'title': 'ไทย'},
+    {'flag': '🇰🇷', 'title': '한국어', 'code': 'ko'},
+    {'flag': '🇺🇸', 'title': 'English', 'code': 'en'},
+    {'flag': '🇨🇳', 'title': '中文', 'code': 'zh'},
+    {'flag': '🇯🇵', 'title': '日本語', 'code': 'ja'},
+    {'flag': '🇻🇳', 'title': 'Tiếng Việt', 'code': 'vi'},
+    {'flag': '🇹🇭', 'title': 'ไทย', 'code': 'th'},
   ];
 
-  void onSelectLanguage() {
+  Future<void> onSelectLanguage() async {
+    // 선택한 언어 코드를 SharedPreferences에 저장
+    final prefs = await SharedPreferences.getInstance();
+    final code = languages[selectedIndex]['code'] ?? 'ko';
+    await prefs.setString('language_pref', code);
+
+    if (!mounted) return;
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(

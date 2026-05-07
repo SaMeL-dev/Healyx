@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:healyx_app/Initial_Screen.dart';
-import 'package:healyx_app/Main_Screen.dart';
 import 'login_signup_screen/login_screen.dart';
 import 'find_hospital_screen/find_hospital_result.dart';
 // 만약 본인이 만든 화면만 확인하고 싶은 경우 2번째 라인 해당 화면을 개발한 페이지 쓰고
@@ -17,7 +16,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: const MainScreen(),
+      home: const InitialScreen(),
     );
   }
 }
