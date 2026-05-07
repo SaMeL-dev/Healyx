@@ -2,6 +2,8 @@ name: HEALYX CI/CD
 on:
   push:
     branches: [ main ]
+    paths:
+      - 'backend/**'
 jobs:
   deploy:
     runs-on: ubuntu-latest
