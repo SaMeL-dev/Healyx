@@ -71,8 +71,9 @@ public class CostPredictionService {
 
         // ── 9. 보험 가입자 본인부담률 적용 ────────────────────────
         double insuranceFactor = 1.0;
-        if (insured) {
-            insuranceFactor = "outpatient".equals(visitType) ? 0.30 : 0.20;
+        if (insured && reference.getNoInsuranceAvgCost() > 0) {
+            insuranceFactor = (double) reference.getInsuranceAvgCost()
+                    / reference.getNoInsuranceAvgCost();
         }
 
         // ── 10. 최종 금액 계산 ─────────────────────────────────────
