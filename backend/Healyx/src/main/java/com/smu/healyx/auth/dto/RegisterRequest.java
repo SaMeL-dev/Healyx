@@ -1,11 +1,13 @@
 package com.smu.healyx.auth.dto;
 
+import com.smu.healyx.common.validation.PasswordMatch;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 
 import java.time.LocalDate;
 
 @Getter
+@PasswordMatch
 public class RegisterRequest {
 
     @NotBlank
@@ -26,6 +28,9 @@ public class RegisterRequest {
     @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?]).{7,12}$",
              message = "비밀번호는 영문, 숫자, 특수기호를 포함한 7~12자여야 합니다.")
     private String password;
+
+    @NotBlank(message = "비밀번호 확인은 필수입니다.")
+    private String passwordConfirm;
 
     @NotBlank
     @Size(max = 10)
