@@ -39,7 +39,6 @@ out/
 
 ### 환경 설정 파일 (민감정보) ###
 **/src/main/resources/application-local.properties
-**/src/main/resources/application-prod.properties
 
 ### Firebase 서비스 계정 키 ###
 **/src/main/resources/firebase/

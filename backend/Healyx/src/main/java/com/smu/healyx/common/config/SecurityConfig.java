@@ -56,6 +56,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/agent/**").permitAll()
                 // Swagger UI
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                // Application Load Balancer
+                .requestMatchers("/actuator/health").permitAll()
                 // 그 외는 인증 필요
                 .anyRequest().authenticated()
             )

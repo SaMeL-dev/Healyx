@@ -2,6 +2,8 @@ name: HEALYX CI/CD
 on:
   push:
     branches: [ main ]
+    paths:
+      - 'backend/**'
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -29,10 +31,15 @@ jobs:
       - name: Docker 이미지 빌드
         run: |
           cd backend/Healyx
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/healyx-app:latest .
+          docker build \
+            -t ${{ secrets.DOCKER_USERNAME }}/healyx-app:${{ github.sha }} \
+            -t ${{ secrets.DOCKER_USERNAME }}/healyx-app:latest \
+            .
 
       - name: Docker Hub push
-        run: docker push ${{ secrets.DOCKER_USERNAME }}/healyx-app:latest
+        run: |
+          docker push ${{ secrets.DOCKER_USERNAME }}/healyx-app:${{ github.sha }}
+          docker push ${{ secrets.DOCKER_USERNAME }}/healyx-app:latest
 
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.0.0
@@ -41,13 +48,39 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            mkdir -p /home/ubuntu/firebase
+            echo '${{ secrets.FIREBASE_JSON }}' > /home/ubuntu/firebase/healyx-firebase.json
+
             docker pull ${{ secrets.DOCKER_USERNAME }}/healyx-app:latest
+
             docker stop healyx-app || true
             docker rm healyx-app || true
+
             docker run -d \
               --name healyx-app \
               -p 8080:8080 \
               --restart always \
+              --memory="512m" \
+              --memory-swap="1g" \
+              -v /home/ubuntu/firebase:/app/firebase \
               -e SPRING_PROFILES_ACTIVE=prod \
-              -e S3_BUCKET_NAME=${{ secrets.S3_BUCKET_NAME }} \
+              -e DB_URL="${{ secrets.DB_URL }}" \
+              -e DB_USERNAME="${{ secrets.DB_USERNAME }}" \
+              -e DB_PASSWORD="${{ secrets.DB_PASSWORD }}" \
+              -e REDIS_HOST="${{ secrets.REDIS_HOST }}" \
+              -e REDIS_PORT="${{ secrets.REDIS_PORT }}" \
+              -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
+              -e JWT_ACCESS_EXPIRATION="${{ secrets.JWT_ACCESS_EXPIRATION }}" \
+              -e JWT_REFRESH_EXPIRATION="${{ secrets.JWT_REFRESH_EXPIRATION }}" \
+              -e GPT_KEY="${{ secrets.GPT_KEY }}" \
+              -e HIRA_KEY="${{ secrets.HIRA_KEY }}" \
+              -e HIRA_URL="${{ secrets.HIRA_URL }}" \
+              -e DEEPL_KEY="${{ secrets.DEEPL_KEY }}" \
+              -e GOOGLE_OCR_KEY="${{ secrets.GOOGLE_OCR_KEY }}" \
+              -e VISION_KEY="${{ secrets.VISION_KEY }}" \
+              -e FIREBASE_KEY_PATH="${{ secrets.FIREBASE_KEY }}" \
+              -e MAIL_USERNAME="${{ secrets.MAIL_USERNAME }}" \
+              -e MAIL_PASSWORD="${{ secrets.MAIL_PASSWORD }}" \
+              -e S3_BUCKET_NAME="${{ secrets.S3_BUCKET_NAME }}" \
               ${{ secrets.DOCKER_USERNAME }}/healyx-app:latest
+            docker image prune -a -f
