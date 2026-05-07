@@ -20,4 +20,11 @@ RUN apt-get update --fix-missing && \
 
 COPY --from=builder /app/build/libs/*.jar app.jar
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", \
+  "-Xms128m", \
+  "-Xmx350m", \
+  "-XX:MetaspaceSize=128m", \
+  "-XX:MaxMetaspaceSize=200m", \
+  "-XX:ReservedCodeCacheSize=64m", \
+  "-XX:+UseSerialGC", \
+  "-jar", "app.jar"]
