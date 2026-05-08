@@ -39,9 +39,25 @@ public class ReviewService {
     private final UserRepository userRepository;
     private final OcrVerificationService ocrVerificationService;
     private final S3UploadService s3UploadService;
+    private final ReviewHospitalSearchService reviewHospitalSearchService;
 
     private static final int MAX_IMAGES = 5;
     private static final int MAX_CONTENT_LENGTH = 2000;
+
+    // ── 리뷰 작성 진입 — 병원 검색 (HX_R_002, UI-REV-01/02) ──────────
+
+    /**
+     * 리뷰 작성 진입 화면에서 병원을 직접 검색한다.
+     *
+     * <p>프로그램 목록(v1.0)이 명시한 메소드 시그니처를 보존하기 위한 위임 메소드.
+     * 실제 HIRA 호출·upsert·별점 집계 책임은 {@link ReviewHospitalSearchService}로
+     * 분리되어 있으며, 본 메소드는 OCR/CRUD/S3로 비대해진 ReviewService에
+     * 검색 로직을 직접 흡수하지 않으면서 외부 인터페이스 안정성을 유지한다.
+     */
+    public ReviewHospitalSearchResponse searchHospitalForReview(
+            String name, String region, int page, int size) {
+        return reviewHospitalSearchService.search(name, region, page, size);
+    }
 
     // ── 리뷰 등록 (RV-005~007) ───────────────────────────────────────
 

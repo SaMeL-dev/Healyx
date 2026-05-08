@@ -2,6 +2,7 @@ package com.smu.healyx.hospital.controller;
 
 import com.smu.healyx.common.dto.ApiResponse;
 import com.smu.healyx.common.security.SecurityUtils;
+import com.smu.healyx.hospital.dto.BodyIconResponse;
 import com.smu.healyx.hospital.dto.HospitalRecommendRequest;
 import com.smu.healyx.hospital.dto.HospitalRecommendResponse;
 import com.smu.healyx.hospital.service.HospitalRecommendService;
@@ -37,6 +38,22 @@ public class HospitalRecommendController {
         UserProfileDto userProfile = resolveUserProfile(authentication);
         return ResponseEntity.ok(ApiResponse.success(
                 hospitalRecommendService.recommend(request, userProfile)));
+    }
+
+    // ── 신체 아이콘 → 증상 키워드 (HX_H_002, UI-HOS-05) — 게스트 허용 ──
+    // 인터페이스 설계서 IF-006 / 요구사항 HOS-003: STT는 Flutter SDK 직접 호출(PM 확정).
+    // 본 컨트롤러는 STT 백엔드 엔드포인트를 보유하지 않는다.
+
+    @Operation(
+            summary = "신체 아이콘 키워드 조회",
+            description = "Flutter UI에서 신체 부위 아이콘을 선택하면 해당 부위의 증상 키워드 목록을 반환. " +
+                    "다중 선택 시 N회 호출 후 클라이언트에서 합성하여 추천 API symptom으로 전달."
+    )
+    @GetMapping("/body-icons/{iconId}/keywords")
+    public ResponseEntity<ApiResponse<BodyIconResponse>> getBodyIconKeywords(
+            @PathVariable String iconId) {
+        return ResponseEntity.ok(ApiResponse.success(
+                hospitalRecommendService.mapBodyIconToKeyword(iconId)));
     }
 
     /**

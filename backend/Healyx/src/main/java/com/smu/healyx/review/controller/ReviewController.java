@@ -31,6 +31,25 @@ public class ReviewController {
     private final OcrVerificationService ocrVerificationService;
     private final ReviewService reviewService;
 
+    // ── 0. 리뷰 전용 병원 검색 (HX_R_002, UI-REV-01 / UI-REV-02) — 게스트 허용 ─
+
+    @Operation(
+            summary = "리뷰 전용 병원 검색",
+            description = "병원명·지역으로 HIRA에서 직접 검색. 평균 별점·리뷰 수 포함. " +
+                    "리뷰 작성 진입 화면(UI-REV-01,02)에서 사용. SecurityConfig상 GET /api/reviews/hospitals/** permitAll."
+    )
+    @GetMapping("/hospitals/search")
+    public ResponseEntity<ApiResponse<ReviewHospitalSearchResponse>> searchHospitals(
+            @RequestParam String name,
+            @RequestParam(required = false) String region,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        ReviewHospitalSearchResponse response =
+                reviewService.searchHospitalForReview(name, region, page, size);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
     // ── 1. 영수증 OCR 인증 (RV-002~004) ─────────────────────────────
 
     @Operation(

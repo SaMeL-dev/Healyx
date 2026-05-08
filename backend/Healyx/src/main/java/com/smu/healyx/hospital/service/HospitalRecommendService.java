@@ -6,6 +6,7 @@ import com.smu.healyx.agent.service.HospitalAgentService;
 import com.smu.healyx.hira.dto.HospitalDto;
 import com.smu.healyx.hira.dto.HospitalSearchResponse;
 import com.smu.healyx.hospital.domain.Hospital;
+import com.smu.healyx.hospital.dto.BodyIconResponse;
 import com.smu.healyx.hospital.dto.HospitalRecommendRequest;
 import com.smu.healyx.hospital.dto.HospitalRecommendResponse;
 import com.smu.healyx.hospital.repository.HospitalRepository;
@@ -26,6 +27,18 @@ public class HospitalRecommendService {
 
     private final HospitalAgentService hospitalAgentService;
     private final HospitalRepository hospitalRepository;
+    private final BodyIconService bodyIconService;
+
+    /**
+     * 신체 부위 아이콘 → 증상 키워드 매핑 (HX_H_002, UI-HOS-05).
+     *
+     * <p>프로그램 목록(v1.0)이 명시한 메소드 시그니처를 보존하기 위한 위임 메소드.
+     * 정적 매핑 책임은 {@link BodyIconService}로 분리되어 있으며 본 메소드는
+     * 외부 인터페이스 안정성과 SRP 양쪽을 동시에 만족시킨다.
+     */
+    public BodyIconResponse mapBodyIconToKeyword(String iconId) {
+        return bodyIconService.getKeywords(iconId);
+    }
 
     /**
      * AI Agent를 통해 증상을 분석하고 HIRA API 기반으로 병원을 추천합니다.
