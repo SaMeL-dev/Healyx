@@ -21,8 +21,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
   String selectedYear = 'yyyy';
   String selectedMonth = 'mm';
   String selectedDay = 'dd';
-
   String selectedGender = '';
+
+  // 선택된 연/월에 따른 최대 일 수 계산
+  int _maxDaysInMonth(String year, String month) {
+    if (month == 'mm') return 31;
+    final m = int.tryParse(month) ?? 1;
+    final y = int.tryParse(year) ?? 2000;
+    // 윤년 처리 포함
+    return DateTime(y, m + 1, 0).day;
+  }
+
   bool hasInsurance = false;
 
   // 상태 플래그
@@ -156,7 +165,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
     // SharedPreferences에서 선호 언어 조회 (기본값: ko)
     final prefs = await SharedPreferences.getInstance();
-    final preferredLanguage = prefs.getString('selectedLanguage') ?? 'ko';
+    final preferredLanguage = prefs.getString('language_pref') ?? 'ko';
 
     setState(() => _isLoading = true);
     try {
@@ -194,9 +203,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
       'mm',
       ...List.generate(12, (index) => '${index + 1}'.padLeft(2, '0')),
     ];
+    final maxDays = _maxDaysInMonth(selectedYear, selectedMonth);
     final days = [
       'dd',
-      ...List.generate(31, (index) => '${index + 1}'.padLeft(2, '0')),
+      ...List.generate(maxDays, (index) => '${index + 1}'.padLeft(2, '0')),
     ];
 
     final bool isEmailEntered = emailController.text.trim().isNotEmpty;
@@ -367,7 +377,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         child: _buildDropdownBox(
                           value: selectedYear,
                           items: years,
-                          onChanged: (value) => setState(() => selectedYear = value!),
+                          onChanged: (value) {
+                            setState(() {
+                              selectedYear = value!;
+                              // 연도 변경 후 현재 선택된 일이 유효한지 검사
+                              final newMax = _maxDaysInMonth(selectedYear, selectedMonth);
+                              final currentDay = int.tryParse(selectedDay);
+                              if (currentDay != null && currentDay > newMax) {
+                                selectedDay = 'dd';
+                              }
+                            });
+                          },
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -375,7 +395,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         child: _buildDropdownBox(
                           value: selectedMonth,
                           items: months,
-                          onChanged: (value) => setState(() => selectedMonth = value!),
+                          onChanged: (value) {
+                            setState(() {
+                              selectedMonth = value!;
+                              // 월 변경 후 현재 선택된 일이 유효한지 검사
+                              final newMax = _maxDaysInMonth(selectedYear, selectedMonth);
+                              final currentDay = int.tryParse(selectedDay);
+                              if (currentDay != null && currentDay > newMax) {
+                                selectedDay = 'dd';
+                              }
+                            });
+                          },
                         ),
                       ),
                       const SizedBox(width: 8),
