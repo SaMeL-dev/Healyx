@@ -6,8 +6,9 @@ import 'review_screen/review_search.dart';
 import 'community_screen/community_notification.dart';
 import 'menu_screen/menu_main.dart';
 import 'login_signup_screen/login_screen.dart';
+import 'services/auth_service.dart';
 
-class MainScreen extends StatelessWidget {
+class MainScreen extends StatefulWidget {
   // true = 로그인 상태, false = 비로그인 상태
   final bool isLoggedIn;
 
@@ -15,6 +16,36 @@ class MainScreen extends StatelessWidget {
     super.key,
     this.isLoggedIn = false,
   });
+
+  @override
+  State<MainScreen> createState() => _MainScreenState();
+}
+
+class _MainScreenState extends State<MainScreen> {
+  late bool _isLoggedIn;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // LoginScreen에서 MainScreen(isLoggedIn: true)로 넘어온 경우를 먼저 반영
+    _isLoggedIn = widget.isLoggedIn;
+
+    // 실제 저장된 accessToken 기준으로 로그인 상태 다시 확인
+    _checkLoginStatus();
+  }
+
+  Future<bool> _checkLoginStatus() async {
+    final result = await AuthService.isLoggedIn();
+
+    if (!mounted) return false;
+
+    setState(() {
+      _isLoggedIn = result;
+    });
+
+    return result;
+  }
 
   void _showLoginRequiredDialog(BuildContext context) {
     showDialog(
@@ -116,11 +147,15 @@ class MainScreen extends StatelessWidget {
     );
   }
 
-  void _moveIfLoggedIn({
+  Future<void> _moveIfLoggedIn({
     required BuildContext context,
     required Widget screen,
-  }) {
-    if (isLoggedIn) {
+  }) async {
+    final loggedIn = await _checkLoginStatus();
+
+    if (!context.mounted) return;
+
+    if (loggedIn) {
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -130,6 +165,21 @@ class MainScreen extends StatelessWidget {
     } else {
       _showLoginRequiredDialog(context);
     }
+  }
+
+  Future<void> _openMenu(BuildContext context) async {
+    final loggedIn = await _checkLoginStatus();
+
+    if (!context.mounted) return;
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => MenuScreen(
+          isLoggedIn: loggedIn,
+        ),
+      ),
+    );
   }
 
   @override
@@ -149,14 +199,7 @@ class MainScreen extends StatelessWidget {
                   IconButton(
                     // 햄버거 메뉴 → menu_screen/menu_main.dart
                     onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => MenuScreen(
-                            isLoggedIn: isLoggedIn,
-                          ),
-                        ),
-                      );
+                      _openMenu(context);
                     },
                     icon: const Icon(
                       Icons.menu,

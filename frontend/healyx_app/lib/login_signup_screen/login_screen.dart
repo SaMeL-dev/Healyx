@@ -4,6 +4,7 @@ import '../login_signup_screen/sign_up_screen.dart';
 import '../find_account_screen/find_id_screen.dart';
 import '../find_account_screen/find_password_screen.dart';
 import '../Main_Screen.dart'; // MainScreen 파일명에 맞게 경로 확인
+import '../services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -18,16 +19,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool isAutoLogin = false;
   bool isObscure = true;
+  bool isLoading = false;
 
-  // true: 로그인 성공 테스트
-  // false: 로그인 실패 테스트
-  final bool mockLoginSuccess = true;
 
   String? idErrorText;
   String? passwordErrorText;
   String? loginErrorText;
 
-  void _handleLogin() {
+  Future<void> _handleLogin() async {
     final String id = idController.text.trim();
     final String password = passwordController.text.trim();
 
@@ -54,7 +53,22 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    if (mockLoginSuccess) {
+    setState(() {
+      isLoading = true;
+    });
+
+    final result = await AuthService.login(
+      username: id,
+      password: password,
+    );
+
+    if (!mounted) return;
+
+    setState(() {
+      isLoading = false;
+    });
+
+    if (result.success) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -65,7 +79,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     } else {
       setState(() {
-        loginErrorText = '아이디 및 비밀번호가 일치하지 않습니다.';
+        loginErrorText = result.message ?? '아이디 및 비밀번호가 일치하지 않습니다.';
       });
     }
   }
@@ -227,15 +241,25 @@ class _LoginScreenState extends State<LoginScreen> {
                       width: double.infinity,
                       height: 56,
                       child: ElevatedButton(
-                        onPressed: _handleLogin,
+                        onPressed: isLoading ? null : _handleLogin,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF2260FF),
+                          disabledBackgroundColor: const Color(0xFF9AA7E8),
                           elevation: 0,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(28),
                           ),
                         ),
-                        child: const Text(
+                        child: isLoading
+                            ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            color: Colors.white,
+                          ),
+                        )
+                            : const Text(
                           '로그인',
                           style: TextStyle(
                             fontSize: 22,

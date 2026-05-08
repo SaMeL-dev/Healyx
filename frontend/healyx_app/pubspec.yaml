@@ -35,10 +35,14 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   # Flutter에서 간단한 값을 휴대폰이나 PC에 로컬 저장할 때 쓰는 패키지 추가
+  # 로그인 성공 후 받은 accessToken을 앱 내부에 저장하기 위함
   shared_preferences: ^2.2.3
   # 이미지 선택 기능 (카메라 촬영 및 갤러리 업로드)
   # → 처방전 촬영 기능 구현을 위해 사용
   image_picker: ^1.1.2
+
+  http: ^1.2.2 # Flutter에서 로그인 API를 호출하기 위함
+
 
 dev_dependencies:
   flutter_test:
