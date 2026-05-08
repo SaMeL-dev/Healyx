@@ -54,12 +54,16 @@ public class HospitalRecommendService {
      *   <li>GPT Agent → HIRA dgsbjtCd 결정 + ICD-10 코드 추출 + 병원 검색</li>
      *   <li>정렬(추천순/거리순) 후 상위 5개 제한 (HOS-008)</li>
      *   <li>hospitals 테이블 ykiho 기준 upsert (OCR 대조 선행 조건)</li>
-     *   <li>로그인 사용자: 카드별 의료비 예측 호출 → minCost·maxCost·visitType 적재</li>
-     *   <li>게스트 사용자: cost 필드 null, costUnavailableReason="GUEST_NOT_LOGGED_IN"</li>
+     *   <li>카드별 의료비 예측 호출 → minCost·maxCost·visitType 적재 (게스트 포함)</li>
      * </ol>
      *
-     * <p>cost_predictions 저장: PM 합의에 따라 카드 5개 모두 저장(이력 보존).
-     * 단, 게스트는 의료비 예측 자체를 미수행하므로 저장 0건.
+     * <p>게스트 처리 정책 (PM 합의 2026-05-08 2차):
+     * 비보험자 기준 의료비 + 나이/성별 보정계수 1.0 + 종별·지역·물가 보정 정상 적용.
+     * 결과는 ±25% 신뢰구간으로 반환. 단독 엔드포인트 폐지로 인한 화면설계서
+     * UI-HOS-07-G "의료보험 미적용 안내 아이콘" 정합 복구.
+     *
+     * <p>cost_predictions 저장: 카드 5건 모두 저장(이력 보존). 게스트는
+     * user_id=NULL로 저장(의료비예측 API 설계서 1.2 정합).
      *
      * @param request     Flutter 요청 (증상·위치·위험도·정렬)
      * @param userProfile 사용자 프로필 (로그인 시 DB 조회 결과, 게스트 시 default)
@@ -124,13 +128,21 @@ public class HospitalRecommendService {
     /**
      * 카드 목록 조립.
      *
-     * <p>로그인 사용자: 병원별로 {@link CostPredictionService#predict}를 호출하여
-     * minCost·maxCost·visitType을 카드에 적재. 5개 호출 중 일부 실패해도 전체는
-     * 정상 응답하며, 실패 카드는 cost 필드 null + reason 표시.
+     * <p>모든 사용자(로그인·게스트)에 대해 카드별 {@link CostPredictionService#predict}
+     * 호출. CostPredictionService 내부에서 게스트 여부에 따라 자동 분기:
+     * <ul>
+     *   <li>로그인 + 보험가입: insurance_avg_cost × 연령·성별·종별·지역·물가 보정</li>
+     *   <li>로그인 + 미가입: no_insurance_avg_cost × 연령·성별·종별·지역·물가 보정</li>
+     *   <li>게스트: no_insurance_avg_cost × 1.0(연령·성별) × 종별·지역·물가 보정</li>
+     * </ul>
      *
-     * <p>게스트 사용자: 의료비 예측 미수행. 모든 카드 cost 필드 null +
-     * reason="GUEST_NOT_LOGGED_IN". Flutter는 이 reason 또는 minCost==null로
-     * UI-HOS-07-G의 "의료보험 미적용 안내 아이콘" 분기를 수행.
+     * <p>5개 호출 중 일부 실패해도 전체는 정상 응답하며, 실패 카드는 cost 필드 null +
+     * {@code costUnavailableReason} 표시. 흔한 실패 사유: 희귀 ICD-10에 대한
+     * cost_reference 미매칭, DB 일시 오류 등.
+     *
+     * <p>Flutter는 사용자 자신의 로그인·보험 가입 상태를 이미 알고 있으므로,
+     * UI-HOS-07-G의 "의료보험 미적용 안내 아이콘" 분기는 클라이언트 자체 상태로
+     * 처리한다. 서버는 별도 플래그를 응답에 포함하지 않는다.
      */
     private List<HospitalCardDto> buildCards(List<HospitalDto> hospitals,
                                              HospitalAssistantResponse agent,
@@ -138,15 +150,9 @@ public class HospitalRecommendService {
                                              UserProfileDto userProfile,
                                              Long userId) {
 
-        boolean isGuest = (userId == null);
         List<HospitalCardDto> cards = new ArrayList<>(hospitals.size());
 
         for (HospitalDto h : hospitals) {
-            if (isGuest) {
-                cards.add(HospitalCardDto.of(h, null, null, null, "GUEST_NOT_LOGGED_IN"));
-                continue;
-            }
-
             try {
                 CostPredictRequest costReq = CostPredictRequest.builder()
                         .icd10Code(agent.getIcd10Code())
