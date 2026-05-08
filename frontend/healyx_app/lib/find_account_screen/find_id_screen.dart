@@ -86,6 +86,7 @@ class _FindIdScreenState extends State<FindIdScreen> {
       email: email,
       purpose: 'find-id',
     );
+    if (!mounted) return;
     setState(() => _isSendingCode = false);
 
     if (result.success) {
@@ -113,6 +114,7 @@ class _FindIdScreenState extends State<FindIdScreen> {
       email: email,
       verificationCode: code,
     );
+    if (!mounted) return;
     setState(() => _isLoading = false);
 
     if (result.success) {
