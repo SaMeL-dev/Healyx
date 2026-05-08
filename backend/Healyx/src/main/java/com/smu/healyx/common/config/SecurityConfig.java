@@ -33,13 +33,15 @@ public class SecurityConfig {
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                // 인증 API (회원가입, 로그인, 토큰 재발급, 아이디 찾기, 비밀번호 재설정)
+                // 인증 API (회원가입, 로그인, 토큰 재발급, 아이디 찾기, 비밀번호 재설정, 중복 확인)
                 .requestMatchers("/api/auth/register",
                                  "/api/auth/login",
                                  "/api/auth/refresh",
                                  "/api/auth/find-id",
                                  "/api/auth/verify-reset-password",
-                                 "/api/auth/reset-password").permitAll()
+                                 "/api/auth/reset-password",
+                                 "/api/auth/check-email",
+                                 "/api/auth/check-username").permitAll()
                 // 게스트 허용: 병원 찾기
                 .requestMatchers("/api/hospitals/**").permitAll()
                 // 게스트 허용: 의료 번역

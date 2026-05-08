@@ -7,19 +7,41 @@ import com.smu.healyx.common.security.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Auth", description = "회원 인증 API")
+@Validated
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
     private final AuthService authService;
+
+    /** 이메일 중복 확인 — true: 사용 가능, false: 이미 사용 중 */
+    @Operation(summary = "이메일 중복 확인")
+    @GetMapping("/check-email")
+    public ResponseEntity<ApiResponse<Boolean>> checkEmail(
+            @RequestParam @NotBlank @Email String email) {
+        boolean available = authService.checkEmailDuplicate(email);
+        return ResponseEntity.ok(ApiResponse.success(available));
+    }
+
+    /** 아이디 중복 확인 — true: 사용 가능, false: 이미 사용 중 */
+    @Operation(summary = "아이디 중복 확인")
+    @GetMapping("/check-username")
+    public ResponseEntity<ApiResponse<Boolean>> checkUsername(
+            @RequestParam @NotBlank String username) {
+        boolean available = authService.checkUsernameDuplicate(username);
+        return ResponseEntity.ok(ApiResponse.success(available));
+    }
 
     /** 회원가입 — 이메일 인증 완료 후 호출 */
     @Operation(summary = "회원가입")
