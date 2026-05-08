@@ -143,7 +143,10 @@ public class HiraApiService {
                 .longitude(item.getLongitude())
                 .latitude(item.getLatitude())
                 .distance((int) Math.round(item.getDistance()))
+                .clCd(item.getClCd())
                 .hospitalType(item.getClCdNm())
+                .sidoCd(item.getSidoCd())
+                .sidoCdNm(item.getSidoCdNm())
                 .foreignCertified(false) // DB 연동 완료 후 foreign_certified_hospital 테이블에서 조회
                 .build();
     }

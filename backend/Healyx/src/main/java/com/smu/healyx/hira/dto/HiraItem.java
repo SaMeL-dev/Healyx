@@ -6,13 +6,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
- * HIRA Open API (getHospBasisList1) 병원 단건 응답 항목
+ * HIRA Open API (getHospBasisList) 병원 단건 응답 항목
  */
 @Getter
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class HiraItem {
-    
+
     /** 암호화된 요양기호 — 병원 식별 핵심 키 */
     private String ykiho;
 
@@ -37,9 +37,21 @@ public class HiraItem {
     @JsonProperty("distance")
     private double distance;
 
-    /** 종별코드 */
+    /** 종별코드 (예: "01"=상급종합, "31"=의원) */
     private String clCd;
 
-    /** 종별코드명 */
+    /** 종별코드명 (예: "상급종합병원", "의원") */
     private String clCdNm;
+
+    /**
+     * 시도코드 (예: "110000"=서울, "210000"=부산).
+     * 의료비 예측의 지역 보정계수 산출에 활용.
+     */
+    private String sidoCd;
+
+    /**
+     * 시도코드명 (예: "서울", "부산", "경기").
+     * region_adjustment 테이블의 region 컬럼과 매칭.
+     */
+    private String sidoCdNm;
 }

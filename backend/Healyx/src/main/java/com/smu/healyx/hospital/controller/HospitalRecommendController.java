@@ -27,17 +27,23 @@ public class HospitalRecommendController {
     private final UserProfileService userProfileService;
 
     @Operation(
-            summary = "병원 추천",
-            description = "AI Agent가 증상·위험도를 분석하여 HIRA API 기반으로 병원 추천. 게스트/로그인 모두 허용."
+            summary = "병원 추천 + 카드별 의료비 예측 (통합)",
+            description = "AI Agent가 증상·위험도를 분석하여 HIRA API 기반으로 병원 추천 + 각 카드별 의료비 예측 동시 수행. " +
+                    "게스트/로그인 모두 허용. 게스트는 카드의 cost 필드 null로 응답."
     )
     @PostMapping("/recommend")
     public ResponseEntity<ApiResponse<HospitalRecommendResponse>> recommend(
             @Valid @RequestBody HospitalRecommendRequest request,
             Authentication authentication) {
 
-        UserProfileDto userProfile = resolveUserProfile(authentication);
+        boolean isAuthenticated = isAuthenticated(authentication);
+        Long userId = isAuthenticated ? SecurityUtils.extractUserId(authentication) : null;
+        UserProfileDto userProfile = isAuthenticated
+                ? userProfileService.getProfile(userId)
+                : UserProfileDto.guestDefault();
+
         return ResponseEntity.ok(ApiResponse.success(
-                hospitalRecommendService.recommend(request, userProfile)));
+                hospitalRecommendService.recommend(request, userProfile, userId)));
     }
 
     // ── 신체 아이콘 → 증상 키워드 (HX_H_002, UI-HOS-05) — 게스트 허용 ──
@@ -56,17 +62,10 @@ public class HospitalRecommendController {
                 hospitalRecommendService.mapBodyIconToKeyword(iconId)));
     }
 
-    /**
-     * 인증 여부에 따라 사용자 프로필 결정.
-     * 로그인: JWT → userId → DB 조회 (나이·성별·보험 → 의료비 보정 적용)
-     * 게스트: 기본값 (ICD-10 코드만으로 의료비 계산)
-     */
-    private UserProfileDto resolveUserProfile(Authentication authentication) {
-        if (authentication == null || !authentication.isAuthenticated()
-                || authentication instanceof AnonymousAuthenticationToken) {
-            return UserProfileDto.guestDefault();
-        }
-        Long userId = SecurityUtils.extractUserId(authentication);
-        return userProfileService.getProfile(userId);
+    /** 인증 토큰이 유효한 로그인 상태인지 판별. 게스트(Anonymous)와 미인증은 false. */
+    private boolean isAuthenticated(Authentication authentication) {
+        return authentication != null
+                && authentication.isAuthenticated()
+                && !(authentication instanceof AnonymousAuthenticationToken);
     }
 }
