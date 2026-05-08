@@ -10,6 +10,7 @@ import com.smu.healyx.cost.repository.CostAdjustmentRepository;
 import com.smu.healyx.cost.repository.CostPredictionRepository;
 import com.smu.healyx.cost.repository.CostReferenceRepository;
 import com.smu.healyx.cost.repository.HospitalTypeAdjustmentRepository;
+import com.smu.healyx.cost.repository.RegionAdjustmentRepository;
 import com.smu.healyx.user.domain.User;
 import com.smu.healyx.user.dto.UserProfileDto;
 import com.smu.healyx.user.repository.UserRepository;
@@ -28,11 +29,12 @@ public class CostPredictionService {
     private static final double CONFIDENCE_MIN   = 0.75;
     private static final double CONFIDENCE_MAX   = 1.25;
 
-    private final CostReferenceRepository        costReferenceRepository;
-    private final CostAdjustmentRepository       costAdjustmentRepository;
+    private final CostReferenceRepository          costReferenceRepository;
+    private final CostAdjustmentRepository         costAdjustmentRepository;
     private final HospitalTypeAdjustmentRepository hospitalTypeAdjustmentRepository;
-    private final CostPredictionRepository       costPredictionRepository;
-    private final UserRepository                 userRepository;
+    private final RegionAdjustmentRepository       regionAdjustmentRepository;
+    private final CostPredictionRepository         costPredictionRepository;
+    private final UserRepository                   userRepository;
 
     @Transactional
     public CostPredictResponse predict(
@@ -63,8 +65,9 @@ public class CostPredictionService {
         // ── 6. 연령·성별 보정 (adj_factor_full 사용) ───────────────
         double ageGenderFactor = resolveAgeGenderFactor(req, profile);
 
-        // ── 7. 지역 보정 (맵 API 미확정 → 1.0 고정) ───────────────
-        double regionFactor = 1.0;
+        // ── 7. 지역 보정 (sidoCdNm + departmentName 기반 region_adjustment 조회) ─
+        // region_adjustment 미적재 또는 미매칭 시 1.0 fallback 자동 처리.
+        double regionFactor = resolveRegionFactor(req.getSidoCdNm(), req.getDepartmentName());
 
         // ── 8. 병원 종별 보정 ──────────────────────────────────────
         double hospitalTypeFactor = resolveHospitalTypeFactor(req.getHospitalType());
@@ -220,6 +223,44 @@ public class CostPredictionService {
                 .map(ht -> ht.getAdjFactor())
                 .orElseGet(() -> {
                     log.debug("hospital_type_adjustment 미매칭 (clCd={}) → 1.0 적용", hospitalType);
+                    return 1.0;
+                });
+    }
+
+    /**
+     * 지역 보정계수 결정.
+     *
+     * <p>매칭 우선순위:
+     * <ol>
+     *   <li>region + department 정확 매칭</li>
+     *   <li>region 단독 매칭 (department 미전달 또는 1차 미매칭 시)</li>
+     *   <li>모두 실패 → 1.0</li>
+     * </ol>
+     *
+     * <p>region_adjustment 테이블이 비어있는 경우(맵 API 데이터 적재 전)에도
+     * Optional.empty() 처리되어 1.0 fallback이 자동 적용된다.
+     *
+     * @param sidoCdNm   HIRA 응답 시도명 (예: "서울", "부산")
+     * @param department 진료과명 (한국어)
+     */
+    private double resolveRegionFactor(String sidoCdNm, String department) {
+        if (sidoCdNm == null || sidoCdNm.isBlank()) {
+            return 1.0;
+        }
+
+        if (department != null && !department.isBlank()) {
+            var matched = regionAdjustmentRepository
+                    .findByRegionAndDepartment(sidoCdNm, department);
+            if (matched.isPresent()) {
+                return matched.get().getAdjFactor();
+            }
+        }
+
+        return regionAdjustmentRepository.findByRegion(sidoCdNm)
+                .map(ra -> ra.getAdjFactor())
+                .orElseGet(() -> {
+                    log.debug("region_adjustment 미매칭 (region={}, dept={}) → 1.0 적용",
+                            sidoCdNm, department);
                     return 1.0;
                 });
     }
