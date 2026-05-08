@@ -1,11 +1,12 @@
 // 병원 찾기 결과 화면
-// 로그인 비로그인 상태에 따라 화면이 조금 다름
-// 19번째 줄 isLoggedIn 변수에서 true/false로 로그인 상태 바꿔가며 테스트하면 됨! 그 이외 bool은 XX
+// 로그인/비로그인 상태에 따라 화면이 조금 다름
+// accessToken 유무를 기준으로 로그인 상태를 판단함
 
 import 'package:flutter/material.dart';
 import 'find_hospital_detail.dart';
 import 'pain_score_slide.dart';
-import '../constants/hospital_constants.dart'; // 👈 더미 데이터 import
+import '../constants/hospital_constants.dart';
+import '../services/auth_service.dart';
 
 class FindHospitalResultScreen extends StatefulWidget {
   const FindHospitalResultScreen({super.key});
@@ -16,8 +17,11 @@ class FindHospitalResultScreen extends StatefulWidget {
 }
 
 class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
-  // false = 비로그인(게스트), true = 로그인 사용자
-  bool isLoggedIn = true;
+  // accessToken 확인 전 기본값은 비로그인
+  bool isLoggedIn = false;
+
+  // 로그인 상태 확인 중 여부
+  bool isCheckingLogin = true;
 
   // 비로그인 상태에서 물음표 클릭 시 로그인 안내 팝업 표시 여부
   bool showLoginGuide = false;
@@ -30,7 +34,44 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
   final Color grayText = const Color(0xFF5B5B5B);
 
   @override
+  void initState() {
+    super.initState();
+    _checkLoginStatus();
+  }
+
+  Future<void> _checkLoginStatus() async {
+    final loggedIn = await AuthService.isLoggedIn();
+
+    if (!mounted) return;
+
+    setState(() {
+      isLoggedIn = loggedIn;
+      isCheckingLogin = false;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (isCheckingLogin) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        body: SafeArea(
+          child: Column(
+            children: [
+              _buildHeader(),
+              const Expanded(
+                child: Center(
+                  child: CircularProgressIndicator(
+                    color: Color(0xFF2260FF),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -173,7 +214,6 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
                   ),
 
                   const SizedBox(height: 12),
-                  // 👈 HOSPITAL_LIST = 저 constants 파일에서 가져온 더미 데이터
                   ...HOSPITAL_LIST.map((item) => _buildHospitalCard(item)),
                 ],
               ),
@@ -417,7 +457,6 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
                       children: [
                         Icon(Icons.star_border, color: mainBlue, size: 14),
                         const SizedBox(width: 2),
-
                         Text(
                           item['rating'].toString(),
                           style: TextStyle(
