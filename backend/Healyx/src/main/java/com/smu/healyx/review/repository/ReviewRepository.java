@@ -1,6 +1,8 @@
 package com.smu.healyx.review.repository;
 
 import com.smu.healyx.review.domain.Review;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -20,4 +22,8 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
     @Query("SELECT COUNT(r) FROM Review r WHERE r.hospital.hospitalId = :hospitalId")
     int countByHospitalId(@Param("hospitalId") Long hospitalId);
+
+    // ── 신규: 페이징 조회 ───────────────────────────
+    Page<Review> findByHospital_HospitalIdOrderByCreatedAtDesc(Long hospitalId, Pageable pageable);
+    Page<Review> findByUser_UserIdOrderByCreatedAtDesc(Long userId, Pageable pageable);
 }

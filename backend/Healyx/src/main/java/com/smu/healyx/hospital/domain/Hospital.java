@@ -1,7 +1,9 @@
 package com.smu.healyx.hospital.domain;
 
+import com.smu.healyx.hira.dto.HospitalDto;
 import jakarta.persistence.*;
 import lombok.*;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -30,10 +32,10 @@ public class Hospital {
     private String address;
 
     @Column(name = "latitude", nullable = false, precision = 10, scale = 7)
-    private java.math.BigDecimal latitude;
+    private BigDecimal latitude;
 
     @Column(name = "longitude", nullable = false, precision = 10, scale = 7)
-    private java.math.BigDecimal longitude;
+    private BigDecimal longitude;
 
     @Column(name = "phone", length = 20)
     private String phone;
@@ -51,5 +53,38 @@ public class Hospital {
     @PrePersist
     public void prePersist() {
         this.createdAt = LocalDateTime.now();
+    }
+
+    // ── HIRA DTO 기반 팩토리 ───────────────────────────────────────────
+
+    /**
+     * HIRA API 응답(HospitalDto)으로 신규 Hospital 엔티티를 생성한다.
+     * address/type이 null인 경우 빈 문자열로 방어 처리.
+     */
+    public static Hospital fromHiraDto(HospitalDto dto) {
+        return Hospital.builder()
+                .ykiho(dto.getYkiho())
+                .name(dto.getHospitalName())
+                .type(dto.getHospitalType() != null ? dto.getHospitalType() : "")
+                .address(dto.getAddress() != null ? dto.getAddress() : "")
+                .latitude(BigDecimal.valueOf(dto.getLatitude()))
+                .longitude(BigDecimal.valueOf(dto.getLongitude()))
+                .phone(dto.getTelephone())
+                .isForeignCertified(dto.isForeignCertified())
+                .build();
+    }
+
+    /**
+     * HIRA API 최신 응답으로 기존 Hospital 행을 갱신한다.
+     * hospitalId·ykiho·createdAt은 변경하지 않음.
+     */
+    public void updateFromHira(HospitalDto dto) {
+        this.name             = dto.getHospitalName();
+        this.type             = dto.getHospitalType() != null ? dto.getHospitalType() : this.type;
+        this.address          = dto.getAddress() != null ? dto.getAddress() : this.address;
+        this.latitude         = BigDecimal.valueOf(dto.getLatitude());
+        this.longitude        = BigDecimal.valueOf(dto.getLongitude());
+        this.phone            = dto.getTelephone();
+        this.isForeignCertified = dto.isForeignCertified();
     }
 }
