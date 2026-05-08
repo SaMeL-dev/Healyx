@@ -18,6 +18,17 @@ class LoginResult {
   });
 }
 
+// 회원가입 결과를 담기 위한 클래스
+class RegisterResult {
+  final bool success;
+  final String? message;
+
+  RegisterResult({
+    required this.success,
+    this.message,
+  });
+}
+
 // 로그인, 로그아웃, 로그인 여부 확인 같은 기능을 모아둔 클래스
 class AuthService {
   // baseUrl 서버 주소
@@ -142,6 +153,92 @@ class AuthService {
     await prefs.remove('name');
     await prefs.remove('email');
     await prefs.remove('insuranceStatus');
+  }
+
+  // 이메일 사용 가능 여부 확인 — true: 사용 가능, false: 이미 사용 중
+  static Future<bool> checkEmailAvailable(String email) async {
+    final url = Uri.parse('$baseUrl/api/auth/check-email?email=${Uri.encodeComponent(email)}');
+    try {
+      final response = await http.get(url);
+      final decoded = utf8.decode(response.bodyBytes);
+      final data = jsonDecode(decoded);
+      if (response.statusCode == 200 && data['success'] == true) {
+        return data['data'] == true;
+      }
+      throw Exception(data['message'] ?? '사용 중인 이메일입니다.');
+    } catch (e) {
+      debugPrint('CHECK_EMAIL ERROR: $e');
+      rethrow;
+    }
+  }
+
+  // 아이디 사용 가능 여부 확인 (true: 사용 가능, false: 이미 사용 중)
+  static Future<bool> checkUsernameAvailable(String username) async {
+    final url = Uri.parse('$baseUrl/api/auth/check-username?username=${Uri.encodeComponent(username)}');
+    try {
+      final response = await http.get(url);
+      final decoded = utf8.decode(response.bodyBytes);
+      final data = jsonDecode(decoded);
+      if (response.statusCode == 200 && data['success'] == true) {
+        return data['data'] == true;
+      }
+      throw Exception(data['message'] ?? '사용 중인 아이디입니다.');
+    } catch (e) {
+      debugPrint('CHECK_USERNAME ERROR: $e');
+      rethrow;
+    }
+  }
+
+  // 회원가입 요청
+  static Future<RegisterResult> register({
+    required String realName,
+    required String email,
+    required String username,
+    required String password,
+    required String passwordConfirm,
+    required String nickname,
+    String? birthDate,         // yyyy-MM-dd 형식
+    String? gender,            // 'M' 또는 'F'
+    bool hasHealthInsurance = false,
+    String preferredLanguage = 'ko',
+  }) async {
+    final url = Uri.parse('$baseUrl/api/auth/register');
+    try {
+      final Map<String, dynamic> body = {
+        'realName': realName,
+        'email': email,
+        'username': username,
+        'password': password,
+        'passwordConfirm': passwordConfirm,
+        'nickname': nickname,
+        'hasHealthInsurance': hasHealthInsurance,
+        'preferredLanguage': preferredLanguage,
+      };
+      if (birthDate != null) body['birthDate'] = birthDate;
+      if (gender != null) body['gender'] = gender;
+
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(body),
+      );
+      final decoded = utf8.decode(response.bodyBytes);
+      final data = jsonDecode(decoded);
+
+      if (response.statusCode == 201 && data['success'] == true) {
+        return RegisterResult(success: true, message: '회원가입이 완료되었습니다.');
+      }
+      return RegisterResult(
+        success: false,
+        message: data['message'] ?? '회원가입에 실패했습니다.',
+      );
+    } catch (e) {
+      debugPrint('REGISTER ERROR: $e');
+      return RegisterResult(
+        success: false,
+        message: '서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.',
+      );
+    }
   }
 }
 
