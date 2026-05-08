@@ -4,7 +4,9 @@ import '../login_signup_screen/sign_up_screen.dart';
 import 'find_password_screen.dart';
 
 class FindIdResultScreen extends StatelessWidget {
-  const FindIdResultScreen({super.key});
+  final String maskedUsername;
+
+  const FindIdResultScreen({super.key, required this.maskedUsername});
 
   @override
   Widget build(BuildContext context) {
@@ -52,10 +54,10 @@ class FindIdResultScreen extends StatelessWidget {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text(
-                            '아이디는\nkimc******\n입니다.',
+                          Text(
+                            '아이디는\n$maskedUsername\n입니다.',
                             textAlign: TextAlign.center,
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 30,
                               height: 1.45,
                               fontWeight: FontWeight.w800,

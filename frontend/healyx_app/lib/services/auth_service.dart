@@ -29,9 +29,27 @@ class RegisterResult {
   });
 }
 
+// 이메일 인증 코드 발송 결과를 담기 위한 클래스
+class EmailSendResult {
+  final bool success;
+  final String? message;
+
+  EmailSendResult({required this.success, this.message});
+}
+
+// 아이디 찾기 결과를 담기 위한 클래스
+class FindIdResult {
+  final bool success;
+  final String? maskedUsername;
+  final String? message;
+
+  FindIdResult({required this.success, this.maskedUsername, this.message});
+}
+
 // 로그인, 로그아웃, 로그인 여부 확인 같은 기능을 모아둔 클래스
 class AuthService {
   // baseUrl 서버 주소
+  // static const String baseUrl = 'http://localhost:8080'; // 테스트용
   static const String baseUrl = 'https://jwejweiya.com';
 
   // 로그인 화면에서 아이디와 비밀번호를 넘겨주면, 이 함수가 서버에 로그인 요청을 보냄
@@ -186,6 +204,74 @@ class AuthService {
     } catch (e) {
       debugPrint('CHECK_USERNAME ERROR: $e');
       rethrow;
+    }
+  }
+
+  // 이메일 인증 코드 발송 (purpose: find-id | reset-pw)
+  static Future<EmailSendResult> sendEmailVerification({
+    required String email,
+    required String purpose,
+  }) async {
+    final url = Uri.parse('$baseUrl/api/email/send');
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email, 'purpose': purpose}),
+      );
+      final decoded = utf8.decode(response.bodyBytes);
+      final data = jsonDecode(decoded);
+      if (response.statusCode == 200 && data['success'] == true) {
+        return EmailSendResult(success: true);
+      }
+      return EmailSendResult(
+        success: false,
+        message: data['message'] ?? '인증 코드 발송에 실패했습니다.',
+      );
+    } catch (e) {
+      debugPrint('SEND_EMAIL ERROR: $e');
+      return EmailSendResult(
+        success: false,
+        message: '서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.',
+      );
+    }
+  }
+
+  // 아이디 찾기 — 인증 코드 검증 및 마스킹된 아이디 반환
+  static Future<FindIdResult> findId({
+    required String name,
+    required String email,
+    required String verificationCode,
+  }) async {
+    final url = Uri.parse('$baseUrl/api/auth/find-id');
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'name': name,
+          'email': email,
+          'verificationCode': verificationCode,
+        }),
+      );
+      final decoded = utf8.decode(response.bodyBytes);
+      final data = jsonDecode(decoded);
+      if (response.statusCode == 200 && data['success'] == true) {
+        return FindIdResult(
+          success: true,
+          maskedUsername: data['data']['maskedUsername'],
+        );
+      }
+      return FindIdResult(
+        success: false,
+        message: data['message'] ?? '아이디를 찾을 수 없습니다.',
+      );
+    } catch (e) {
+      debugPrint('FIND_ID ERROR: $e');
+      return FindIdResult(
+        success: false,
+        message: '서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.',
+      );
     }
   }
 

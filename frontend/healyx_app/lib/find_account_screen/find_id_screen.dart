@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'find_id_result_screen.dart';
 import '../login_signup_screen/sign_up_screen.dart';
 import 'find_password_screen.dart';
+import '../services/auth_service.dart';
 
 class FindIdScreen extends StatefulWidget {
   const FindIdScreen({super.key});
@@ -15,13 +17,28 @@ class _FindIdScreenState extends State<FindIdScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController codeController = TextEditingController();
 
+  bool _isSendingCode = false;
+  bool _isLoading = false;
+
+  // 인증번호 타이머
+  Timer? _timer;
+  int _remainingSeconds = 0;
+  bool get _isTimerRunning => _remainingSeconds > 0;
+
+  // 남은 시간을 MM:SS 형식으로 반환
+  String get _timerText {
+    final minutes = _remainingSeconds ~/ 60;
+    final seconds = _remainingSeconds % 60;
+    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+  }
+
   bool get isEmailFilled => emailController.text.trim().isNotEmpty;
 
   void _showMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        duration: const Duration(seconds: 1),
+        duration: const Duration(seconds: 2),
       ),
     );
   }
@@ -35,26 +52,81 @@ class _FindIdScreenState extends State<FindIdScreen> {
     });
   }
 
+  // 3분(180초) 카운트다운 시작
+  void _startTimer() {
+    _timer?.cancel();
+    setState(() => _remainingSeconds = 180);
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_remainingSeconds <= 1) {
+        timer.cancel();
+        setState(() => _remainingSeconds = 0);
+        _showMessage('인증번호가 만료되었습니다. 다시 요청해주세요.');
+      } else {
+        setState(() => _remainingSeconds--);
+      }
+    });
+  }
+
   @override
   void dispose() {
+    _timer?.cancel();
     nameController.dispose();
     emailController.dispose();
     codeController.dispose();
     super.dispose();
   }
 
-  void _requestVerification() {
-    if (!isEmailFilled) return;
-    _showMessage('인증요청이 전송되었습니다.');
+  // 인증 코드 발송 — POST /api/email/send
+  Future<void> _requestVerification() async {
+    final email = emailController.text.trim();
+    if (email.isEmpty) return;
+
+    setState(() => _isSendingCode = true);
+    final result = await AuthService.sendEmailVerification(
+      email: email,
+      purpose: 'find-id',
+    );
+    setState(() => _isSendingCode = false);
+
+    if (result.success) {
+      _startTimer();
+      _showMessage('인증번호가 이메일로 발송되었습니다.');
+    } else {
+      _showMessage(result.message ?? '인증 코드 발송에 실패했습니다.');
+    }
   }
 
-  void _confirmFindId() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const FindIdResultScreen(),
-      ),
+  // 아이디 찾기 확인 — POST /api/auth/find-id
+  Future<void> _confirmFindId() async {
+    final name = nameController.text.trim();
+    final email = emailController.text.trim();
+    final code = codeController.text.trim();
+
+    if (name.isEmpty || email.isEmpty || code.isEmpty) {
+      _showMessage('이름, 이메일, 인증번호를 모두 입력해주세요.');
+      return;
+    }
+
+    setState(() => _isLoading = true);
+    final result = await AuthService.findId(
+      name: name,
+      email: email,
+      verificationCode: code,
     );
+    setState(() => _isLoading = false);
+
+    if (result.success) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => FindIdResultScreen(
+            maskedUsername: result.maskedUsername!,
+          ),
+        ),
+      );
+    } else {
+      _showMessage(result.message ?? '아이디를 찾을 수 없습니다.');
+    }
   }
 
   void _goToFindPasswordScreen() {
@@ -171,9 +243,49 @@ class _FindIdScreenState extends State<FindIdScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    _buildInputField(
-                      controller: codeController,
-                      hintText: '인증번호를 입력하세요',
+                    Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEFF2FF),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: TextField(
+                        controller: codeController,
+                        keyboardType: TextInputType.number,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: Colors.black87,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: '인증번호를 입력하세요',
+                          hintStyle: const TextStyle(
+                            fontSize: 16,
+                            color: Color(0xFFB0B9F5),
+                            fontWeight: FontWeight.w500,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 16,
+                          ),
+                          border: InputBorder.none,
+                          suffixIcon: _isTimerRunning
+                              ? Padding(
+                                  padding: const EdgeInsets.only(right: 14),
+                                  child: Text(
+                                    _timerText,
+                                    style: const TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w700,
+                                      color: Color(0xFFFF4D4D),
+                                    ),
+                                  ),
+                                )
+                              : null,
+                          suffixIconConstraints: const BoxConstraints(
+                            minWidth: 0,
+                            minHeight: 0,
+                          ),
+                        ),
+                      ),
                     ),
 
                     const SizedBox(height: 40),
@@ -182,7 +294,7 @@ class _FindIdScreenState extends State<FindIdScreen> {
                       width: double.infinity,
                       height: 56,
                       child: ElevatedButton(
-                        onPressed: _confirmFindId,
+                        onPressed: _isLoading ? null : _confirmFindId,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF2260FF),
                           elevation: 0,
@@ -190,14 +302,23 @@ class _FindIdScreenState extends State<FindIdScreen> {
                             borderRadius: BorderRadius.circular(28),
                           ),
                         ),
-                        child: const Text(
-                          '확인',
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                        ),
+                        child: _isLoading
+                            ? const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2.5,
+                                ),
+                              )
+                            : const Text(
+                                '확인',
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                              ),
                       ),
                     ),
                   ],
@@ -360,14 +481,14 @@ class _FindIdScreenState extends State<FindIdScreen> {
             ),
           ),
           GestureDetector(
-            onTap: isEmailFilled ? _requestVerification : null,
+            onTap: (isEmailFilled && !_isSendingCode) ? _requestVerification : null,
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 150),
               alignment: Alignment.center,
               width: 92,
               height: 54,
               decoration: BoxDecoration(
-                color: isEmailFilled
+                color: (isEmailFilled && !_isSendingCode)
                     ? const Color(0xFF6F8EF6)
                     : const Color(0xFFBFCBF8),
                 borderRadius: const BorderRadius.only(
@@ -375,14 +496,23 @@ class _FindIdScreenState extends State<FindIdScreen> {
                   bottomRight: Radius.circular(14),
                 ),
               ),
-              child: const Text(
-                '인증요청',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
-              ),
+              child: _isSendingCode
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : Text(
+                      _isTimerRunning ? '재전송' : '인증요청',
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
             ),
           ),
         ],
