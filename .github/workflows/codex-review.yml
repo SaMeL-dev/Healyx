@@ -22,9 +22,25 @@ jobs:
             +refs/pull/${{ github.event.pull_request.number }}/head
 
       - name: Run Codex Review
+        id: run_codex
         uses: openai/codex-action@v1
         with:
           openai-api-key: ${{ secrets.OPENAI_API_KEY }}
           prompt: "Review this pull request for bugs, security issues, missing tests, and code quality. Be concise and focus on high-priority issues."
           safety-strategy: drop-sudo
           sandbox: workspace-write
+
+      - name: Post review comment 
+        if: steps.run_codex.outputs.final-message != ''
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `## Codex Review\n\n${process.env.REVIEW}`
+            })
+        env:
+          REVIEW: ${{ steps.run_codex.outputs.final-message }}
