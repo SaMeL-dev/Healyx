@@ -46,11 +46,27 @@ class FindIdResult {
   FindIdResult({required this.success, this.maskedUsername, this.message});
 }
 
+// 현재 비밀번호 검증 결과를 담기 위한 클래스
+class VerifyPasswordResult {
+  final bool success;
+  final String? message;
+
+  VerifyPasswordResult({required this.success, this.message});
+}
+
+// 비밀번호 변경 결과를 담기 위한 클래스
+class ChangePasswordResult {
+  final bool success;
+  final String? message;
+
+  ChangePasswordResult({required this.success, this.message});
+}
+
 // 로그인, 로그아웃, 로그인 여부 확인 같은 기능을 모아둔 클래스
 class AuthService {
   // baseUrl 서버 주소
-  // static const String baseUrl = 'http://localhost:8080'; // 테스트용
-  static const String baseUrl = 'https://jwejweiya.com';
+  static const String baseUrl = 'http://localhost:8080'; // 테스트용
+  // static const String baseUrl = 'https://jwejweiya.com';
 
   // 로그인 화면에서 아이디와 비밀번호를 넘겨주면, 이 함수가 서버에 로그인 요청을 보냄
   static Future<LoginResult> login({
@@ -269,6 +285,74 @@ class AuthService {
     } catch (e) {
       debugPrint('FIND_ID ERROR: $e');
       return FindIdResult(
+        success: false,
+        message: '서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.',
+      );
+    }
+  }
+
+  // 비밀번호 변경 1단계 — 현재 비밀번호 검증 (JWT 필요)
+  static Future<VerifyPasswordResult> verifyCurrentPassword(String currentPassword) async {
+    final url = Uri.parse('$baseUrl/api/auth/verify-current-password');
+    final token = await getAccessToken();
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'currentPassword': currentPassword}),
+      );
+      final decoded = utf8.decode(response.bodyBytes);
+      final data = jsonDecode(decoded);
+      if (response.statusCode == 200 && data['success'] == true) {
+        return VerifyPasswordResult(success: true);
+      }
+      return VerifyPasswordResult(
+        success: false,
+        message: data['message'] ?? '비밀번호가 일치하지 않습니다.',
+      );
+    } catch (e) {
+      debugPrint('VERIFY_CURRENT_PASSWORD ERROR: $e');
+      return VerifyPasswordResult(
+        success: false,
+        message: '서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.',
+      );
+    }
+  }
+
+  // 비밀번호 변경 2단계 — 새 비밀번호로 변경 (JWT 필요)
+  static Future<ChangePasswordResult> changePassword({
+    required String newPassword,
+    required String confirmNewPassword,
+  }) async {
+    final url = Uri.parse('$baseUrl/api/auth/change-password');
+    final token = await getAccessToken();
+    try {
+      final response = await http.put(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'newPassword': newPassword,
+          'confirmNewPassword': confirmNewPassword,
+        }),
+      );
+      final decoded = utf8.decode(response.bodyBytes);
+      final data = jsonDecode(decoded);
+      if (response.statusCode == 200 && data['success'] == true) {
+        return ChangePasswordResult(success: true);
+      }
+      return ChangePasswordResult(
+        success: false,
+        message: data['message'] ?? '비밀번호 변경에 실패했습니다.',
+      );
+    } catch (e) {
+      debugPrint('CHANGE_PASSWORD ERROR: $e');
+      return ChangePasswordResult(
         success: false,
         message: '서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.',
       );

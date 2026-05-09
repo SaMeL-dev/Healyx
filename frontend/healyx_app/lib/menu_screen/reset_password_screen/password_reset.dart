@@ -1,8 +1,10 @@
 // 비밀번호 재설정 화면
 // STEP 2. 새로운 비밀번호 설정
-// 로그인 유효성 검사 실패 시 에러 메시지 노출 (true/false로 분기)
+// API: PUT /api/auth/change-password (JWT 필요)
+
 import 'package:flutter/material.dart';
 import 'package:healyx_app/menu_screen/reset_password_screen/password_reset_success.dart';
+import 'package:healyx_app/services/auth_service.dart';
 
 class PasswordResetScreen extends StatefulWidget {
   const PasswordResetScreen({super.key});
@@ -16,11 +18,11 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
   final TextEditingController _confirmPasswordController = TextEditingController();
   bool _obscureNew = true;
   bool _obscureConfirm = true;
-
-  // true: 유효성 검사 실패 / false: 기본 상태
-  // TODO: 추후 API 연동 시 실제 검증 로직으로 교체
-  final bool _hasNewError = false;
-  final bool _hasConfirmError = false;
+  bool _hasNewError = false;
+  bool _hasConfirmError = false;
+  bool _isLoading = false;
+  String _newErrorMessage = '영문, 숫자, 특수문자(!@#+=)를 포함해주세요.';
+  String _confirmErrorMessage = '비밀번호가 일치하지 않습니다.';
 
   // ── 색상 팔레트 ──────────────────────────
   static const Color mainBlue  = Color(0xFF2260FF); // 메인 컬러
@@ -29,11 +31,72 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
   static const Color hintColor = Color(0xFF809CFF); // 힌트 텍스트
   // ─────────────────────────────────────────
 
+  // 비밀번호 정책: 영문 + 숫자 + 특수문자(!@#+=) 포함, 7~12자
+  static final _passwordRegex = RegExp(r'^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#+=])[a-zA-Z\d!@#+=]{7,12}$');
+
   @override
   void dispose() {
     _newPasswordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
+  }
+
+  bool _validateInputs() {
+    final newPw = _newPasswordController.text;
+    final confirmPw = _confirmPasswordController.text;
+    bool valid = true;
+
+    if (!_passwordRegex.hasMatch(newPw)) {
+      setState(() {
+        _hasNewError = true;
+        _newErrorMessage = '영문, 숫자, 특수문자(!@#+=)를 포함한 7~12자로 입력하세요.';
+      });
+      valid = false;
+    } else {
+      setState(() => _hasNewError = false);
+    }
+
+    if (newPw != confirmPw) {
+      setState(() {
+        _hasConfirmError = true;
+        _confirmErrorMessage = '비밀번호가 일치하지 않습니다.';
+      });
+      valid = false;
+    } else {
+      setState(() => _hasConfirmError = false);
+    }
+
+    return valid;
+  }
+
+  Future<void> _changePassword() async {
+    if (!_validateInputs()) return;
+
+    setState(() => _isLoading = true);
+
+    final result = await AuthService.changePassword(
+      newPassword: _newPasswordController.text,
+      confirmNewPassword: _confirmPasswordController.text,
+    );
+
+    if (!mounted) return;
+
+    if (result.success) {
+      // 비밀번호 변경 성공 — 서버에서 모든 Refresh Token 삭제됨, 로컬 토큰도 정리
+      await AuthService.logout();
+      if (!mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const PasswordResetSuccessScreen()),
+      );
+    } else {
+      setState(() {
+        _hasNewError = true;
+        _newErrorMessage = result.message ?? '비밀번호 변경에 실패했습니다.';
+      });
+    }
+
+    setState(() => _isLoading = false);
   }
 
   InputDecoration _fieldDecoration({
@@ -46,7 +109,6 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
       hintText: hint,
       hintStyle: const TextStyle(color: hintColor, fontSize: 14),
       filled: true,
-      // 에러: 흰색 + 빨간 테두리 / 정상: lightBlue 배경
       fillColor: lightBlue,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
       border: OutlineInputBorder(
@@ -126,6 +188,9 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
                       controller: _newPasswordController,
                       obscureText: _obscureNew,
                       style: const TextStyle(fontSize: 15, color: Colors.black),
+                      onChanged: (_) {
+                        if (_hasNewError) setState(() => _hasNewError = false);
+                      },
                       decoration: _fieldDecoration(
                         hint: '새 비밀번호를 입력하세요',
                         hasError: _hasNewError,
@@ -134,16 +199,17 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
                       ),
                     ),
                     const SizedBox(height: 6),
-                    // 힌트 or 에러 (_hasNewError = false 로 바꾸면 빨간색)
                     Row(
                       children: [
                         if (_hasNewError) const Icon(Icons.error, color: Colors.red, size: 14),
                         if (_hasNewError) const SizedBox(width: 4),
-                        Text(
-                          '영문, 숫자, 특수문자(!@#+=)를 포함해주세요.',
-                          style: TextStyle(
-                            color: _hasNewError ? Colors.red : midBlue,
-                            fontSize: 12,
+                        Flexible(
+                          child: Text(
+                            _hasNewError ? _newErrorMessage : '영문, 숫자, 특수문자(!@#+=)를 포함해주세요.',
+                            style: TextStyle(
+                              color: _hasNewError ? Colors.red : midBlue,
+                              fontSize: 12,
+                            ),
                           ),
                         ),
                       ],
@@ -159,6 +225,9 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
                       controller: _confirmPasswordController,
                       obscureText: _obscureConfirm,
                       style: const TextStyle(fontSize: 15, color: Colors.black),
+                      onChanged: (_) {
+                        if (_hasConfirmError) setState(() => _hasConfirmError = false);
+                      },
                       decoration: _fieldDecoration(
                         hint: '새 비밀번호를 다시 한 번 입력하세요',
                         hasError: _hasConfirmError,
@@ -166,14 +235,13 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
                         onToggleObscure: () => setState(() => _obscureConfirm = !_obscureConfirm),
                       ),
                     ),
-                    // 에러 메시지 (_hasConfirmError = false 로 바꾸면 보임)
                     if (_hasConfirmError) ...[
                       const SizedBox(height: 6),
                       Row(
-                        children: const [
-                          Icon(Icons.error, color: Colors.red, size: 14),
-                          SizedBox(width: 4),
-                          Text('비밀번호가 일치하지 않습니다.', style: TextStyle(color: Colors.red, fontSize: 12)),
+                        children: [
+                          const Icon(Icons.error, color: Colors.red, size: 14),
+                          const SizedBox(width: 4),
+                          Text(_confirmErrorMessage, style: const TextStyle(color: Colors.red, fontSize: 12)),
                         ],
                       ),
                     ],
@@ -184,20 +252,21 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
                       width: double.infinity,
                       height: 52,
                       child: ElevatedButton(
-                        onPressed: () {
-                          // TODO: API 연동 시 실제 검증 후 이동
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const PasswordResetSuccessScreen()),
-                          );
-                        },
+                        onPressed: _isLoading ? null : _changePassword,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: mainBlue,
                           foregroundColor: Colors.white,
+                          disabledBackgroundColor: mainBlue.withOpacity(0.6),
                           elevation: 0,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                         ),
-                        child: const Text('확인', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
+                        child: _isLoading
+                            ? const SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                              )
+                            : const Text('확인', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
                       ),
                     ),
                   ],

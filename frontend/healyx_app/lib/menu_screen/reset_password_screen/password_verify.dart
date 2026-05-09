@@ -1,9 +1,10 @@
 // 비밀번호 재설정 본인 인증 화면
 // STEP 1. 기존 비밀번호 입력하여 본인 인증
-// 로그인 유효성 검사 실패 시 에러 메시지 노출 (true/false로 분기)
+// API: POST /api/auth/verify-current-password (JWT 필요)
 
 import 'package:flutter/material.dart';
 import 'package:healyx_app/menu_screen/reset_password_screen/password_reset.dart';
+import 'package:healyx_app/services/auth_service.dart';
 
 class PasswordVerifyScreen extends StatefulWidget {
   const PasswordVerifyScreen({super.key});
@@ -15,10 +16,9 @@ class PasswordVerifyScreen extends StatefulWidget {
 class _PasswordVerifyScreenState extends State<PasswordVerifyScreen> {
   final TextEditingController _passwordController = TextEditingController();
   bool _obscureText = true;
-
-  // true: 유효성 검사 실패 / false: 기본 상태
-  // TODO: 추후 API 연동 시 실제 검증 로직으로 교체
-  final bool _hasError = false;
+  bool _hasError = false;
+  bool _isLoading = false;
+  String _errorMessage = '비밀번호가 일치하지 않습니다.';
 
   // ── 색상 팔레트 ──────────────────────────
   static const Color mainBlue   = Color(0xFF2260FF); // 메인 컬러
@@ -31,6 +31,40 @@ class _PasswordVerifyScreenState extends State<PasswordVerifyScreen> {
   void dispose() {
     _passwordController.dispose();
     super.dispose();
+  }
+
+  Future<void> _verifyPassword() async {
+    final password = _passwordController.text.trim();
+    if (password.isEmpty) {
+      setState(() {
+        _hasError = true;
+        _errorMessage = '비밀번호를 입력해주세요.';
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _hasError = false;
+    });
+
+    final result = await AuthService.verifyCurrentPassword(password);
+
+    if (!mounted) return;
+
+    if (result.success) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const PasswordResetScreen()),
+      );
+    } else {
+      setState(() {
+        _hasError = true;
+        _errorMessage = result.message ?? '비밀번호가 일치하지 않습니다.';
+      });
+    }
+
+    setState(() => _isLoading = false);
   }
 
   @override
@@ -90,11 +124,13 @@ class _PasswordVerifyScreenState extends State<PasswordVerifyScreen> {
                       controller: _passwordController,
                       obscureText: _obscureText,
                       style: const TextStyle(fontSize: 15, color: Colors.black),
+                      onChanged: (_) {
+                        if (_hasError) setState(() => _hasError = false);
+                      },
                       decoration: InputDecoration(
                         hintText: '비밀번호를 입력하세요',
                         hintStyle: const TextStyle(color: hintColor, fontSize: 14),
                         filled: true,
-                        // 에러: 흰색 + 빨간 테두리 / 정상: lightBlue 배경
                         fillColor: lightBlue,
                         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
                         border: OutlineInputBorder(
@@ -120,14 +156,14 @@ class _PasswordVerifyScreenState extends State<PasswordVerifyScreen> {
                       ),
                     ),
 
-                    // 에러 메시지 (_hasError = false 로 바꾸면 보임)
+                    // 에러 메시지
                     if (_hasError) ...[
                       const SizedBox(height: 6),
                       Row(
-                        children: const [
-                          Icon(Icons.error, color: Colors.red, size: 14),
-                          SizedBox(width: 4),
-                          Text('비밀번호가 일치하지 않습니다.', style: TextStyle(color: Colors.red, fontSize: 12)),
+                        children: [
+                          const Icon(Icons.error, color: Colors.red, size: 14),
+                          const SizedBox(width: 4),
+                          Text(_errorMessage, style: const TextStyle(color: Colors.red, fontSize: 12)),
                         ],
                       ),
                     ],
@@ -138,20 +174,21 @@ class _PasswordVerifyScreenState extends State<PasswordVerifyScreen> {
                       width: double.infinity,
                       height: 52,
                       child: ElevatedButton(
-                        onPressed: () {
-                          // TODO: API 연동 시 실제 검증 후 이동
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const PasswordResetScreen()),
-                          );
-                        },
+                        onPressed: _isLoading ? null : _verifyPassword,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: mainBlue,
                           foregroundColor: Colors.white,
+                          disabledBackgroundColor: mainBlue.withOpacity(0.6),
                           elevation: 0,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                         ),
-                        child: const Text('확인', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
+                        child: _isLoading
+                            ? const SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                              )
+                            : const Text('확인', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
                       ),
                     ),
                   ],
