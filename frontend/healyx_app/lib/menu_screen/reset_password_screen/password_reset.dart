@@ -85,9 +85,10 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
       // 비밀번호 변경 성공 — 서버에서 모든 Refresh Token 삭제됨, 로컬 토큰도 정리
       await AuthService.logout();
       if (!mounted) return;
-      Navigator.push(
+      Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (_) => const PasswordResetSuccessScreen()),
+        (route) => false,
       );
     } else {
       setState(() {
