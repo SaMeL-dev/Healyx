@@ -1,0 +1,30 @@
+name: Codex PR Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  codex-review:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: refs/pull/${{ github.event.pull_request.number }}/merge
+
+      - name: Pre-fetch refs
+        run: |
+          git fetch --no-tags origin \
+            ${{ github.event.pull_request.base.ref }} \
+            +refs/pull/${{ github.event.pull_request.number }}/head
+
+      - name: Run Codex Review
+        uses: openai/codex-action@v1
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          prompt: "Review this pull request for bugs, security issues, missing tests, and code quality. Be concise and focus on high-priority issues."
+          safety-strategy: drop-sudo
+          sandbox: workspace-write
