@@ -65,8 +65,8 @@ class ChangePasswordResult {
 // 로그인, 로그아웃, 로그인 여부 확인 같은 기능을 모아둔 클래스
 class AuthService {
   // baseUrl 서버 주소
-  static const String baseUrl = 'http://localhost:8080'; // 테스트용
-  // static const String baseUrl = 'https://jwejweiya.com';
+  // static const String baseUrl = 'http://localhost:8080'; // 테스트용
+  static const String baseUrl = 'https://jwejweiya.com';
 
   // 로그인 화면에서 아이디와 비밀번호를 넘겨주면, 이 함수가 서버에 로그인 요청을 보냄
   static Future<LoginResult> login({
