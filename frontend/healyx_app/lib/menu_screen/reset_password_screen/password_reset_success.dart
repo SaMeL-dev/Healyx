@@ -17,10 +17,7 @@ class PasswordResetSuccessScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.chevron_left, color: Colors.black, size: 28),
-          onPressed: () => Navigator.pop(context),
-        ),
+        automaticallyImplyLeading: false, // 비밀번호 변경 완료 후 뒤로가기 차단
         centerTitle: true,
         title: Text( 
           AppLanguage.t('pw_reset_title'), // '비밀번호 재설정'
