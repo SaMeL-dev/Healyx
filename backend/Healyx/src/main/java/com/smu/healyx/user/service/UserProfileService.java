@@ -50,9 +50,9 @@ public class UserProfileService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AuthException("USER_NOT_FOUND", "사용자를 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
 
-        user.deactivate();
-
         redisTemplate.delete("user:" + userId + ":refresh_token");
+
+        userRepository.delete(user);
         log.info("회원 탈퇴 완료: userId={}", userId);
     }
 
