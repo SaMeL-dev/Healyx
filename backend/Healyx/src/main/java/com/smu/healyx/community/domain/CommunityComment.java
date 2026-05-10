@@ -61,4 +61,5 @@ public class CommunityComment {
     public void preUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
+
 }
