@@ -17,6 +17,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -91,10 +92,11 @@ public class ReviewController {
                         .body(ApiResponse.error("OCR_UNREADABLE", "재촬영이 필요합니다"));
             }
             throw e;
-        } catch (Exception e) {
-            log.error("OCR 인증 오류: userId={}, ykiho={}, error={}", userId, ykiho, e.getMessage());
+        } catch (IOException e) {                       // ← Exception 대신 IOException만 감쌈
+            log.error("OCR 인증 IO 오류: userId={}, ykiho={}, error={}", userId, ykiho, e.getMessage());
             throw new RuntimeException(e);
         }
+        // AuthException은 catch하지 않고 GlobalExceptionHandler로 위임 → 400 RECEIPT_MISMATCH 정상 응답
     }
 
     // ── 2. 리뷰 등록 (HX_R_007, RV-005~007) ──────────────────────────
@@ -125,10 +127,12 @@ public class ReviewController {
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(ApiResponse.success(Map.of("reviewId", reviewId)));
 
-        } catch (Exception e) {
+        } catch (IOException e) {
             log.error("리뷰 등록 오류: userId={}, ykiho={}, error={}", userId, ykiho, e.getMessage());
             throw new RuntimeException(e);
         }
+        // AuthException은 catch하지 않고 GlobalExceptionHandler로 위임
+        // → OCR_TOKEN_EXPIRED: 400, REVIEW_ALREADY_EXISTS: 409, HOSPITAL_NOT_FOUND: 404 등 정상 응답
     }
 
     // ── 3. 병원 상세 + 리뷰 조회 (HX_R_008, UI-HOS-08R / UI-REV-03) — 게스트 허용 ──
