@@ -97,6 +97,11 @@ public class User {
         this.preferredLanguage = languageCode;
     }
 
+    /** 알림 설정 변경 */
+    public void updatePushSetting(boolean pushEnabled) {
+        this.pushEnabled = pushEnabled;
+    }
+
     /** 프로필 일괄 수정 (실명·이메일·닉네임·건강보험 가입 상태) */
     public void updateProfile(String realName, String email, String nickname, boolean insured) {
         this.realName = realName;

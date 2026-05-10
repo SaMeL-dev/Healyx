@@ -3,6 +3,7 @@ package com.smu.healyx.user.controller;
 import com.smu.healyx.common.dto.ApiResponse;
 import com.smu.healyx.common.security.SecurityUtils;
 import com.smu.healyx.user.dto.LanguageUpdateRequest;
+import com.smu.healyx.user.dto.PushSettingRequest;
 import com.smu.healyx.user.dto.MyProfileResponse;
 import com.smu.healyx.user.dto.ProfileUpdateRequest;
 import com.smu.healyx.user.service.UserProfileService;
@@ -50,6 +51,17 @@ public class UserController {
             Authentication authentication) {
         Long userId = SecurityUtils.extractUserId(authentication);
         userProfileService.updateProfile(userId, request);
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    /** 알림 설정 변경 */
+    @Operation(summary = "알림 설정 변경", description = "푸시 알림을 켜거나 끕니다.")
+    @PatchMapping("/me/push")
+    public ResponseEntity<ApiResponse<Void>> updatePushSetting(
+            @Valid @RequestBody PushSettingRequest request,
+            Authentication authentication) {
+        Long userId = SecurityUtils.extractUserId(authentication);
+        userProfileService.updatePushSetting(userId, request.getPushEnabled());
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 

@@ -4,6 +4,7 @@ import com.smu.healyx.common.exception.AuthException;
 import com.smu.healyx.user.domain.User;
 import com.smu.healyx.user.dto.MyProfileResponse;
 import com.smu.healyx.user.dto.ProfileUpdateRequest;
+import com.smu.healyx.user.dto.PushSettingRequest;
 import com.smu.healyx.user.dto.UserProfileDto;
 import com.smu.healyx.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -34,6 +35,14 @@ public class UserProfileService {
                 .gender(user.getGender())
                 .insured(user.isHasHealthInsurance())
                 .build();
+    }
+
+    /** 알림 설정 변경 */
+    @Transactional
+    public void updatePushSetting(Long userId, boolean pushEnabled) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AuthException("USER_NOT_FOUND", "사용자를 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
+        user.updatePushSetting(pushEnabled);
     }
 
     /** 선호 언어 업데이트 */
