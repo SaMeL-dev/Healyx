@@ -32,6 +32,24 @@ public class OcrVerificationService {
     private static final long OCR_TOKEN_TTL_SECONDS = 600L; // 10분
     private static final String OCR_KEY_PREFIX = "ocr:";
 
+    // ════════════════════════════════════════════════════════════════
+    // 외부 명세 메소드 (프로그램 목록 v1.0 기준)
+    // ════════════════════════════════════════════════════════════════
+
+    /**
+     * HX_R_004: 영수증 OCR 추출 및 병원 DB 대조
+     *
+     * <p>프로그램 목록(v1.0) 명세 메소드명을 컨트롤러 진입점으로 노출하기 위한 위임 메소드.
+     * 내부 구현은 verify() 그대로 유지하여 단위 테스트 영향 없음.
+     */
+    public OcrVerifyResponse verifyVisitByReceipt(Long userId, OcrVerifyRequest request) throws IOException {
+        return verify(userId, request);
+    }
+
+    // ════════════════════════════════════════════════════════════════
+    // 내부 구현
+    // ════════════════════════════════════════════════════════════════
+
     /**
      * 영수증 OCR 인증을 수행한다.
      *

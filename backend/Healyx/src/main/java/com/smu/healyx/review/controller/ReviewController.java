@@ -1,7 +1,6 @@
 package com.smu.healyx.review.controller;
 
 import com.smu.healyx.common.dto.ApiResponse;
-import com.smu.healyx.common.exception.AuthException;
 import com.smu.healyx.common.exception.ExternalApiException;
 import com.smu.healyx.common.security.SecurityUtils;
 import com.smu.healyx.review.dto.*;
@@ -21,6 +20,18 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 리뷰 관련 컨트롤러.
+ *
+ * <p>내 리뷰 목록 조회·삭제는 {@link MyReviewController}로 분리되어 있으며
+ * 본 컨트롤러는 다음 4개 엔드포인트만 책임진다:
+ * <ul>
+ *   <li>GET    /api/reviews/hospitals/search        — 리뷰용 병원 검색 (게스트 허용)</li>
+ *   <li>POST   /api/reviews/ocr                     — 영수증 OCR 인증</li>
+ *   <li>POST   /api/reviews                         — 리뷰 등록</li>
+ *   <li>GET    /api/reviews/hospitals/{ykiho}       — 병원 상세 + 리뷰 조회 (게스트 허용)</li>
+ * </ul>
+ */
 @Slf4j
 @Tag(name = "Review", description = "리뷰 API")
 @RestController
@@ -50,7 +61,7 @@ public class ReviewController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    // ── 1. 영수증 OCR 인증 (RV-002~004) ─────────────────────────────
+    // ── 1. 영수증 OCR 인증 (HX_R_004, RV-002~004) ────────────────────
 
     @Operation(
             summary = "영수증 OCR 인증",
@@ -69,7 +80,8 @@ public class ReviewController {
             request.setReceiptImage(receiptImage);
             request.setYkiho(ykiho);
 
-            OcrVerifyResponse response = ocrVerificationService.verify(userId, request);
+            // 외부 명세 메소드명으로 호출 (프로그램 목록 v1.0 정합)
+            OcrVerifyResponse response = ocrVerificationService.verifyVisitByReceipt(userId, request);
             return ResponseEntity.ok(ApiResponse.success(response));
 
         } catch (ExternalApiException e) {
@@ -85,7 +97,7 @@ public class ReviewController {
         }
     }
 
-    // ── 2. 리뷰 등록 (RV-005~007) ────────────────────────────────────
+    // ── 2. 리뷰 등록 (HX_R_007, RV-005~007) ──────────────────────────
 
     @Operation(
             summary = "리뷰 등록",
@@ -108,7 +120,8 @@ public class ReviewController {
             request.setContent(content);
             request.setImages(images);
 
-            Long reviewId = reviewService.create(userId, request);
+            // 외부 명세 메소드명으로 호출 (프로그램 목록 v1.0 정합)
+            Long reviewId = reviewService.createReview(userId, request);
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(ApiResponse.success(Map.of("reviewId", reviewId)));
 
@@ -118,52 +131,30 @@ public class ReviewController {
         }
     }
 
-    // ── 3. 병원별 리뷰 조회 (RV-007, HOS-011) — 인증 불필요 ──────────
+    // ── 3. 병원 상세 + 리뷰 조회 (HX_R_008, UI-HOS-08R / UI-REV-03) — 게스트 허용 ──
 
     @Operation(
-            summary = "병원별 리뷰 조회",
-            description = "ykiho로 특정 병원의 리뷰 목록을 페이징 조회한다. 비로그인 허용."
+            summary = "병원 상세 + 리뷰 조회",
+            description = "ykiho로 병원 메타 정보(이름·타입·주소·전화·외국인 인증) + 리뷰 목록을 페이징 조회한다. " +
+                    "UI-HOS-08R(병원 찾기 진입) 및 UI-REV-03(리뷰 검색 진입) 양쪽에서 사용. " +
+                    "로그인 사용자는 myReviewExists/myReviewId가 채워져 UI-REV-03-P 중복 작성 차단을 클릭 시점에 처리할 수 있다. " +
+                    "게스트 호출도 200 정상 응답."
     )
     @GetMapping("/hospitals/{ykiho}")
     public ResponseEntity<ApiResponse<HospitalReviewResponse>> getHospitalReviews(
             @PathVariable String ykiho,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-
-        HospitalReviewResponse response = reviewService.getByHospital(ykiho, page, size);
-        return ResponseEntity.ok(ApiResponse.success(response));
-    }
-
-    // ── 4. 내 리뷰 조회 (RV-008, MENU-007) ──────────────────────────
-
-    @Operation(
-            summary = "내 리뷰 조회",
-            description = "로그인 사용자의 리뷰 목록을 최신순 페이징 조회한다."
-    )
-    @GetMapping("/my")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> getMyReviews(
-            @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             Authentication authentication) {
 
-        Long userId = SecurityUtils.extractUserId(authentication);
-        Map<String, Object> response = reviewService.getMyReviews(userId, page, size);
+        // 게스트 허용 — 비로그인 시 userId = null
+        Long userId = SecurityUtils.extractUserIdNullable(authentication);
+
+        // 외부 명세 메소드명으로 호출 (프로그램 목록 v1.0 정합)
+        HospitalReviewResponse response =
+                reviewService.getReviewsByHospital(ykiho, userId, page, size);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    // ── 5. 리뷰 삭제 (MENU-007) ──────────────────────────────────────
-
-    @Operation(
-            summary = "리뷰 삭제",
-            description = "본인 리뷰를 삭제한다. S3 이미지 → review_images → reviews 순서로 삭제."
-    )
-    @DeleteMapping("/{reviewId}")
-    public ResponseEntity<ApiResponse<Void>> deleteReview(
-            @PathVariable Long reviewId,
-            Authentication authentication) {
-
-        Long userId = SecurityUtils.extractUserId(authentication);
-        reviewService.delete(userId, reviewId);
-        return ResponseEntity.ok(ApiResponse.success(null));
-    }
+    // ── 내 리뷰 조회 / 삭제는 MyReviewController로 일원화 (main 머지 후) ──
 }

@@ -25,9 +25,19 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
+/**
+ * 리뷰 작성·검색·병원별 조회 서비스.
+ *
+ * <p>내 리뷰 목록 조회·삭제 책임은 {@link MyReviewService}로 분리되어 있어
+ * 본 서비스는 다음 책임만 담당한다:
+ * <ul>
+ *   <li>HX_R_002 — 리뷰 전용 병원 검색 (위임)</li>
+ *   <li>HX_R_007 — 리뷰 등록</li>
+ *   <li>HX_R_008 — 병원 상세 + 리뷰 목록 조회</li>
+ * </ul>
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -44,20 +54,35 @@ public class ReviewService {
     private static final int MAX_IMAGES = 5;
     private static final int MAX_CONTENT_LENGTH = 2000;
 
-    // ── 리뷰 작성 진입 — 병원 검색 (HX_R_002, UI-REV-01/02) ──────────
+    // ════════════════════════════════════════════════════════════════
+    // 외부 명세 메소드 (프로그램 목록 v1.0 기준)
+    //
+    // 컨트롤러는 외부 명세 메소드명을 통해 호출하고,
+    // 내부 구현은 기존 메소드명(create/getByHospital)을 그대로 유지하여
+    // 단위 테스트와 내부 호출자에 영향을 주지 않는다.
+    // v4의 mapBodyIconToKeyword → BodyIconService.getKeywords 위임 패턴과 동일.
+    // ════════════════════════════════════════════════════════════════
 
-    /**
-     * 리뷰 작성 진입 화면에서 병원을 직접 검색한다.
-     *
-     * <p>프로그램 목록(v1.0)이 명시한 메소드 시그니처를 보존하기 위한 위임 메소드.
-     * 실제 HIRA 호출·upsert·별점 집계 책임은 {@link ReviewHospitalSearchService}로
-     * 분리되어 있으며, 본 메소드는 OCR/CRUD/S3로 비대해진 ReviewService에
-     * 검색 로직을 직접 흡수하지 않으면서 외부 인터페이스 안정성을 유지한다.
-     */
+    /** HX_R_002: 리뷰 작성 진입 화면에서 병원을 직접 검색한다. */
     public ReviewHospitalSearchResponse searchHospitalForReview(
             String name, String region, int page, int size) {
         return reviewHospitalSearchService.search(name, region, page, size);
     }
+
+    /** HX_R_007: 리뷰 유효성 검사 및 등록 */
+    public Long createReview(Long userId, ReviewCreateRequest request) throws IOException {
+        return create(userId, request);
+    }
+
+    /** HX_R_008: 병원 상세 리뷰 리스트 조회 */
+    public HospitalReviewResponse getReviewsByHospital(
+            String ykiho, Long userId, int page, int size) {
+        return getByHospital(ykiho, userId, page, size);
+    }
+
+    // ════════════════════════════════════════════════════════════════
+    // 내부 구현
+    // ════════════════════════════════════════════════════════════════
 
     // ── 리뷰 등록 (RV-005~007) ───────────────────────────────────────
 
@@ -135,14 +160,25 @@ public class ReviewService {
         return review.getReviewId();
     }
 
-    // ── 병원별 리뷰 조회 (RV-007, HOS-011) ──────────────────────────
+    // ── 병원 상세 + 리뷰 조회 (RV-007, HOS-011) ──────────────────────
 
     /**
-     * ykiho 기준 병원의 리뷰 목록을 페이징 조회한다.
-     * 평균 별점·총 건수는 전체 기준 (페이지 무관).
+     * ykiho 기준 병원의 상세 정보 + 리뷰 목록을 페이징 조회한다.
+     *
+     * <p>UI-HOS-08R / UI-REV-03 정합:
+     * 병원 메타 5필드(이름·타입·주소·전화·외국인 인증) + 리뷰 집계 + 리뷰 목록.
+     *
+     * <p>UI-REV-03-P 정합:
+     * userId가 null이 아닐 경우 본인 리뷰 존재 여부와 reviewId를 함께 반환하여
+     * 클라이언트가 "리뷰 쓰기" 클릭 시점에 중복 작성을 차단할 수 있게 한다.
+     *
+     * @param ykiho  병원 요양기호
+     * @param userId 호출 사용자 ID. 게스트면 null
+     * @param page   0-base 페이지
+     * @param size   페이지 크기
      */
     @Transactional(readOnly = true)
-    public HospitalReviewResponse getByHospital(String ykiho, int page, int size) {
+    public HospitalReviewResponse getByHospital(String ykiho, Long userId, int page, int size) {
 
         Hospital hospital = hospitalRepository.findByYkiho(ykiho)
                 .orElseThrow(() -> new AuthException(
@@ -162,75 +198,39 @@ public class ReviewService {
 
         long totalCount = reviewPage.getTotalElements();
 
+        // 본인 리뷰 식별 (로그인 사용자만 — 게스트는 false/null)
+        boolean myReviewExists = false;
+        Long myReviewId = null;
+        if (userId != null) {
+            Optional<Review> myReview = reviewRepository
+                    .findByUser_UserIdAndHospital_HospitalId(userId, hospitalId);
+            if (myReview.isPresent()) {
+                myReviewExists = true;
+                myReviewId = myReview.get().getReviewId();
+            }
+        }
+
         List<ReviewItemResponse> reviews = reviewPage.getContent().stream()
                 .map(r -> ReviewItemResponse.of(r,
                         reviewImageRepository.findByReview_ReviewIdOrderBySortOrderAsc(r.getReviewId())))
                 .toList();
 
         return HospitalReviewResponse.builder()
+                // 병원 메타 (UI-HOS-08R / UI-REV-03 정합)
+                .hospitalName(hospital.getName())
+                .hospitalType(hospital.getType())
+                .address(hospital.getAddress())
+                .telephone(hospital.getPhone())
+                .foreignCertified(hospital.isForeignCertified())
+                // 리뷰 집계
                 .averageRating(averageRating)
                 .totalCount(totalCount)
+                // 본인 리뷰 여부 (UI-REV-03-P 정합)
+                .myReviewExists(myReviewExists)
+                .myReviewId(myReviewId)
+                // 페이징 리뷰 목록
                 .reviews(reviews)
                 .build();
-    }
-
-    // ── 내 리뷰 조회 (RV-008, MENU-007) ─────────────────────────────
-
-    /**
-     * 로그인 사용자의 리뷰 목록을 페이징 조회한다.
-     */
-    @Transactional(readOnly = true)
-    public Map<String, Object> getMyReviews(Long userId, int page, int size) {
-
-        PageRequest pageable = PageRequest.of(page, size);
-        Page<Review> reviewPage = reviewRepository
-                .findByUser_UserIdOrderByCreatedAtDesc(userId, pageable);
-
-        List<MyReviewResponse> reviews = reviewPage.getContent().stream()
-                .map(MyReviewResponse::from)
-                .toList();
-
-        return Map.of(
-                "totalCount", reviewPage.getTotalElements(),
-                "reviews", reviews
-        );
-    }
-
-    // ── 리뷰 삭제 (MENU-007) ─────────────────────────────────────────
-
-    /**
-     * 본인 리뷰를 삭제한다.
-     * 삭제 순서: S3 파일 → review_images 행 → reviews 행
-     */
-    @Transactional
-    public void delete(Long userId, Long reviewId) {
-
-        // 1. 리뷰 존재 확인
-        Review review = reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new AuthException(
-                        "REVIEW_NOT_FOUND",
-                        "리뷰를 찾을 수 없습니다.",
-                        HttpStatus.NOT_FOUND));
-
-        // 2. 본인 검증
-        if (!review.getUser().getUserId().equals(userId)) {
-            throw new AuthException(
-                    "FORBIDDEN",
-                    "본인의 리뷰만 삭제할 수 있습니다.",
-                    HttpStatus.FORBIDDEN);
-        }
-
-        // 3. S3 파일 삭제 → review_images 행 삭제
-        List<ReviewImage> images =
-                reviewImageRepository.findByReview_ReviewIdOrderBySortOrderAsc(reviewId);
-        for (ReviewImage image : images) {
-            s3UploadService.delete(image.getImageUrl());
-        }
-        reviewImageRepository.deleteAll(images);
-
-        // 4. reviews 행 삭제 (hard delete)
-        reviewRepository.delete(review);
-        log.debug("리뷰 삭제 완료: reviewId={}, userId={}", reviewId, userId);
     }
 
     // ── 내부 유틸 ────────────────────────────────────────────────────
