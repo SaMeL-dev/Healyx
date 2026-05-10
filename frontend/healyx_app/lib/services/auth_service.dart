@@ -312,13 +312,13 @@ class AuthService {
       }
       return VerifyPasswordResult(
         success: false,
-        message: data['message'] ?? '비밀번호가 일치하지 않습니다.',
+        message: data['message'] ?? AppLanguage.t('pw_mismatch'), // '비밀번호가 일치하지 않습니다.'
       );
     } catch (e) {
       debugPrint('VERIFY_CURRENT_PASSWORD ERROR: $e');
       return VerifyPasswordResult(
         success: false,
-        message: '서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.',
+        message: AppLanguage.t('server_error'), // '서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.'
       );
     }
   }
@@ -349,13 +349,13 @@ class AuthService {
       }
       return ChangePasswordResult(
         success: false,
-        message: data['message'] ?? '비밀번호 변경에 실패했습니다.',
+        message: data['message'] ?? AppLanguage.t('pw_change_error'), // '비밀번호 변경에 실패했습니다.'
       );
     } catch (e) {
       debugPrint('CHANGE_PASSWORD ERROR: $e');
       return ChangePasswordResult(
         success: false,
-        message: '서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.',
+        message: AppLanguage.t('server_error'), // '서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.'
       );
     }
   }
