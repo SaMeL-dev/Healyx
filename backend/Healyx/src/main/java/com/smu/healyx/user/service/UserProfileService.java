@@ -1,7 +1,12 @@
 package com.smu.healyx.user.service;
 
 import com.smu.healyx.common.exception.AuthException;
+import com.smu.healyx.common.service.S3UploadService;
 import com.smu.healyx.community.repository.CommunityCommentRepository;
+import com.smu.healyx.community.repository.PostImageRepository;
+import com.smu.healyx.review.repository.ReviewImageRepository;
+import com.smu.healyx.translation.domain.MedicalTranslation;
+import com.smu.healyx.translation.repository.MedicalTranslationRepository;
 import com.smu.healyx.user.domain.User;
 import com.smu.healyx.user.dto.MyProfileResponse;
 import com.smu.healyx.user.dto.ProfileUpdateRequest;
@@ -18,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import java.util.List;
 import java.util.Objects;
 
 @Slf4j
@@ -28,6 +34,10 @@ public class UserProfileService {
     private final UserRepository userRepository;
     private final StringRedisTemplate redisTemplate;
     private final CommunityCommentRepository communityCommentRepository;
+    private final ReviewImageRepository reviewImageRepository;
+    private final PostImageRepository postImageRepository;
+    private final MedicalTranslationRepository medicalTranslationRepository;
+    private final S3UploadService s3UploadService;
 
     @Transactional(readOnly = true)
     public UserProfileDto getProfile(Long userId) {
@@ -66,6 +76,17 @@ public class UserProfileService {
         // mention_user_id FK는 cascade 미적용 — DB 삭제 전 null 처리
         communityCommentRepository.clearMentionUser(userId);
 
+        // S3 파일 삭제 (DB 삭제 전 선행 — 고아 파일 방지)
+        reviewImageRepository.findByReview_User_UserId(userId)
+                .forEach(img -> deleteS3Quietly(img.getImageUrl()));
+        postImageRepository.findByPost_User_UserId(userId)
+                .forEach(img -> deleteS3Quietly(img.getImageUrl()));
+        List<MedicalTranslation> translations = medicalTranslationRepository.findByUser_UserId(userId);
+        translations.forEach(t -> {
+            deleteS3Quietly(t.getImageUrl());
+            deleteS3Quietly(t.getTranslatedImageUrl());
+        });
+
         // User cascade: reviews·posts·comments·bookmarks·likes·notifications·translations·reports
         userRepository.delete(user);
 
@@ -97,6 +118,15 @@ public class UserProfileService {
                 request.getNickname(),
                 "insured".equals(request.getInsuranceStatus())
         );
+    }
+
+    private void deleteS3Quietly(String url) {
+        if (url == null || url.isBlank()) return;
+        try {
+            s3UploadService.delete(url);
+        } catch (Exception e) {
+            log.warn("S3 파일 삭제 실패 (무시됨): url={}", url, e);
+        }
     }
 
     /** 자동 로그인 및 프로필 화면용 전체 프로필 조회 */
