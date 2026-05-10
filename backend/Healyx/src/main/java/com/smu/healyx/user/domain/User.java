@@ -1,10 +1,14 @@
 package com.smu.healyx.user.domain;
 
+import com.smu.healyx.community.domain.*;
+import com.smu.healyx.review.domain.Review;
+import com.smu.healyx.translation.domain.MedicalTranslation;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.SQLRestriction;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -12,7 +16,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-@SQLRestriction("deleted_at IS NULL")
 public class User {
 
     @Id
@@ -68,8 +71,41 @@ public class User {
             columnDefinition = "TINYINT(1) DEFAULT 1")
     private boolean isActive;
 
-    @Column(name = "deleted_at")
-    private LocalDateTime deletedAt;
+    // ── 자식 연관관계 (회원 탈퇴 시 cascade 삭제) ────────────────────────────
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @Builder.Default
+    private List<Review> reviews = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @Builder.Default
+    private List<CommunityPost> communityPosts = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @Builder.Default
+    private List<CommunityComment> communityComments = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @Builder.Default
+    private List<CommunityBookmark> communityBookmarks = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @Builder.Default
+    private List<CommunityLike> communityLikes = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @Builder.Default
+    private List<Notification> notifications = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @Builder.Default
+    private List<MedicalTranslation> medicalTranslations = new ArrayList<>();
+
+    @OneToMany(mappedBy = "reporter", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @Builder.Default
+    private List<Report> reports = new ArrayList<>();
+
+    // ── 도메인 메서드 ────────────────────────────────────────────────────────
 
     /** 비밀번호 변경 */
     public void updatePassword(String newPasswordHash) {
@@ -105,11 +141,6 @@ public class User {
     /** 알림 설정 변경 */
     public void updatePushSetting(boolean pushEnabled) {
         this.pushEnabled = pushEnabled;
-    }
-
-    /** 회원 탈퇴 — 소프트 삭제 */
-    public void withdraw() {
-        this.deletedAt = LocalDateTime.now();
     }
 
     /** 프로필 일괄 수정 (실명·이메일·닉네임·건강보험 가입 상태) */

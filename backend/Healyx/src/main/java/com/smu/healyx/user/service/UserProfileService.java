@@ -1,6 +1,7 @@
 package com.smu.healyx.user.service;
 
 import com.smu.healyx.common.exception.AuthException;
+import com.smu.healyx.community.repository.CommunityCommentRepository;
 import com.smu.healyx.user.domain.User;
 import com.smu.healyx.user.dto.MyProfileResponse;
 import com.smu.healyx.user.dto.ProfileUpdateRequest;
@@ -24,6 +25,7 @@ public class UserProfileService {
 
     private final UserRepository userRepository;
     private final StringRedisTemplate redisTemplate;
+    private final CommunityCommentRepository communityCommentRepository;
 
     @Transactional(readOnly = true)
     public UserProfileDto getProfile(Long userId) {
@@ -53,16 +55,19 @@ public class UserProfileService {
         user.updateLanguage(languageCode);
     }
 
-    /** 회원 탈퇴 — soft delete 후 Refresh Token 제거 (DB 성공 확인 후 Redis 삭제) */
+    /** 회원 탈퇴 — hard delete (DB 삭제 → Redis 삭제 순으로 불일치 방지) */
     @Transactional
     public void withdraw(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AuthException("USER_NOT_FOUND", "사용자를 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
 
-        user.withdraw();
-        userRepository.save(user);
+        // mention_user_id FK는 cascade 미적용 — DB 삭제 전 null 처리
+        communityCommentRepository.clearMentionUser(userId);
 
-        // DB 커밋 성공 후 Redis 삭제 — 순서 역전 시 불일치 방지
+        // User cascade: reviews·posts·comments·bookmarks·likes·notifications·translations·reports
+        userRepository.delete(user);
+
+        // Redis 삭제는 DB 삭제 성공 후 마지막에 실행
         redisTemplate.delete("user:" + userId + ":refresh_token");
         log.info("회원 탈퇴 완료: userId={}", userId);
     }
