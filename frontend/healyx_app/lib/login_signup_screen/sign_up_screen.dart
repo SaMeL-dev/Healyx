@@ -1,7 +1,8 @@
-// 회원가입 화면 구현
+﻿// 회원가입 화면 구현
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/auth_service.dart';
+import '../app_language.dart'; 
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -87,9 +88,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
       if (!mounted) return;
       if (isAvailable) {
         setState(() => _isEmailChecked = true);
-        _showMessage('사용 가능한 이메일입니다.');
+        _showMessage(AppLanguage.t('email_available')); // '사용 가능한 이메일입니다.'
       } else {
-        _showMessage('이미 사용 중인 이메일입니다.');
+        _showMessage(AppLanguage.t('email_taken')); // '이미 사용 중인 이메일입니다.'
       }
     } catch (e) {
       if (!mounted) return;
@@ -110,9 +111,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
       if (!mounted) return;
       if (isAvailable) {
         setState(() => _isUsernameChecked = true);
-        _showMessage('사용 가능한 아이디입니다.');
+        _showMessage(AppLanguage.t('username_available')); // '사용 가능한 아이디입니다.'
       } else {
-        _showMessage('이미 사용 중인 아이디입니다.');
+        _showMessage(AppLanguage.t('username_taken')); // '이미 사용 중인 아이디입니다.'
       }
     } catch (e) {
       if (!mounted) return;
@@ -125,27 +126,27 @@ class _SignUpScreenState extends State<SignUpScreen> {
   // 회원가입 처리
   Future<void> _handleRegister() async {
     if (nameController.text.trim().isEmpty) {
-      _showMessage('이름을 입력해주세요.');
+      _showMessage(AppLanguage.t('signup_error_name')); // '이름을 입력해주세요.'
       return;
     }
     if (!_isEmailChecked) {
-      _showMessage('이메일 중복확인을 완료해주세요.');
+      _showMessage(AppLanguage.t('signup_error_email_check')); // '이메일 중복확인을 완료해주세요.'
       return;
     }
     if (!_isUsernameChecked) {
-      _showMessage('아이디 중복확인을 완료해주세요.');
+      _showMessage(AppLanguage.t('signup_error_id_check')); // '아이디 중복확인을 완료해주세요.'
       return;
     }
     if (passwordController.text.isEmpty) {
-      _showMessage('비밀번호를 입력해주세요.');
+      _showMessage(AppLanguage.t('signup_error_password')); // '비밀번호를 입력해주세요.'
       return;
     }
     if (passwordController.text != passwordCheckController.text) {
-      _showMessage('비밀번호가 일치하지 않습니다.');
+      _showMessage(AppLanguage.t('pw_error')); // '비밀번호가 일치하지 않습니다.'
       return;
     }
     if (nicknameController.text.trim().isEmpty) {
-      _showMessage('닉네임을 입력해주세요.');
+      _showMessage(AppLanguage.t('signup_error_nickname')); // '닉네임을 입력해주세요.'
       return;
     }
 
@@ -183,10 +184,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
       );
       if (!mounted) return;
       if (result.success) {
-        _showMessage('회원가입이 완료되었습니다.');
+        _showMessage(AppLanguage.t('signup_success')); // '회원가입이 완료되었습니다.'
         Navigator.pop(context);
       } else {
-        _showMessage(result.message ?? '회원가입에 실패했습니다.');
+        _showMessage(result.message ?? AppLanguage.t('signup_failed')); // '회원가입에 실패했습니다.'
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -213,11 +214,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
     final bool isIdEntered = idController.text.trim().isNotEmpty;
 
     // 이메일 버튼 상태
-    final String emailButtonText = _isEmailChecked ? '확인완료' : '중복확인';
+    final String emailButtonText = _isEmailChecked
+        ? AppLanguage.t('check_done') // '확인완료'
+        : AppLanguage.t('check_duplicate'); // '중복확인'
     final bool emailButtonEnabled = isEmailEntered && !_isEmailChecked && !_isLoading;
 
     // 아이디 버튼 상태
-    final String usernameButtonText = _isUsernameChecked ? '확인완료' : '중복확인';
+    final String usernameButtonText = _isUsernameChecked
+        ? AppLanguage.t('check_done') // '확인완료'
+        : AppLanguage.t('check_duplicate'); // '중복확인'
     final bool usernameButtonEnabled = isIdEntered && !_isUsernameChecked && !_isLoading;
 
     return Scaffold(
@@ -240,11 +245,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           color: Color(0xFF4E7CFF),
                         ),
                       ),
-                      const Expanded(
+                      Expanded(
                         child: Center(
                           child: Text(
-                            '회원가입',
-                            style: TextStyle(
+                            AppLanguage.t('sign_up'), // '회원가입'
+                            style: const TextStyle(
                               fontSize: 28,
                               fontWeight: FontWeight.w800,
                               color: Color(0xFF4E7CFF),
@@ -258,9 +263,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   const SizedBox(height: 18),
 
                   // 이름
-                  const Text(
-                    '이름',
-                    style: TextStyle(
+                  Text(
+                    AppLanguage.t('name_label'), // '이름'
+                    style: const TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
                       color: Colors.black87,
@@ -269,13 +274,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   const SizedBox(height: 10),
                   _buildInputField(
                     controller: nameController,
-                    hintText: '이름을 입력하세요',
+                    hintText: AppLanguage.t('name_hint'), // '이름을 입력하세요'
                   ),
                   const SizedBox(height: 18),
 
                   // 이메일
-                  const Text(
-                    '이메일',
+                  Text(
+                    AppLanguage.t('profile_email'), //수정
                     style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
@@ -285,7 +290,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   const SizedBox(height: 10),
                   _buildCheckRowField(
                     controller: emailController,
-                    hintText: '이메일을 입력하세요',
+                    hintText: AppLanguage.t('email_hint'), // '이메일을 입력하세요'
                     buttonText: emailButtonText,
                     isEnabled: emailButtonEnabled,
                     onTap: _handleCheckEmail,
@@ -293,9 +298,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   const SizedBox(height: 18),
 
                   // 아이디
-                  const Text(
-                    '아이디',
-                    style: TextStyle(
+                  Text(
+                    AppLanguage.t('username_label'), // '아이디'
+                    style: const TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
                       color: Colors.black87,
@@ -304,7 +309,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   const SizedBox(height: 10),
                   _buildCheckRowField(
                     controller: idController,
-                    hintText: '아이디를 입력하세요',
+                    hintText: AppLanguage.t('username_hint'), // '아이디를 입력하세요'
                     buttonText: usernameButtonText,
                     isEnabled: usernameButtonEnabled,
                     onTap: _handleCheckUsername,
@@ -312,9 +317,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   const SizedBox(height: 18),
 
                   // 비밀번호
-                  const Text(
-                    '비밀번호',
-                    style: TextStyle(
+                  Text(
+                    AppLanguage.t('password_label'), // '비밀번호'
+                    style: const TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
                       color: Colors.black87,
@@ -323,15 +328,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   const SizedBox(height: 10),
                   _buildInputField(
                     controller: passwordController,
-                    hintText: '비밀번호를 입력하세요',
+                    hintText: AppLanguage.t('password_hint'), // '비밀번호를 입력하세요'
                     obscureText: true,
                   ),
                   const SizedBox(height: 18),
 
                   // 비밀번호 확인
-                  const Text(
-                    '비밀번호 확인',
-                    style: TextStyle(
+                  Text(
+                    AppLanguage.t('password_confirm_label'), // '비밀번호 확인'
+                    style: const TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
                       color: Colors.black87,
@@ -340,14 +345,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   const SizedBox(height: 10),
                   _buildInputField(
                     controller: passwordCheckController,
-                    hintText: '비밀번호를 입력하세요',
+                    hintText: AppLanguage.t('password_hint'), // '비밀번호를 입력하세요'
                     obscureText: true,
                   ),
                   const SizedBox(height: 18),
 
                   // 닉네임
-                  const Text(
-                    '닉네임',
+                  Text(
+                     AppLanguage.t('profile_email'), //수정
                     style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
@@ -357,14 +362,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   const SizedBox(height: 10),
                   _buildInputField(
                     controller: nicknameController,
-                    hintText: '닉네임을 입력하세요',
+                    hintText: AppLanguage.t('nickname_hint'), // '닉네임을 입력하세요'
                   ),
                   const SizedBox(height: 18),
 
                   // 생년월일
-                  const Text(
-                    '생년월일:',
-                    style: TextStyle(
+                  Text(
+                    AppLanguage.t('birthdate_label'), // '생년월일:'
+                    style: const TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
                       color: Colors.black87,
@@ -426,9 +431,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     children: [
                       Row(
                         children: [
-                          const Text(
-                            '성별',
-                            style: TextStyle(
+                          Text(
+                            AppLanguage.t('gender_label'), // '성별'
+                            style: const TextStyle(
                               fontSize: 17,
                               fontWeight: FontWeight.w700,
                               color: Colors.black87,
@@ -443,9 +448,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       const SizedBox(height: 16),
                       Row(
                         children: [
-                          const Text(
-                            '건강보험 여부:',
-                            style: TextStyle(
+                          Text(
+                            AppLanguage.t('insurance_label'), // '건강보험 여부:'
+                            style: const TextStyle(
                               fontSize: 17,
                               fontWeight: FontWeight.w700,
                               color: Colors.black87,
@@ -480,9 +485,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           borderRadius: BorderRadius.circular(28),
                         ),
                       ),
-                      child: const Text(
-                        '회원가입',
-                        style: TextStyle(
+                      child: Text(
+                        AppLanguage.t('sign_up'), // '회원가입'
+                        style: const TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.w700,
                           color: Colors.white,
@@ -659,7 +664,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ),
           const SizedBox(width: 4),
           Text(
-            gender,
+            gender == '남성'
+                ? AppLanguage.t('gender_male') // '남성'
+                : AppLanguage.t('gender_female'), // '여성'
             style: const TextStyle(
               fontSize: 15,
               color: Colors.black87,

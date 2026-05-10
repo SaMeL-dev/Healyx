@@ -1,8 +1,9 @@
-// 내 게시글 / 댓글 보관함 화면
+﻿// 내 게시글 / 댓글 보관함 화면
 // 내가 작성한 게시글과 댓글을 리스트 형태로 보여주는 화면
 import 'package:flutter/material.dart';
 import 'package:healyx_app/community_screen/community_detail.dart';
 import 'package:healyx_app/dialogs/archive_delete_dialog.dart';
+import '../app_language.dart'; 
 
 class PostItem {
   final String id;
@@ -72,9 +73,9 @@ class _MyPostsCommentsScreenState extends State<MyPostsCommentsScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         centerTitle: true,
-        title: const Text(
-          '내 게시글 / 댓글',
-          style: TextStyle(
+        title: Text(
+          AppLanguage.t('archive_menu_posts'), // '내 게시글 / 댓글'
+          style: const TextStyle(
             color: Color(0xFF2260FF),
             fontSize: 20,
             fontWeight: FontWeight.w600,
@@ -177,8 +178,8 @@ class _TabToggle extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Expanded(child: _TabButton(label: '게시글', isSelected: isPostTab, onTap: () => onChanged(true))),
-          Expanded(child: _TabButton(label: '댓글', isSelected: !isPostTab, onTap: () => onChanged(false))),
+          Expanded(child: _TabButton(label: AppLanguage.t('archive_tab_posts'), isSelected: isPostTab, onTap: () => onChanged(true))), // '게시글'
+          Expanded(child: _TabButton(label: AppLanguage.t('archive_tab_comments'), isSelected: !isPostTab, onTap: () => onChanged(false))), // '댓글'
         ],
       ),
     );

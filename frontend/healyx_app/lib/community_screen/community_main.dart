@@ -1,5 +1,6 @@
-// 커뮤니티 메인 화면 (홈/인기 탭, 게시글 리스트, 검색/글쓰기 버튼)
+﻿// 커뮤니티 메인 화면 (홈/인기 탭, 게시글 리스트, 검색/글쓰기 버튼)
 import 'package:flutter/material.dart';
+import '../app_language.dart'; 
 
 import 'community_search.dart';
 import 'community_write.dart';
@@ -76,11 +77,11 @@ class _CommunityMainScreenState extends State<CommunityMainScreen> {
                           icon: const Icon(Icons.arrow_back_ios,
                               color: mainBlue, size: 20),
                         ),
-                        const Expanded(
+                        Expanded(
                           child: Center(
                             child: Text(
-                              '커뮤니티',
-                              style: TextStyle(
+                              AppLanguage.t('community'), // '커뮤니티'
+                              style: const TextStyle(
                                 color: mainBlue,
                                 fontSize: 28,
                                 fontWeight: FontWeight.w800,
@@ -166,14 +167,18 @@ class _CommunityMainScreenState extends State<CommunityMainScreen> {
 
                           const SizedBox(width: 18),
 
-                          const Text(
-                            '병원 / 약 / 번역 관련해서\n서로 소통해보세요!',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: mainBlue,
-                              fontSize: 15,
-                              fontWeight: FontWeight.w800,
-                              height: 1.5,
+                          Expanded(
+                            child: Text(
+                              AppLanguage.t('community_banner_text'), // '병원 / 약 / 번역 관련해서\n서로 소통해보세요!'
+                              textAlign: TextAlign.center,
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: mainBlue,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w800,
+                                height: 1.5,
+                              ),
                             ),
                           ),
                         ],
@@ -189,13 +194,13 @@ class _CommunityMainScreenState extends State<CommunityMainScreen> {
                     child: Row(
                       children: [
                         _TabButton(
-                          text: '홈',
+                          text: AppLanguage.t('community_tab_home'), // '홈'
                           isSelected: _selectedTab == 0,
                           onTap: () => setState(() => _selectedTab = 0),
                         ),
                         const SizedBox(width: 8),
                         _TabButton(
-                          text: '인기',
+                          text: AppLanguage.t('community_tab_popular'), // '인기'
                           isSelected: _selectedTab == 1,
                           onTap: () => setState(() => _selectedTab = 1),
                         ),

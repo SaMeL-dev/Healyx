@@ -1,6 +1,7 @@
 /// 부적절한 콘텐츠 신고 팝업
-/// 부적절한 콘텐츠(비방, 욕설, 광고)로 신고하시겠습니까? 예/아니오 버튼  
+/// 부적절한 콘텐츠(비방, 욕설, 광고)로 신고하시겠습니까? 예/아니오 버튼
 import 'package:flutter/material.dart';
+import 'package:healyx_app/app_language.dart'; 
 
 class ReportDialog extends StatelessWidget {
   const ReportDialog({super.key});
@@ -24,10 +25,10 @@ class ReportDialog extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              '부적절한 콘텐츠\n(비방, 욕설, 광고)로 신고하시겠습니까?',
+            Text(
+              AppLanguage.t('dialog_report'), // '부적절한 콘텐츠로 신고하시겠습니까?'
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 19,
                 height: 1.45,
                 fontWeight: FontWeight.w700,
@@ -52,9 +53,9 @@ class ReportDialog extends StatelessWidget {
                           borderRadius: BorderRadius.circular(28),
                         ),
                       ),
-                      child: const Text(
-                        '예',
-                        style: TextStyle(
+                      child: Text(
+                        AppLanguage.t('yes'), // '예' 
+                        style: const TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w700,
                         ),
@@ -78,9 +79,9 @@ class ReportDialog extends StatelessWidget {
                           borderRadius: BorderRadius.circular(28),
                         ),
                       ),
-                      child: const Text(
-                        '아니오',
-                        style: TextStyle(
+                      child: Text(
+                        AppLanguage.t('no'), // '아니요'
+                        style: const TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w700,
                         ),

@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:healyx_app/app_language.dart'; 
 import 'pain_score_slide.dart';
 
 class FindHospitalIcon extends StatelessWidget {
@@ -49,11 +50,11 @@ class FindHospitalIcon extends StatelessWidget {
                       size: 22,
                     ),
                   ),
-                  const Expanded(
+                  Expanded( 
                     child: Center(
                       child: Text(
-                        '병원 찾기',
-                        style: TextStyle(
+                        AppLanguage.t('find_hospital'), // '병원 찾기'
+                        style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w800,
                           color: Color(0xFF2260FF),
@@ -66,10 +67,10 @@ class FindHospitalIcon extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 80),
-            const Text(
-              '귀하의 증상과 가까운 아이콘을 선택하세요',
+            Text( 
+              AppLanguage.t('symptom_icon_prompt'), // '귀하의 증상과 가까운 아이콘을 선택하세요'
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
                 color: Color(0xFF2260FF),

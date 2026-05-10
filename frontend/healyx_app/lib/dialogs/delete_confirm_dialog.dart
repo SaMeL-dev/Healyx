@@ -1,6 +1,7 @@
 // 게시글 삭제 확인 팝업
 // 정말로 삭제하시겠습니까? 삭제 후에는 복구할 수 없습니다. 예/아니오 버튼
 import 'package:flutter/material.dart';
+import 'package:healyx_app/app_language.dart'; 
 
 class DeleteConfirmDialog extends StatelessWidget {
   const DeleteConfirmDialog({super.key});
@@ -24,10 +25,10 @@ class DeleteConfirmDialog extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              '정말로 삭제하시겠습니까?\n삭제된 내용은 복구할 수 없습니다.',
+            Text(
+              AppLanguage.t('dialog_post_delete'), // '정말로 삭제하시겠습니까?\n삭제 후에는 복구할 수 없습니다.' 
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 17,
                 height: 1.45,
                 fontWeight: FontWeight.w700,
@@ -52,9 +53,9 @@ class DeleteConfirmDialog extends StatelessWidget {
                           borderRadius: BorderRadius.circular(28),
                         ),
                       ),
-                      child: const Text(
-                        '예',
-                        style: TextStyle(
+                      child: Text(
+                        AppLanguage.t('yes'), // '예' 
+                        style: const TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w700,
                         ),
@@ -78,9 +79,9 @@ class DeleteConfirmDialog extends StatelessWidget {
                           borderRadius: BorderRadius.circular(28),
                         ),
                       ),
-                      child: const Text(
-                        '아니오',
-                        style: TextStyle(
+                      child: Text(
+                        AppLanguage.t('no'), // '아니오'  
+                        style: const TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w700,
                         ),

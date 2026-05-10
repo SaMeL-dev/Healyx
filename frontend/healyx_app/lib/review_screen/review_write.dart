@@ -1,4 +1,4 @@
-// 리뷰 작성 화면
+﻿// 리뷰 작성 화면
 // 리뷰 검색 결과 화면에서 선택한 병원 정보와 함께 리뷰 작성 폼을 보여주는 화면
 import 'dart:io';
 
@@ -9,6 +9,7 @@ import '../../dialogs/image_attach_dialog.dart';
 import '../find_hospital_screen/find_hospital_detail.dart';
 
 import '../common/common_toast.dart';
+import 'package:healyx_app/app_language.dart'; 
 
 class ReviewWriteScreen extends StatefulWidget {
   // 리뷰 결과 목록에서 선택한 병원 정보
@@ -104,7 +105,7 @@ class _ReviewWriteScreenState extends State<ReviewWriteScreen> {
     });
 
     // TODO: 리뷰 등록 API 연결
-    CommonToast.show(context, message: '리뷰가 등록되었습니다.');
+    CommonToast.show(context, message: AppLanguage.t('review_submitted')); // '리뷰가 등록되었습니다.'
 
     Future.delayed(const Duration(milliseconds: 1500), () {
       if (!mounted) return;
@@ -157,9 +158,9 @@ class _ReviewWriteScreenState extends State<ReviewWriteScreen> {
                       ),
                     ),
                   ),
-                  const Text(
-                    '리뷰',
-                    style: TextStyle(
+                  Text(
+                    AppLanguage.t('review'), // '리뷰'
+                    style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w700,
                       color: primaryBlue,
@@ -181,9 +182,9 @@ class _ReviewWriteScreenState extends State<ReviewWriteScreen> {
 
               const SizedBox(height: 12),
 
-              const Text(
-                '이 병원 어떠셨나요? (필수)',
-                style: TextStyle(
+              Text(
+                AppLanguage.t('review_rating_prompt'), // '이 병원 어떠셨나요? (필수)'
+                style: const TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w500,
                   color: Colors.black,
@@ -219,9 +220,9 @@ class _ReviewWriteScreenState extends State<ReviewWriteScreen> {
 
               if (showRatingError) ...[
                 const SizedBox(height: 6),
-                const Text(
-                  '별점은 필수항목 입니다',
-                  style: TextStyle(
+                Text(
+                  AppLanguage.t('review_rating_error'), // '별점은 필수항목 입니다'
+                  style: const TextStyle(
                     color: Colors.red,
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
@@ -239,11 +240,11 @@ class _ReviewWriteScreenState extends State<ReviewWriteScreen> {
 
               const SizedBox(height: 24),
 
-              const Align(
+              Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  '내용을 작성해주세요',
-                  style: TextStyle(
+                  AppLanguage.t('review_content_label'), // '내용을 작성해주세요'
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
                     color: primaryBlue,
@@ -268,10 +269,10 @@ class _ReviewWriteScreenState extends State<ReviewWriteScreen> {
                   autocorrect: true,
                   enableSuggestions: true,
                   textAlignVertical: TextAlignVertical.top,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     border: InputBorder.none,
-                    contentPadding: EdgeInsets.all(18),
-                    hintText: '리뷰 내용을 입력해주세요.',
+                    contentPadding: const EdgeInsets.all(18),
+                    hintText: AppLanguage.t('review_content_hint'), // '리뷰 내용을 입력해주세요.'
                   ),
                 ),
               ),
@@ -286,11 +287,11 @@ class _ReviewWriteScreenState extends State<ReviewWriteScreen> {
 
               const SizedBox(height: 26),
 
-              const Align(
+              Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  '사진 첨부 (최대 5장)',
-                  style: TextStyle(
+                  AppLanguage.t('review_photo_label'), // '사진 첨부 (최대 5장)'
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
                     color: primaryBlue,
@@ -385,9 +386,12 @@ class _ReviewWriteScreenState extends State<ReviewWriteScreen> {
                       borderRadius: BorderRadius.circular(26),
                     ),
                   ),
-                  child: const Text(
-                    '등록',
-                    style: TextStyle(fontSize: 21, fontWeight: FontWeight.w600),
+                  child: Text(
+                    AppLanguage.t('review_submit'), // '등록'
+                    style: const TextStyle(
+                      fontSize: 21,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ),

@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:healyx_app/app_language.dart'; 
 import 'find_hospital_loading.dart';
 
 class PainScoreSlide extends StatefulWidget {
@@ -32,11 +33,11 @@ class _PainScoreSlideState extends State<PainScoreSlide> {
                       size: 22,
                     ),
                   ),
-                  const Expanded(
+                  Expanded( 
                     child: Center(
                       child: Text(
-                        '병원 찾기',
-                        style: TextStyle(
+                        AppLanguage.t('find_hospital'), // '병원 찾기'
+                        style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w800,
                           color: Color(0xFF2260FF),
@@ -49,12 +50,12 @@ class _PainScoreSlideState extends State<PainScoreSlide> {
               ),
             ),
             const SizedBox(height: 120),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 24),
+            Padding( 
+              padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Text(
-                '아픈 부위의 통증의 세기를 선택해주세요',
+                AppLanguage.t('pain_score_prompt'), // '아픈 부위의 통증의 세기를 선택해주세요'
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
                   color: Color(0xFF2260FF),
@@ -66,22 +67,22 @@ class _PainScoreSlideState extends State<PainScoreSlide> {
               padding: const EdgeInsets.symmetric(horizontal: 22),
               child: Column(
                 children: [
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 8),
+                  Padding( // 수정
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          '통증 없음',
-                          style: TextStyle(
+                          AppLanguage.t('pain_none'), // '통증 없음'
+                          style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                             color: Colors.black87,
                           ),
                         ),
                         Text(
-                          '심각한 통증',
-                          style: TextStyle(
+                          AppLanguage.t('pain_severe'), // '심각한 통증'
+                          style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                             color: Colors.black87,
@@ -161,9 +162,9 @@ class _PainScoreSlideState extends State<PainScoreSlide> {
                       borderRadius: BorderRadius.circular(30),
                     ),
                   ),
-                  child: const Text(
-                    '확인',
-                    style: TextStyle(
+                  child: Text( 
+                    AppLanguage.t('confirm'), // '확인'
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
                     ),

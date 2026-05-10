@@ -1,6 +1,7 @@
-// 병원 리뷰 헤더 (리뷰가 몇 개 쓰여있는지 보여주고, 리뷰쓰기 버튼이 있는 헤더)
+﻿// 병원 리뷰 헤더 (리뷰가 몇 개 쓰여있는지 보여주고, 리뷰쓰기 버튼이 있는 헤더)
 // 리뷰 개수와 리뷰쓰기 버튼이 포함된 헤더
 import 'package:flutter/material.dart';
+import 'package:healyx_app/app_language.dart'; // 수정
 
 class HospitalReviewHeader extends StatelessWidget {
   const HospitalReviewHeader({
@@ -25,7 +26,7 @@ class HospitalReviewHeader extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Text(
-            hasReview ? '$reviewCount개의 리뷰' : '0개의 리뷰',
+            AppLanguage.t('hospital_review_count').replaceAll('{count}', hasReview ? '$reviewCount' : '0'), // '{count}개의 리뷰'
             style: const TextStyle(
               color: Colors.black,
               fontSize: 13,
@@ -46,10 +47,10 @@ class HospitalReviewHeader extends StatelessWidget {
                   borderRadius: BorderRadius.circular(18),
                 ),
               ),
-              child: const Text(
-                '리뷰쓰기',
+              child: Text(
+                AppLanguage.t('hospital_write_review'), // '리뷰쓰기'
                 maxLines: 1,
-                style: TextStyle(
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 13,
                   fontWeight: FontWeight.w700,

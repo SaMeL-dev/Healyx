@@ -1,8 +1,9 @@
-// 게시물 북마크 보관함 화면 
+﻿// 게시물 북마크 보관함 화면 
 // 게시물 북마크 리스트 형태로 보여주는 화면
 import 'package:flutter/material.dart';
 import 'package:healyx_app/community_screen/community_detail.dart';
 import 'package:healyx_app/dialogs/archive_delete_dialog.dart';
+import '../app_language.dart'; 
 
 class BookmarkItem {
   final String id;
@@ -49,9 +50,9 @@ class _BookmarkScreenState extends State<BookmarkScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         centerTitle: true,
-        title: const Text(
-          '커뮤니티 북마크',
-          style: TextStyle(
+        title: Text(
+          AppLanguage.t('archive_menu_bookmark'), // '커뮤니티 북마크'
+          style: const TextStyle(
             color: Color(0xFF2260FF),
             fontSize: 20,
             fontWeight: FontWeight.w600,

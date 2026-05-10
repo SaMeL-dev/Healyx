@@ -1,6 +1,7 @@
-// 번역 보관함 상세 화면 (가로/세로 버전 두 개)
+﻿// 번역 보관함 상세 화면 (가로/세로 버전 두 개)
 // 원본 이미지와 번역 이미지가 각각 가로/세로 버전으로 보여짐
 import 'package:flutter/material.dart';
+import '../app_language.dart'; 
 import 'translation_list.dart'; // TranslationItem 모델이 여기 있음
 
 class TranslationDetailScreen extends StatelessWidget {
@@ -23,9 +24,9 @@ class TranslationDetailScreen extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
         centerTitle: true,
-        title: const Text(
-          '의료 번역 보관함',
-          style: TextStyle(
+        title: Text(
+          AppLanguage.t('archive_menu_translation'), // '의료 번역 보관함'
+          style: const TextStyle(
             color: Color(0xFF2260FF),
             fontSize: 20,
             fontWeight: FontWeight.w600,
@@ -38,9 +39,9 @@ class TranslationDetailScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ── 원본 이미지 ──
-            const Text(
-              '원본 이미지',
-              style: TextStyle(
+            Text(
+              AppLanguage.t('archive_original_image'), // '원본 이미지'
+              style: const TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.w700,
                 color: Color(0xFF2260FF),
@@ -54,9 +55,9 @@ class TranslationDetailScreen extends StatelessWidget {
             const SizedBox(height: 16),
 
             // ── 번역 이미지 ──
-            const Text(
-              '번역 이미지',
-              style: TextStyle(
+            Text(
+              AppLanguage.t('archive_translated_image'), // '번역 이미지'
+              style: const TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.w700,
                 color: Color(0xFF2260FF),

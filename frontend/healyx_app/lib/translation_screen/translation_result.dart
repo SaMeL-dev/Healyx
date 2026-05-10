@@ -1,9 +1,10 @@
-// 번역 결과 화면
+﻿// 번역 결과 화면
 // 번역이 완료된 후 원본 이미지와 번역된 이미지를 보여주는 화면
 // 저장하기 버튼 클릭 시 accessToken 유무로 로그인 상태를 판단함
 
 import 'dart:io';
 import 'package:flutter/material.dart';
+import '../app_language.dart'; 
 import 'package:healyx_app/services/auth_service.dart';
 
 import '../../../dialogs/login_required_dialog.dart';
@@ -28,7 +29,7 @@ class TranslationResultScreen extends StatelessWidget {
       // TODO: 추후 실제 보관함 저장 API 또는 로컬 저장 로직으로 교체
       CommonToast.show(
         context,
-        message: '보관함에 저장되었습니다.',
+        message: AppLanguage.t('translation_saved'), // '보관함에 저장되었습니다.'
       );
     } else {
       showDialog(
@@ -76,8 +77,8 @@ class TranslationResultScreen extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const Text(
-                      '의료번역',
+                    Text(
+                      AppLanguage.t('translation_title'), // '의료번역'
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.w700,
@@ -124,8 +125,8 @@ class TranslationResultScreen extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              '원본 이미지',
+                            Text(
+                              AppLanguage.t('archive_original_image'), // '원본 이미지'
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w700,
@@ -133,33 +134,37 @@ class TranslationResultScreen extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(height: 16),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 10,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF8C9AF0),
-                                borderRadius: BorderRadius.circular(30),
-                              ),
-                              child: const Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    '번역 완료',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w700,
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 10,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF8C9AF0),
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      AppLanguage.t('translation_done_badge'), // '번역 완료'
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w700,
+                                      ),
                                     ),
-                                  ),
-                                  SizedBox(width: 8),
-                                  Icon(
-                                    Icons.check,
-                                    color: Color(0xFF304476),
-                                    size: 20,
-                                  ),
-                                ],
+                                    SizedBox(width: 8),
+                                    Icon(
+                                      Icons.check,
+                                      color: Color(0xFF304476),
+                                      size: 20,
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ],
@@ -188,7 +193,7 @@ class TranslationResultScreen extends StatelessWidget {
                   child: Column(
                     children: [
                       Text(
-                        '번역 이미지',
+                        AppLanguage.t('archive_translated_image'), // '번역 이미지'
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.w700,
@@ -212,8 +217,8 @@ class TranslationResultScreen extends StatelessWidget {
                               return Container(
                                 alignment: Alignment.center,
                                 color: Colors.white,
-                                child: const Text(
-                                  '번역 이미지가 표시될 영역',
+                                child: Text(
+                                  AppLanguage.t('translation_result_placeholder'), // '번역 이미지가 표시될 영역'
                                   style: TextStyle(
                                     fontSize: 16,
                                     color: grayText,
@@ -244,8 +249,8 @@ class TranslationResultScreen extends StatelessWidget {
                               borderRadius: BorderRadius.circular(31),
                             ),
                           ),
-                          child: const Text(
-                            '저장하기',
+                          child: Text(
+                            AppLanguage.t('translation_save'), // '저장하기'
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w700,

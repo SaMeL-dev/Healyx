@@ -1,6 +1,7 @@
 // 보관함 메인 화면
-// - 의료 번역 보관함, 커뮤니티 북마크, 내 게시글/댓글, 내 리뷰로 이동할 수 있는 메뉴 리스트 형태의 화면 
+// - 의료 번역 보관함, 커뮤니티 북마크, 내 게시글/댓글, 내 리뷰로 이동할 수 있는 메뉴 리스트 형태의 화면
 import 'package:flutter/material.dart';
+import '../app_language.dart'; 
 import 'translation_list.dart';
 import 'bookmark.dart';
 import 'my_posts_comments.dart';
@@ -21,9 +22,9 @@ class ArchiveMainScreen extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
         centerTitle: true,
-        title: const Text(
-          '보관함',
-          style: TextStyle(
+        title: Text(
+          AppLanguage.t('archive_title'), // '보관함'
+          style: const TextStyle(
             color: Color(0xFF2260FF),
             fontSize: 20,
             fontWeight: FontWeight.w600,
@@ -35,7 +36,7 @@ class ArchiveMainScreen extends StatelessWidget {
         child: Column(
           children: [
             _ArchiveTile(
-              label: '의료 번역 보관함',
+              label: AppLanguage.t('archive_menu_translation'), // '의료 번역 보관함'
               onTap: () {
                 Navigator.push(
                   context,
@@ -47,19 +48,17 @@ class ArchiveMainScreen extends StatelessWidget {
             ),
             const Divider(height: 1, thickness: 1, color: Color(0xFFF2F2F2)),
             _ArchiveTile(
-              label: '커뮤니티 북마크',
+              label: AppLanguage.t('archive_menu_bookmark'), // '커뮤니티 북마크'
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (_) => const BookmarkScreen(),
-                  ),
+                  MaterialPageRoute(builder: (_) => const BookmarkScreen()),
                 );
               },
             ),
             const Divider(height: 1, thickness: 1, color: Color(0xFFF2F2F2)),
             _ArchiveTile(
-              label: '내 게시글 / 댓글',
+              label: AppLanguage.t('archive_menu_posts'), // '내 게시글 / 댓글'
               onTap: () {
                 Navigator.push(
                   context,
@@ -71,14 +70,12 @@ class ArchiveMainScreen extends StatelessWidget {
             ),
             const Divider(height: 1, thickness: 1, color: Color(0xFFF2F2F2)),
             _ArchiveTile(
-              label: '내 리뷰',
+              label: AppLanguage.t('archive_menu_reviews'), // '내 리뷰'
               isLast: true,
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (_) => const MyReviewsScreen(),
-                  ),
+                  MaterialPageRoute(builder: (_) => const MyReviewsScreen()),
                 );
               },
             ),
@@ -125,11 +122,7 @@ class _ArchiveTile extends StatelessWidget {
                 ),
               ),
             ),
-            const Icon(
-              Icons.chevron_right,
-              color: Color(0xFFBBBBBB),
-              size: 22,
-            ),
+            const Icon(Icons.chevron_right, color: Color(0xFFBBBBBB), size: 22),
           ],
         ),
       ),

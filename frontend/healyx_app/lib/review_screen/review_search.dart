@@ -1,6 +1,7 @@
-// 리뷰 검색 화면
+﻿// 리뷰 검색 화면
 // 리뷰 검색 화면에서는 사용자가 지역과 검색어를 입력하여 리뷰 검색 결과 화면으로 이동할 수 있도록 구성
 import 'package:flutter/material.dart';
+import '../app_language.dart'; 
 import 'review_search_result.dart';
 
 class ReviewSearchScreen extends StatefulWidget {
@@ -87,9 +88,9 @@ class _ReviewSearchScreenState extends State<ReviewSearchScreen> {
                       ),
                     ),
                   ),
-                  const Text(
-                    '리뷰',
-                    style: TextStyle(
+                  Text(
+                    AppLanguage.t('review'), // '리뷰'
+                    style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w700,
                       color: primaryBlue,
@@ -141,7 +142,7 @@ class _ReviewSearchScreenState extends State<ReviewSearchScreen> {
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
-                                region,
+                                region == '지역' ? AppLanguage.t('review_search_region_default') : region, // '지역'
                                 style: const TextStyle(
                                   color: primaryBlue,
                                   fontSize: 14,
@@ -164,7 +165,7 @@ class _ReviewSearchScreenState extends State<ReviewSearchScreen> {
                           children: [
                             Expanded(
                               child: Text(
-                                selectedRegion,
+                                selectedRegion == '지역' ? AppLanguage.t('review_search_region_default') : selectedRegion, // '지역'
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
                                   color: primaryBlue,
@@ -186,9 +187,9 @@ class _ReviewSearchScreenState extends State<ReviewSearchScreen> {
                     Expanded(
                       child: TextField(
                         controller: _searchController,
-                        decoration: const InputDecoration(
-                          hintText: '검색어를 입력하세요.',
-                          hintStyle: TextStyle(
+                        decoration: InputDecoration(
+                          hintText: AppLanguage.t('review_search_hint'), // '검색어를 입력하세요.'
+                          hintStyle: const TextStyle(
                             color: Color(0xFF809CFF),
                             fontSize: 16,
                           ),

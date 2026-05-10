@@ -1,9 +1,10 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
 import 'find_id_result_screen.dart';
 import '../login_signup_screen/sign_up_screen.dart';
 import 'find_password_screen.dart';
 import '../services/auth_service.dart';
+import '../app_language.dart'; 
 
 class FindIdScreen extends StatefulWidget {
   const FindIdScreen({super.key});
@@ -60,7 +61,7 @@ class _FindIdScreenState extends State<FindIdScreen> {
       if (_remainingSeconds <= 1) {
         timer.cancel();
         setState(() => _remainingSeconds = 0);
-        _showMessage('인증번호가 만료되었습니다. 다시 요청해주세요.');
+        _showMessage(AppLanguage.t('verification_expired'), ); // '인증번호가 만료되었습니다. 다시 요청해주세요.'
       } else {
         setState(() => _remainingSeconds--);
       }
@@ -91,9 +92,9 @@ class _FindIdScreenState extends State<FindIdScreen> {
 
     if (result.success) {
       _startTimer();
-      _showMessage('인증번호가 이메일로 발송되었습니다.');
+      _showMessage(AppLanguage.t('verification_sent'),); // '인증번호가 이메일로 발송되었습니다.'
     } else {
-      _showMessage(result.message ?? '인증 코드 발송에 실패했습니다.');
+      _showMessage(result.message ?? AppLanguage.t('verification_send_failed'), ); // '인증 코드 발송에 실패했습니다.'
     }
   }
 
@@ -104,7 +105,7 @@ class _FindIdScreenState extends State<FindIdScreen> {
     final code = codeController.text.trim();
 
     if (name.isEmpty || email.isEmpty || code.isEmpty) {
-      _showMessage('이름, 이메일, 인증번호를 모두 입력해주세요.');
+      _showMessage(AppLanguage.t('find_id_empty_fields'),); // '이름, 이메일, 인증번호를 모두 입력해주세요.'
       return;
     }
 
@@ -127,7 +128,7 @@ class _FindIdScreenState extends State<FindIdScreen> {
         ),
       );
     } else {
-      _showMessage(result.message ?? '아이디를 찾을 수 없습니다.');
+      _showMessage(result.message ?? AppLanguage.t('find_id_not_found'), ); // '아이디를 찾을 수 없습니다.'
     }
   }
 
@@ -176,10 +177,10 @@ class _FindIdScreenState extends State<FindIdScreen> {
                             color: Color(0xFF4E7CFF),
                           ),
                         ),
-                        const Expanded(
+                        Expanded(
                           child: Center(
                             child: Text(
-                              '아이디 찾기',
+                              AppLanguage.t('find_id_title'), // '아이디 찾기'
                               style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w800,
@@ -194,9 +195,9 @@ class _FindIdScreenState extends State<FindIdScreen> {
 
                     const SizedBox(height: 12),
 
-                    const Center(
+                    Center(
                       child: Text(
-                        '아이디 확인을 위해 본인 확인이 필요합니다',
+                        AppLanguage.t('find_id_subtitle'), // '아이디 확인을 위해 본인 확인이 필요합니다'
                         style: TextStyle(
                           fontSize: 14,
                           color: Color(0xFF9AA7E8),
@@ -207,8 +208,8 @@ class _FindIdScreenState extends State<FindIdScreen> {
 
                     const SizedBox(height: 56),
 
-                    const Text(
-                      '이름',
+                    Text(
+                      AppLanguage.t('name_label'), // '이름'
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
@@ -218,13 +219,13 @@ class _FindIdScreenState extends State<FindIdScreen> {
                     const SizedBox(height: 12),
                     _buildInputField(
                       controller: nameController,
-                      hintText: '이름을 입력하세요',
+                      hintText: AppLanguage.t('name_hint'), // '이름을 입력하세요'
                     ),
 
                     const SizedBox(height: 28),
 
-                    const Text(
-                      '이메일',
+                    Text(
+                      AppLanguage.t('profile_email'), // '이메일'
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
@@ -236,8 +237,8 @@ class _FindIdScreenState extends State<FindIdScreen> {
 
                     const SizedBox(height: 28),
 
-                    const Text(
-                      '인증번호',
+                    Text(
+                      AppLanguage.t('verification_code_label'), // '인증번호'
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
@@ -258,7 +259,7 @@ class _FindIdScreenState extends State<FindIdScreen> {
                           color: Colors.black87,
                         ),
                         decoration: InputDecoration(
-                          hintText: '인증번호를 입력하세요',
+                          hintText: AppLanguage.t('verification_code_hint'), // '인증번호를 입력하세요'
                           hintStyle: const TextStyle(
                             fontSize: 16,
                             color: Color(0xFFB0B9F5),
@@ -313,9 +314,9 @@ class _FindIdScreenState extends State<FindIdScreen> {
                                   strokeWidth: 2.5,
                                 ),
                               )
-                            : const Text(
-                                '확인',
-                                style: TextStyle(
+                            : Text(
+                               AppLanguage.t('confirm'), // '확인'
+                                style: const TextStyle(
                                   fontSize: 22,
                                   fontWeight: FontWeight.w700,
                                   color: Colors.white,
@@ -344,15 +345,15 @@ class _FindIdScreenState extends State<FindIdScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text(
-                        '아이디 찾기',
+                      Text(
+                        AppLanguage.t('find_id_title'), // '아이디 찾기'
                         style: TextStyle(
                           fontSize: 14,
                           color: Color(0xFF8EA0F5),
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const Text(
+                      Text(
                         ' | ',
                         style: TextStyle(
                           color: Color(0xFF8EA0F5),
@@ -361,8 +362,8 @@ class _FindIdScreenState extends State<FindIdScreen> {
                       ),
                       GestureDetector(
                         onTap: _goToFindPasswordScreen,
-                        child: const Text(
-                          '비밀번호 찾기',
+                        child: Text(
+                          AppLanguage.t('find_password'), // '비밀번호 찾기'
                           style: TextStyle(
                             fontSize: 14,
                             color: Color(0xFF8EA0F5),
@@ -370,7 +371,7 @@ class _FindIdScreenState extends State<FindIdScreen> {
                           ),
                         ),
                       ),
-                      const Text(
+                      Text(
                         ' | ',
                         style: TextStyle(
                           color: Color(0xFF8EA0F5),
@@ -379,8 +380,8 @@ class _FindIdScreenState extends State<FindIdScreen> {
                       ),
                       GestureDetector(
                         onTap: _goToSignUpScreen,
-                        child: const Text(
-                          '회원가입',
+                        child: Text(
+                          AppLanguage.t('sign_up'), // '회원가입'
                           style: TextStyle(
                             fontSize: 14,
                             color: Color(0xFF8EA0F5),
@@ -393,7 +394,7 @@ class _FindIdScreenState extends State<FindIdScreen> {
                   const SizedBox(height: 18),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
+                    children: [
                       Icon(
                         Icons.lock,
                         size: 16,
@@ -401,7 +402,7 @@ class _FindIdScreenState extends State<FindIdScreen> {
                       ),
                       SizedBox(width: 6),
                       Text(
-                        '개인정보는 안전하게 보호됩니다.',
+                        AppLanguage.t('privacy_notice'), // '개인정보는 안전하게 보호됩니다.'
                         style: TextStyle(
                           fontSize: 13,
                           color: Color(0xFF9AA7E8),
@@ -467,8 +468,8 @@ class _FindIdScreenState extends State<FindIdScreen> {
                 fontSize: 16,
                 color: Colors.black87,
               ),
-              decoration: const InputDecoration(
-                hintText: '이메일을 입력하세요',
+              decoration: InputDecoration(
+                hintText: AppLanguage.t('email_hint'), // '이메일을 입력하세요'
                 hintStyle: TextStyle(
                   fontSize: 16,
                   color: Color(0xFFB0B9F5),
@@ -487,7 +488,7 @@ class _FindIdScreenState extends State<FindIdScreen> {
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 150),
               alignment: Alignment.center,
-              width: 92,
+              width: 112,
               height: 54,
               decoration: BoxDecoration(
                 color: (isEmailFilled && !_isSendingCode)
@@ -508,9 +509,9 @@ class _FindIdScreenState extends State<FindIdScreen> {
                       ),
                     )
                   : Text(
-                      _isTimerRunning ? '재전송' : '인증요청',
+                      _isTimerRunning ? AppLanguage.t('resend') : AppLanguage.t('request_verification'), // '재전송'
                       style: const TextStyle(
-                        fontSize: 15,
+                        fontSize: 12,
                         fontWeight: FontWeight.w700,
                         color: Colors.white,
                       ),

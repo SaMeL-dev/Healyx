@@ -1,7 +1,8 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../login_signup_screen/login_screen.dart';
 import '../login_signup_screen/sign_up_screen.dart';
 import 'find_password_screen.dart';
+import '../app_language.dart'; 
 
 class FindIdResultScreen extends StatelessWidget {
   final String maskedUsername;
@@ -34,10 +35,10 @@ class FindIdResultScreen extends StatelessWidget {
                             color: Color(0xFF4E7CFF),
                           ),
                         ),
-                        const Expanded(
+                        Expanded(
                           child: Center(
                             child: Text(
-                              '아이디 찾기',
+                              AppLanguage.t('find_id_title'), // '아이디 찾기'
                               style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w800,
@@ -55,7 +56,7 @@ class FindIdResultScreen extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            '아이디는\n$maskedUsername\n입니다.',
+                            "${AppLanguage.t('find_id_result_prefix')}\n$maskedUsername\n${AppLanguage.t('find_id_result_suffix')}", // '아이디는'
                             textAlign: TextAlign.center,
                             style: const TextStyle(
                               fontSize: 30,
@@ -86,8 +87,8 @@ class FindIdResultScreen extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(28),
                                 ),
                               ),
-                              child: const Text(
-                                '로그인하기',
+                              child: Text(
+                                AppLanguage.t('go_to_login'), // '로그인하기'
                                 style: TextStyle(
                                   fontSize: 22,
                                   fontWeight: FontWeight.w700,
@@ -121,10 +122,10 @@ class FindIdResultScreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       _buildBottomTextButton(
-                        text: '아이디 찾기',
+                        text: AppLanguage.t('find_id_title'), // '아이디 찾기'
                         onTap: () {},
                       ),
-                      const Text(
+                      Text(
                         ' | ',
                         style: TextStyle(
                           color: Color(0xFF8EA0F5),
@@ -132,7 +133,7 @@ class FindIdResultScreen extends StatelessWidget {
                         ),
                       ),
                       _buildBottomTextButton(
-                        text: '비밀번호 찾기',
+                        text: AppLanguage.t('find_password'), // '비밀번호 찾기'
                         onTap: () {
                           Navigator.push(
                             context,
@@ -142,7 +143,7 @@ class FindIdResultScreen extends StatelessWidget {
                           );
                         },
                       ),
-                      const Text(
+                      Text(
                         ' | ',
                         style: TextStyle(
                           color: Color(0xFF8EA0F5),
@@ -150,7 +151,7 @@ class FindIdResultScreen extends StatelessWidget {
                         ),
                       ),
                       _buildBottomTextButton(
-                        text: '회원가입',
+                        text: AppLanguage.t('sign_up'), // '회원가입'
                         onTap: () {
                           Navigator.push(
                             context,
@@ -165,7 +166,7 @@ class FindIdResultScreen extends StatelessWidget {
                   const SizedBox(height: 18),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
+                    children: [
                       Icon(
                         Icons.lock,
                         size: 16,
@@ -173,7 +174,7 @@ class FindIdResultScreen extends StatelessWidget {
                       ),
                       SizedBox(width: 6),
                       Text(
-                        '개인정보는 안전하게 보호됩니다.',
+                        AppLanguage.t('privacy_notice'), // '개인정보는 안전하게 보호됩니다.'
                         style: TextStyle(
                           fontSize: 13,
                           color: Color(0xFF9AA7E8),

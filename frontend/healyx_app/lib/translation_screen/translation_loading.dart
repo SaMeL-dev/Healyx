@@ -1,10 +1,11 @@
-// 번역 인식 로딩 화면
+﻿// 번역 인식 로딩 화면
 // 번역 인식이 진행되는 동안 로딩 애니메이션과 함께 이미지 미리보기를 보여주는 화면
 // 성공 시 번역 결과 화면으로 이동, 실패 시 번역 인식 에러 화면으로 이동 (True/false로 분기)
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import '../app_language.dart'; //추가
 import 'translation_result.dart';
 import 'translation_upload.dart';
 import 'translation_error.dart';
@@ -110,9 +111,9 @@ class _TranslationLoadingScreenState extends State<TranslationLoadingScreen> {
           child: Column(
             children: [
               const SizedBox(height: 16),
-              const Center(
+              Center(
                 child: Text(
-                  '의료번역',
+                  AppLanguage.t('translation_title'), // '의료번역'
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.w700,
@@ -121,8 +122,8 @@ class _TranslationLoadingScreenState extends State<TranslationLoadingScreen> {
                 ),
               ),
               const SizedBox(height: 110),
-              const Text(
-                '이미지 미리보기',
+              Text(
+                AppLanguage.t('translation_loading_preview'), // '이미지 미리보기'
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w700,
@@ -130,8 +131,8 @@ class _TranslationLoadingScreenState extends State<TranslationLoadingScreen> {
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
-                '번역하고자 하는 이미지를 확인해주세요.',
+              Text(
+                AppLanguage.t('translation_loading_check'), // '번역하고자 하는 이미지를 확인해주세요.'
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -192,8 +193,8 @@ class _TranslationLoadingScreenState extends State<TranslationLoadingScreen> {
                 ],
               ),
               const SizedBox(height: 56),
-              const Text(
-                '이미지를 인식중입니다...',
+              Text(
+                AppLanguage.t('translation_loading_recognizing'), // '이미지를 인식중입니다...'
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w700,

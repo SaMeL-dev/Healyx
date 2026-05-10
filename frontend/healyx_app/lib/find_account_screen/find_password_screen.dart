@@ -1,7 +1,8 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'find_id_screen.dart';
 import '../login_signup_screen/sign_up_screen.dart';
 import 'find_password_reset_screen.dart';
+import '../app_language.dart'; 
 
 class FindPasswordScreen extends StatefulWidget {
   const FindPasswordScreen({super.key});
@@ -49,8 +50,8 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
 
   void _requestVerification() {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('인증요청이 전송되었습니다.'),
+      SnackBar(
+        content: Text(AppLanguage.t('verification_request_sent'),), // '인증요청이 전송되었습니다.' 
       ),
     );
   }
@@ -98,10 +99,10 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
                         ),
-                        const Expanded(
+                        Expanded(
                           child: Center(
                             child: Text(
-                              '비밀번호 재설정',
+                              AppLanguage.t('pw_reset_title'), // '비밀번호 재설정'
                               style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w800,
@@ -116,11 +117,11 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
 
                     const SizedBox(height: 26),
 
-                    const Center(
+                    Center(
                       child: Column(
                         children: [
                           Text(
-                            'STEP 1. 본인 인증',
+                            AppLanguage.t('pw_step1_title'), // 'STEP 1. 본인 인증'
                             style: TextStyle(
                               fontSize: 17,
                               fontWeight: FontWeight.w800,
@@ -129,7 +130,7 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
                           ),
                           SizedBox(height: 6),
                           Text(
-                            '안전한 비밀번호 변경을 위해 본인 확인이 필요합니다.',
+                            AppLanguage.t('pw_step1_desc'), // '안전한 비밀번호 변경을 위해 본인 확인이 필요합니다.'
                             style: TextStyle(
                               fontSize: 14,
                               color: Color(0xFF6A8AF7),
@@ -143,8 +144,8 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
 
                     const SizedBox(height: 44),
 
-                    const Text(
-                      '아이디',
+                    Text(
+                      AppLanguage.t('username_label'), // '아이디'
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
@@ -154,13 +155,13 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
                     const SizedBox(height: 10),
                     _buildInputField(
                       controller: _idController,
-                      hintText: '아이디를 입력하세요',
+                      hintText: AppLanguage.t('username_hint'), // '아이디를 입력하세요'
                     ),
 
                     const SizedBox(height: 28),
 
-                    const Text(
-                      '이메일',
+                    Text(
+                      AppLanguage.t('profile_email'), // '이메일'
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
@@ -170,16 +171,16 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
                     const SizedBox(height: 10),
                     _buildEmailWithButtonField(
                       controller: _emailController,
-                      hintText: '이메일을 입력하세요',
-                      buttonText: '인증요청',
+                      hintText: AppLanguage.t('email_hint'), // '이메일을 입력하세요'
+                      buttonText: AppLanguage.t('request_verification'), // '인증요청'
                       enabled: _isEmailEntered,
                       onPressed: _isEmailEntered ? _requestVerification : null,
                     ),
 
                     const SizedBox(height: 28),
 
-                    const Text(
-                      '인증번호',
+                    Text(
+                      AppLanguage.t('verification_code_label'), // '인증번호'
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
@@ -189,7 +190,7 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
                     const SizedBox(height: 10),
                     _buildInputField(
                       controller: _codeController,
-                      hintText: '인증번호를 입력하세요',
+                      hintText: AppLanguage.t('verification_code_hint'), // '인증번호를 입력하세요'
                     ),
 
                     const SizedBox(height: 34),
@@ -206,8 +207,8 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
                             borderRadius: BorderRadius.circular(28),
                           ),
                         ),
-                        child: const Text(
-                          '확인',
+                        child: Text(
+                          AppLanguage.t('confirm'), // '확인'
                           style: TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.w700,
@@ -246,8 +247,8 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
                           padding: const EdgeInsets.symmetric(horizontal: 2),
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
-                        child: const Text(
-                          '아이디 찾기',
+                        child: Text(
+                          AppLanguage.t('find_id_title'), // '아이디 찾기'
                           style: TextStyle(
                             fontSize: 15,
                             color: Color(0xFF8EA0F5),
@@ -255,7 +256,7 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
                           ),
                         ),
                       ),
-                      const Text(
+                      Text(
                         ' | ',
                         style: TextStyle(
                           fontSize: 15,
@@ -270,8 +271,8 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
                           padding: const EdgeInsets.symmetric(horizontal: 2),
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
-                        child: const Text(
-                          '비밀번호 찾기',
+                        child: Text(
+                          AppLanguage.t('find_password'), // '비밀번호 찾기'
                           style: TextStyle(
                             fontSize: 15,
                             color: Color(0xFF8EA0F5),
@@ -279,7 +280,7 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
                           ),
                         ),
                       ),
-                      const Text(
+                      Text(
                         ' | ',
                         style: TextStyle(
                           fontSize: 15,
@@ -294,8 +295,8 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
                           padding: const EdgeInsets.symmetric(horizontal: 2),
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
-                        child: const Text(
-                          '회원가입',
+                        child: Text(
+                          AppLanguage.t('sign_up'), // '회원가입'
                           style: TextStyle(
                             fontSize: 15,
                             color: Color(0xFF8EA0F5),
@@ -306,7 +307,7 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  const Row(
+                  Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
@@ -316,7 +317,7 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
                       ),
                       SizedBox(width: 6),
                       Text(
-                        '개인정보는 안전하게 보호됩니다.',
+                        AppLanguage.t('privacy_notice'), // '개인정보는 안전하게 보호됩니다.'
                         style: TextStyle(
                           fontSize: 13,
                           color: Color(0xFF9AA7E8),

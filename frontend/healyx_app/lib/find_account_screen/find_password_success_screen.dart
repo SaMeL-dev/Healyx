@@ -1,8 +1,9 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'find_id_screen.dart';
 import 'find_password_screen.dart';
 import '../login_signup_screen/sign_up_screen.dart';
 import '../login_signup_screen/login_screen.dart';
+import '../app_language.dart';
 
 class FindPasswordSuccessScreen extends StatelessWidget {
   const FindPasswordSuccessScreen({super.key});
@@ -72,10 +73,10 @@ class FindPasswordSuccessScreen extends StatelessWidget {
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
                         ),
-                        const Expanded(
+                        Expanded(
                           child: Center(
                             child: Text(
-                              '비밀번호 재설정',
+                              AppLanguage.t('pw_reset_title'), // '비밀번호 재설정'
                               style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w800,
@@ -90,8 +91,8 @@ class FindPasswordSuccessScreen extends StatelessWidget {
 
                     const SizedBox(height: 90),
 
-                    const Text(
-                      '축하드립니다! 🎉',
+                    Text(
+                      AppLanguage.t('pw_congrats'), // '축하드립니다! 🎉'
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.w800,
@@ -124,7 +125,7 @@ class FindPasswordSuccessScreen extends StatelessWidget {
                                 width: 8,
                               ),
                             ),
-                            child: const Center(
+                            child: Center(
                               child: Icon(
                                 Icons.check,
                                 size: 60,
@@ -133,8 +134,8 @@ class FindPasswordSuccessScreen extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 24),
-                          const Text(
-                            '비밀번호 변경완료!',
+                          Text(
+                            AppLanguage.t('pw_change_complete'), // '비밀번호 변경완료!'
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w800,
@@ -143,8 +144,8 @@ class FindPasswordSuccessScreen extends StatelessWidget {
                             textAlign: TextAlign.center,
                           ),
                           const SizedBox(height: 8),
-                          const Text(
-                            '입력하신 비밀번호로 변경이 완료되었습니다.',
+                          Text(
+                            AppLanguage.t('pw_change_desc'), // '입력하신 비밀번호로 변경이 완료되었습니다.'
                             style: TextStyle(
                               fontSize: 13,
                               color: descGray,
@@ -170,8 +171,8 @@ class FindPasswordSuccessScreen extends StatelessWidget {
                             borderRadius: BorderRadius.circular(28),
                           ),
                         ),
-                        child: const Text(
-                          '로그인하기',
+                        child: Text(
+                          AppLanguage.t('go_to_login'), // '로그인하기'
                           style: TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.w700,
@@ -210,8 +211,8 @@ class FindPasswordSuccessScreen extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(horizontal: 2),
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
-                        child: const Text(
-                          '아이디 찾기',
+                        child: Text(
+                          AppLanguage.t('find_id_title'), // '아이디 찾기'
                           style: TextStyle(
                             fontSize: 15,
                             color: Color(0xFF8EA0F5),
@@ -219,7 +220,7 @@ class FindPasswordSuccessScreen extends StatelessWidget {
                           ),
                         ),
                       ),
-                      const Text(
+                      Text(
                         ' | ',
                         style: TextStyle(
                           fontSize: 15,
@@ -234,8 +235,8 @@ class FindPasswordSuccessScreen extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(horizontal: 2),
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
-                        child: const Text(
-                          '비밀번호 찾기',
+                        child: Text(
+                          AppLanguage.t('find_password'), // '비밀번호 찾기'
                           style: TextStyle(
                             fontSize: 15,
                             color: Color(0xFF8EA0F5),
@@ -243,7 +244,7 @@ class FindPasswordSuccessScreen extends StatelessWidget {
                           ),
                         ),
                       ),
-                      const Text(
+                      Text(
                         ' | ',
                         style: TextStyle(
                           fontSize: 15,
@@ -258,8 +259,8 @@ class FindPasswordSuccessScreen extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(horizontal: 2),
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
-                        child: const Text(
-                          '회원가입',
+                        child: Text(
+                          AppLanguage.t('sign_up'), // '회원가입'
                           style: TextStyle(
                             fontSize: 15,
                             color: Color(0xFF8EA0F5),
@@ -270,7 +271,7 @@ class FindPasswordSuccessScreen extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  const Row(
+                  Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
@@ -280,7 +281,7 @@ class FindPasswordSuccessScreen extends StatelessWidget {
                       ),
                       SizedBox(width: 6),
                       Text(
-                        '개인정보는 안전하게 보호됩니다.',
+                        AppLanguage.t('privacy_notice'), // '개인정보는 안전하게 보호됩니다.'
                         style: TextStyle(
                           fontSize: 13,
                           color: Color(0xFF9AA7E8),

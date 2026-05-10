@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:healyx_app/app_language.dart'; 
 import 'find_hospital_mic.dart';
 import 'find_hospital_text.dart';
 import 'find_hospital_icon.dart';
@@ -23,12 +24,12 @@ class FindHospitalMain extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(24, 48, 24, 28),
+                Padding( 
+                  padding: const EdgeInsets.fromLTRB(24, 48, 24, 28),
                   child: Text(
-                    'HEALYX에서 마이크에에\n접근할 수 있도록\n허용하시겠습니까?',
+                    AppLanguage.t('mic_permission_request'), // 'HEALYX에서 마이크에\n접근할 수 있도록\n허용하시겠습니까?'
                     textAlign: TextAlign.center,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 22,
                       height: 1.45,
                       fontWeight: FontWeight.w700,
@@ -58,10 +59,10 @@ class FindHospitalMain extends StatelessWidget {
                               ),
                             );
                           },
-                          child: const Center(
+                          child: Center( 
                             child: Text(
-                              '허용',
-                              style: TextStyle(
+                              AppLanguage.t('allow'), // '허용'
+                              style: const TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w700,
                                 color: Color(0xFF2260FF),
@@ -82,10 +83,10 @@ class FindHospitalMain extends StatelessWidget {
                           onTap: () {
                             Navigator.pop(context);
                           },
-                          child: const Center(
+                          child: Center( 
                             child: Text(
-                              '거부',
-                              style: TextStyle(
+                              AppLanguage.t('deny'), // '거부'
+                              style: const TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w700,
                                 color: Color(0xFF2260FF),
@@ -193,11 +194,11 @@ class FindHospitalMain extends StatelessWidget {
                       size: 22,
                     ),
                   ),
-                  const Expanded(
+                  Expanded( 
                     child: Center(
                       child: Text(
-                        '병원 찾기',
-                        style: TextStyle(
+                        AppLanguage.t('find_hospital'), // '병원 찾기'
+                        style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w800,
                           color: Color(0xFF2260FF),
@@ -212,8 +213,8 @@ class FindHospitalMain extends StatelessWidget {
             const SizedBox(height: 80),
             _buildHospitalOptionCard(
               icon: Icons.mic,
-              title: '음성으로 증상 입력하기',
-              subtitle: '자국어로 편하게 말씀하세요',
+              title: AppLanguage.t('symptom_input_by_voice'), // '음성으로 증상 입력하기'
+              subtitle: AppLanguage.t('symptom_input_by_voice_desc'), // '자국어로 편하게 말씀하세요'
               onTap: () {
                 _showMicPermissionDialog(context);
               },
@@ -221,8 +222,8 @@ class FindHospitalMain extends StatelessWidget {
             const SizedBox(height: 24),
             _buildHospitalOptionCard(
               icon: Icons.keyboard_alt_outlined,
-              title: '텍스트로 증상 입력하기',
-              subtitle: '자국어로 편하게 쓰세요',
+              title: AppLanguage.t('symptom_input_by_text'), // '텍스트로 증상 입력하기'
+              subtitle: AppLanguage.t('symptom_input_by_text_desc'), // '자국어로 편하게 쓰세요'
               onTap: () {
                 Navigator.push(
                   context,
@@ -235,8 +236,8 @@ class FindHospitalMain extends StatelessWidget {
             const SizedBox(height: 24),
             _buildHospitalOptionCard(
               icon: Icons.check,
-              title: '증상 아이콘 선택하기',
-              subtitle: '간편하게 아이콘을 선택하세요',
+              title: AppLanguage.t('symptom_input_by_icon'), // '증상 아이콘 선택하기'
+              subtitle: AppLanguage.t('symptom_input_by_icon_desc'), // '간편하게 아이콘을 선택하세요'
               onTap: () {
                 Navigator.push(
                   context,

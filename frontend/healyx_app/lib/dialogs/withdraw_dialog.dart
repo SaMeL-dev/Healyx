@@ -1,7 +1,8 @@
-// 회원탈퇴 확인 팝업
+﻿// 회원탈퇴 확인 팝업
 // 회원탈퇴 하시겠습니까? 계정 삭제 작업은 영구적이며 되돌릴 수 없습니다. 회원 탈퇴 즉시 귀하의 계정에 액세스할 수 없게 됩니다. 예/아니오 버튼
 import 'package:flutter/material.dart';
 import 'package:healyx_app/menu_screen/withdraw_complete.dart';
+import '../app_language.dart'; 
 
 class WithdrawDialog extends StatelessWidget {
   const WithdrawDialog({super.key});
@@ -37,8 +38,8 @@ class WithdrawDialog extends StatelessWidget {
             const SizedBox(height: 20),
 
             // 타이틀
-            const Text(
-              '회원탈퇴 하시겠습니까?',
+            Text( 
+              AppLanguage.t('withdraw_confirm'), // '정말로 탈퇴하시겠습니까?'
               style: TextStyle(
                 color: mainBlue,
                 fontSize: 20,
@@ -48,8 +49,8 @@ class WithdrawDialog extends StatelessWidget {
             const SizedBox(height: 16),
 
             // 설명 텍스트
-            const Text(
-              '계정 삭제 작업은 영구적이며 되돌릴 수 없습니다.\n회원 탈퇴 즉시 귀하의 계정에 액세스할 수 없게 됩니다.',
+            Text( 
+              AppLanguage.t('withdraw_desc'), // '탈퇴 시 모든 데이터가 삭제되며\n복구할 수 없습니다.'
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Color(0xFF6B7280),
@@ -85,8 +86,8 @@ class WithdrawDialog extends StatelessWidget {
                           borderRadius: BorderRadius.circular(14),
                         ),
                       ),
-                      child: const Text(
-                        '예',
+                      child: Text( 
+                        AppLanguage.t('yes'), // '예'
                         style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
                       ),
                     ),
@@ -106,8 +107,8 @@ class WithdrawDialog extends StatelessWidget {
                           borderRadius: BorderRadius.circular(14),
                         ),
                       ),
-                      child: const Text(
-                        '아니요',
+                      child: Text( 
+                        AppLanguage.t('no'), // '아니요'
                         style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
                       ),
                     ),

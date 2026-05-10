@@ -1,8 +1,9 @@
-// 프로필 편집 화면
+﻿// 프로필 편집 화면
 // - 프로필 이미지 (기본 아이콘으로 표시, 추후 사진 업로드 기능 추가 예정)
 // - 실명, 이메일, 닉네임 (읽기 전용으로 표시)
 // - 건강보험 여부 (토글로 표시, 수정 가능)
 import 'package:flutter/material.dart';
+import '../app_language.dart'; 
 
 class ProfileEditScreen extends StatefulWidget {
   const ProfileEditScreen({super.key});
@@ -40,8 +41,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         centerTitle: true,
-        title: const Text(
-          '프로필 설정',
+        title: Text( 
+          AppLanguage.t('profile_title'), // '프로필 설정'
           style: TextStyle(
             color: Color(0xFF2260FF),
             fontSize: 20,
@@ -80,21 +81,21 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
             const SizedBox(height: 32),
 
             // 실명
-            _buildLabel('실명'),
+            _buildLabel(AppLanguage.t('profile_name')), // '실명'
             const SizedBox(height: 8),
             _buildReadOnlyField(_nameController),
 
             const SizedBox(height: 20),
 
             // 이메일
-            _buildLabel('이메일'),
+            _buildLabel(AppLanguage.t('profile_email')), // '이메일'
             const SizedBox(height: 8),
             _buildReadOnlyField(_emailController),
 
             const SizedBox(height: 20),
 
             // 닉네임 - 읽기 전용으로 변경
-            _buildLabel('닉네임'),
+            _buildLabel(AppLanguage.t('profile_nickname')), // '닉네임'
             const SizedBox(height: 8),
             _buildReadOnlyField(_nicknameController),
 
@@ -104,7 +105,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
             const SizedBox(height: 20),
 
             // 건강보험 여부 - 토글만 활성화
-            _buildLabel('건강보험 여부'),
+            _buildLabel(AppLanguage.t('profile_insurance')), // '건강보험 여부'
             const SizedBox(height: 12),
             Row(
               children: [
@@ -144,8 +145,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                   ),
                   elevation: 0,
                 ),
-                child: const Text(
-                  '저장',
+                child: Text( 
+                  AppLanguage.t('save'), // '저장'
                   style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
                 ),
               ),

@@ -1,10 +1,11 @@
-// 리뷰 영수증 인증 로딩 화면
+﻿// 리뷰 영수증 인증 로딩 화면
 // 영수증 인증이 진행되는 동안 로딩 애니메이션과 함께 영수증 미리보기를 보여주는 화면
 // 성공 시 리뷰 작성 화면으로 이동, 실패 시 영수증 인증 에러 화면으로 이동 (True/false로 분기)
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import '../app_language.dart'; 
 
 import 'review_receipt_upload.dart';
 import 'review_receipt_error.dart';
@@ -153,10 +154,10 @@ class _ReviewReceiptLoadingScreenState
           child: Column(
             children: [
               const SizedBox(height: 16),
-              const Center(
+              Center(
                 child: Text(
-                  '리뷰',
-                  style: TextStyle(
+                  AppLanguage.t('review'), // '리뷰'
+                  style: const TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.w700,
                     color: primaryBlue,
@@ -164,17 +165,17 @@ class _ReviewReceiptLoadingScreenState
                 ),
               ),
               const SizedBox(height: 110),
-              const Text(
-                '영수증 미리보기',
-                style: TextStyle(
+              Text(
+                AppLanguage.t('review_receipt_preview'), // '영수증 미리보기'
+                style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w700,
                   color: primaryBlue,
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
-                '인증할 영수증 이미지를 확인해주세요.',
+              Text(
+                AppLanguage.t('review_receipt_check_image'), // '인증할 영수증 이미지를 확인해주세요.'
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -234,8 +235,8 @@ class _ReviewReceiptLoadingScreenState
                 ],
               ),
               const SizedBox(height: 56),
-              const Text(
-                '영수증을 확인중입니다...',
+              Text(
+                AppLanguage.t('review_receipt_verifying'), // '영수증을 확인중입니다...'
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w700,

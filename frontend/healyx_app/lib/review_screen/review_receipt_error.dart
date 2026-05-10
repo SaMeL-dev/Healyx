@@ -1,9 +1,10 @@
-// 리뷰 영수증 인식 실패 화면
+﻿// 리뷰 영수증 인식 실패 화면
 // 영수증 인식이 실패했을 때 사용자에게 안내 메시지를 보여주는 화면
 // 성공/실패 여부에 따라 '다시 촬영하기' 또는 '다시 선택하기' 버튼으로 분기 (true/false -> 퍼블리싱 테스트용)
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import '../app_language.dart'; 
 import 'review_receipt_loading.dart';
 
 class ReviewReceiptErrorScreen extends StatefulWidget {
@@ -68,11 +69,11 @@ class _ReviewReceiptErrorScreenState extends State<ReviewReceiptErrorScreen> {
     const Color bgColor = Color(0xFFFFFFFF);
 
     final String guideText = widget.isCameraError
-        ? '사진이 흐리거나 일부만 촬영된 경우\n정확한 인식이 어려울 수 있어요.'
-        : '사진이 흐리거나 전체가 아닌 일부의 이미지인\n경우 정확한 인식이 어려울 수 있어요.';
+        ? AppLanguage.t('review_error_guide_camera') // '사진이 흐리거나 일부만 촬영된 경우\n정확한 인식이 어려울 수 있어요.'
+        : AppLanguage.t('review_error_guide_gallery'); // '사진이 흐리거나 전체가 아닌 일부의 이미지인\n경우 정확한 인식이 어려울 수 있어요.'
 
     final String buttonText =
-        widget.isCameraError ? '다시 촬영하기' : '다시 선택하기';
+        widget.isCameraError ? AppLanguage.t('review_retry_camera') : AppLanguage.t('review_retry_gallery'); // '다시 선택하기'
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -100,9 +101,9 @@ class _ReviewReceiptErrorScreenState extends State<ReviewReceiptErrorScreen> {
                       ),
                     ),
                   ),
-                  const Text(
-                    '리뷰',
-                    style: TextStyle(
+                  Text(
+                    AppLanguage.t('review'), // '리뷰'
+                    style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w700,
                       color: primaryBlue,
@@ -114,10 +115,10 @@ class _ReviewReceiptErrorScreenState extends State<ReviewReceiptErrorScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text(
-                      '인식에\n실패하였습니다.',
+                    Text(
+                      AppLanguage.t('review_recognition_failed'), // '인식에\n실패하였습니다.' 
                       textAlign: TextAlign.center,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 22,
                         height: 1.5,
                         fontWeight: FontWeight.w700,

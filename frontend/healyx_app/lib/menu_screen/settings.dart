@@ -1,4 +1,4 @@
-// 설정 화면
+﻿// 설정 화면
 // 로그인 상태일 때: 사용 언어 변경, 알림 설정, 회원 탈퇴
 // 비로그인 상태일 때: 사용 언어 변경만 표시
 // 12번째 줄 true/false 있는데 그냥 false로 냅두면 메인메뉴 로그인 여부에 따라서 자동으로 반영됨!
@@ -6,6 +6,7 @@
 import 'package:flutter/material.dart';
 import 'package:healyx_app/choose_language_screen.dart';
 import 'package:healyx_app/dialogs/withdraw_dialog.dart';
+import '../app_language.dart'; 
 
 class SettingsScreen extends StatefulWidget {
   final bool isLoggedIn;
@@ -31,8 +32,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         centerTitle: true,
-        title: const Text(
-          '설정',
+        title: Text( 
+          AppLanguage.t('settings_title'), // '설정'
           style: TextStyle(
             color: Color(0xFF2260FF),
             fontSize: 20,
@@ -47,7 +48,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             // 사용 언어 변경 - 항상 표시
             _buildArrowTile(
               icon: Icons.language,
-              label: '사용 언어 변경',
+              label: AppLanguage.t('settings_lang_change'), // '사용 언어 변경'
               onTap: () {
                 Navigator.push(
                   context,
@@ -64,7 +65,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
               _buildToggleTile(
                 icon: Icons.notifications_none,
-                label: '알림 설정',
+                label: AppLanguage.t('settings_notification'), // '알림 설정'
                 value: _notificationEnabled,
                 onChanged: (val) => setState(() => _notificationEnabled = val),
               ),
@@ -73,7 +74,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
               _buildSimpleTile(
                 icon: Icons.logout,
-                label: '회원 탈퇴',
+                label: AppLanguage.t('settings_withdraw'), // '회원 탈퇴'
                 onTap: () {
                   showDialog(
                     context: context,

@@ -1,7 +1,8 @@
-// 병원 찾기 상세 화면
+﻿// 병원 찾기 상세 화면
 // 로그인에 따라 리뷰쓰기 버튼 클릭 시 로그인 팝업 또는 리뷰 작성 화면으로 분기 (테스트용)
 // 리뷰쓰기 버튼 클릭 시 accessToken 유무로 로그인 상태를 판단함
 import 'package:flutter/material.dart';
+import 'package:healyx_app/app_language.dart'; 
 
 import '../review_screen/review_receipt_upload.dart';
 import '../review_screen/widgets/review_card.dart';
@@ -201,7 +202,7 @@ class _FindHospitalDetailScreenState extends State<FindHospitalDetailScreen> {
           ),
           Center(
             child: Text(
-              '병원 찾기',
+              AppLanguage.t('find_hospital'), // '병원 찾기'
               style: TextStyle(
                 color: mainBlue,
                 fontSize: 24,
@@ -293,9 +294,9 @@ class _FindHospitalDetailScreenState extends State<FindHospitalDetailScreen> {
       children: [
         Divider(color: lineColor, thickness: 1),
         const SizedBox(height: 16),
-        _infoRow('병원 타입', widget.hasReview ? '대학병원' : '의원'),
+        _infoRow(AppLanguage.t('hospital_type_label'), widget.hasReview ? '대학병원' : '의원'), // '병원 타입'
         const SizedBox(height: 16),
-        _infoRow('전화번호', '02-0000-0000'),
+        _infoRow(AppLanguage.t('hospital_phone_label'), '02-0000-0000'), // '전화번호'
         const SizedBox(height: 18),
         Divider(color: lineColor, thickness: 1),
       ],

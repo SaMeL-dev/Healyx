@@ -1,9 +1,10 @@
-// 비밀번호 재설정 본인 인증 화면
+﻿// 비밀번호 재설정 본인 인증 화면
 // STEP 1. 기존 비밀번호 입력하여 본인 인증
 // 로그인 유효성 검사 실패 시 에러 메시지 노출 (true/false로 분기)
 
 import 'package:flutter/material.dart';
 import 'package:healyx_app/menu_screen/reset_password_screen/password_reset.dart';
+import '../../app_language.dart'; 
 
 class PasswordVerifyScreen extends StatefulWidget {
   const PasswordVerifyScreen({super.key});
@@ -46,8 +47,8 @@ class _PasswordVerifyScreenState extends State<PasswordVerifyScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         centerTitle: true,
-        title: const Text(
-          '비밀번호 재설정',
+        title: Text( 
+          AppLanguage.t('pw_reset_title'), // '비밀번호 재설정'
           style: TextStyle(color: mainBlue, fontSize: 20, fontWeight: FontWeight.w600),
         ),
       ),
@@ -64,24 +65,24 @@ class _PasswordVerifyScreenState extends State<PasswordVerifyScreen> {
                     const SizedBox(height: 32),
 
                     // 스텝 안내
-                    const Center(
-                      child: Text(
-                        'STEP 1. 본인 인증',
+                    Center(
+                      child: Text( 
+                        AppLanguage.t('pw_step1_title'), // 'STEP 1. 본인 인증'
                         style: TextStyle(color: mainBlue, fontSize: 14, fontWeight: FontWeight.w700),
                       ),
                     ),
                     const SizedBox(height: 6),
-                    const Center(
-                      child: Text(
-                        '안전한 비밀번호 변경을 위해 본인 확인이 필요합니다.',
+                    Center(
+                      child: Text( 
+                        AppLanguage.t('pw_step1_desc'), // '안전한 비밀번호 변경을 위해 본인 확인이 필요합니다.'
                         style: TextStyle(color: midBlue, fontSize: 13),
                       ),
                     ),
 
                     const SizedBox(height: 40),
 
-                    const Text(
-                      '기존 비밀번호',
+                    Text( 
+                      AppLanguage.t('pw_current'), // '기존 비밀번호'
                       style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.black),
                     ),
                     const SizedBox(height: 10),
@@ -91,7 +92,7 @@ class _PasswordVerifyScreenState extends State<PasswordVerifyScreen> {
                       obscureText: _obscureText,
                       style: const TextStyle(fontSize: 15, color: Colors.black),
                       decoration: InputDecoration(
-                        hintText: '비밀번호를 입력하세요',
+                        hintText: AppLanguage.t('pw_hint'), // '비밀번호를 입력하세요'
                         hintStyle: const TextStyle(color: hintColor, fontSize: 14),
                         filled: true,
                         // 에러: 흰색 + 빨간 테두리 / 정상: lightBlue 배경
@@ -124,10 +125,10 @@ class _PasswordVerifyScreenState extends State<PasswordVerifyScreen> {
                     if (_hasError) ...[
                       const SizedBox(height: 6),
                       Row(
-                        children: const [
+                        children:[
                           Icon(Icons.error, color: Colors.red, size: 14),
                           SizedBox(width: 4),
-                          Text('비밀번호가 일치하지 않습니다.', style: TextStyle(color: Colors.red, fontSize: 12)),
+                          Text(AppLanguage.t('pw_error'), style: TextStyle(color: Colors.red, fontSize: 12)), // '비밀번호가 일치하지 않습니다.'
                         ],
                       ),
                     ],
@@ -151,7 +152,7 @@ class _PasswordVerifyScreenState extends State<PasswordVerifyScreen> {
                           elevation: 0,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                         ),
-                        child: const Text('확인', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
+                        child: Text(AppLanguage.t('confirm'), style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600)), // '확인'
                       ),
                     ),
                   ],
@@ -163,10 +164,10 @@ class _PasswordVerifyScreenState extends State<PasswordVerifyScreen> {
               padding: const EdgeInsets.only(bottom: 24),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
+                children:[
                   Icon(Icons.lock_outline, size: 14, color: midBlue),
                   SizedBox(width: 6),
-                  Text('개인정보는 안전하게 보호됩니다.', style: TextStyle(fontSize: 12, color: midBlue)),
+                  Text(AppLanguage.t('privacy_notice'), style: TextStyle(fontSize: 12, color: midBlue)), // '개인정보는 안전하게 보호됩니다.'
                 ],
               ),
             ),

@@ -1,8 +1,9 @@
-// 회원 탈퇴 완료 화면
+﻿// 회원 탈퇴 완료 화면
 // 탈퇴 완료 체크 아이콘과 확인 버튼 표시
 // 확인 버튼 탭 → main_screen.dart (메인 화면)으로 이동
 import 'package:flutter/material.dart';
 import 'package:healyx_app/main_screen.dart';
+import '../app_language.dart'; 
 
 class WithdrawCompleteScreen extends StatelessWidget {
   const WithdrawCompleteScreen({super.key});
@@ -41,8 +42,8 @@ class WithdrawCompleteScreen extends StatelessWidget {
                         child: const Icon(Icons.check, color: mainBlue, size: 56),
                       ),
                       const SizedBox(height: 24),
-                      const Text(
-                        '회원탈퇴 완료',
+                      Text( 
+                        AppLanguage.t('withdraw_complete'), // '회원탈퇴 완료'
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w700,
@@ -75,8 +76,8 @@ class WithdrawCompleteScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(30),
                       ),
                     ),
-                    child: const Text(
-                      '확인',
+                    child: Text( 
+                      AppLanguage.t('confirm'), // '확인'
                       style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
                     ),
                   ),

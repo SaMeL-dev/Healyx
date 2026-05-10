@@ -2,6 +2,7 @@
 // 로그아웃 하시겠습니까? 예/아니오 버튼
 import 'package:flutter/material.dart';
 import 'package:healyx_app/menu_screen/menu_main.dart';
+import '../app_language.dart'; 
 
 class LogoutDialog extends StatelessWidget {
   const LogoutDialog({super.key});
@@ -25,8 +26,8 @@ class LogoutDialog extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              '로그아웃 하시겠습니까?',
+            Text( 
+              AppLanguage.t('logout_confirm'), //'로그아웃 하시겠습니까?'
               style: TextStyle(
                 color: mainBlue,
                 fontSize: 22,
@@ -59,8 +60,8 @@ class LogoutDialog extends StatelessWidget {
                           borderRadius: BorderRadius.circular(18),
                         ),
                       ),
-                      child: const Text(
-                        '예',
+                      child: Text( 
+                        AppLanguage.t('yes'), //'예'
                         style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
                       ),
                     ),
@@ -82,8 +83,8 @@ class LogoutDialog extends StatelessWidget {
                           borderRadius: BorderRadius.circular(18),
                         ),
                       ),
-                      child: const Text(
-                        '아니요',
+                      child: Text( 
+                        AppLanguage.t('no'), // '아니요'  
                         style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
                       ),
                     ),
