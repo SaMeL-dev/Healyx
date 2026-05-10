@@ -4,6 +4,8 @@ import com.smu.healyx.user.domain.User;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "community_comments")
@@ -29,6 +31,10 @@ public class CommunityComment {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_comment_id")
     private CommunityComment parentComment;
+
+    @OneToMany(mappedBy = "parentComment", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @Builder.Default
+    private List<CommunityComment> childComments = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mention_user_id")
@@ -61,4 +67,5 @@ public class CommunityComment {
     public void preUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
+
 }

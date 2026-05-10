@@ -2,9 +2,11 @@ package com.smu.healyx.common.config;
 
 import com.smu.healyx.common.security.JwtAuthenticationFilter;
 import com.smu.healyx.common.security.JwtProvider;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -13,6 +15,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -30,21 +37,31 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .csrf(AbstractHttpConfigurer::disable)
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            // JWT 없이 보호된 엔드포인트 접근 시 403 대신 401 반환
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint((request, response, authException) ->
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized")))
             .authorizeHttpRequests(auth -> auth
-                // 인증 API (회원가입, 로그인, 토큰 재발급, 아이디 찾기, 비밀번호 재설정)
+                // CORS preflight 허용
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                // 인증 API (회원가입, 로그인, 토큰 재발급, 아이디 찾기, 비밀번호 재설정, 중복 확인)
                 .requestMatchers("/api/auth/register",
                                  "/api/auth/login",
                                  "/api/auth/refresh",
                                  "/api/auth/find-id",
                                  "/api/auth/verify-reset-password",
-                                 "/api/auth/reset-password").permitAll()
+                                 "/api/auth/reset-password",
+                                 "/api/auth/check-email",
+                                 "/api/auth/check-username").permitAll()
                 // 게스트 허용: 병원 찾기
                 .requestMatchers("/api/hospitals/**").permitAll()
                 // 병원별 리뷰 조회: 비로그인 허용 / 나머지 리뷰 API: 인증 필요
-                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/reviews/hospitals/**").permitAll()
-                // 게스트 허용: 의료 번역
+                .requestMatchers(HttpMethod.GET, "/api/reviews/hospitals/**").permitAll()
+                // 게스트 허용: 의료 번역 (보관함 조회·삭제 제외 — 로그인 필요)
+                .requestMatchers("/api/translations/archive", "/api/translations/archive/**").authenticated()
                 .requestMatchers("/api/translation/**", "/api/translations/**").permitAll()
                 // 게스트 허용: GPT 증상 분석
                 .requestMatchers("/api/gpt/**").permitAll()
@@ -67,5 +84,18 @@ public class SecurityConfig {
                              UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(List.of("https://jwejweiya.com", "http://localhost:8080"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 }

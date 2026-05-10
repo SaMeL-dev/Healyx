@@ -273,6 +273,20 @@ public class AuthService {
     }
 
     // ───────────────────────────────────────────────────
+    // 8. 이메일 중복 확인
+    // ───────────────────────────────────────────────────
+
+    /** 이메일 중복 확인 — true: 사용 가능, false: 이미 사용 중 */
+    public boolean checkEmailDuplicate(String email) {
+        return !userRepository.existsByEmail(email);
+    }
+
+    /** 아이디 중복 확인 — true: 사용 가능, false: 이미 사용 중 */
+    public boolean checkUsernameDuplicate(String username) {
+        return !userRepository.existsByUsername(username);
+    }
+
+    // ───────────────────────────────────────────────────
     // private 헬퍼
     // ───────────────────────────────────────────────────
 

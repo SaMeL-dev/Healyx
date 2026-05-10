@@ -1,8 +1,11 @@
 // 번역 결과 화면
 // 번역이 완료된 후 원본 이미지와 번역된 이미지를 보여주는 화면
-// 로그인/비로그인 상태에 따라 '저장하기' 버튼 클릭 시 보관함 저장 또는 로그인 유도 다이얼로그로 분기 (true/false -> 퍼블리싱 테스트용)
+// 저장하기 버튼 클릭 시 accessToken 유무로 로그인 상태를 판단함
+
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:healyx_app/services/auth_service.dart';
+
 import '../../../dialogs/login_required_dialog.dart';
 import '../common/common_toast.dart';
 
@@ -15,6 +18,26 @@ class TranslationResultScreen extends StatelessWidget {
     required this.originalImagePath,
     required this.translatedImagePath,
   });
+
+  Future<void> _handleSave(BuildContext context) async {
+    final isLoggedIn = await AuthService.isLoggedIn();
+
+    if (!context.mounted) return;
+
+    if (isLoggedIn) {
+      // TODO: 추후 실제 보관함 저장 API 또는 로컬 저장 로직으로 교체
+      CommonToast.show(
+        context,
+        message: '보관함에 저장되었습니다.',
+      );
+    } else {
+      showDialog(
+        context: context,
+        barrierColor: const Color(0x802260FF),
+        builder: (context) => const LoginRequiredDialog(),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -210,21 +233,7 @@ class TranslationResultScreen extends StatelessWidget {
                         height: 45,
                         child: ElevatedButton(
                           onPressed: () {
-                            bool isLoggedIn = true; // 퍼블리싱 단계용 임시값
-
-                            if (isLoggedIn) {
-                              CommonToast.show(
-                                context,
-                                message: '보관함에 저장되었습니다.',
-                              );
-                            } else {
-                              showDialog(
-                                context: context,
-                                barrierColor: const Color(0x802260FF),
-                                builder: (context) =>
-                                    const LoginRequiredDialog(),
-                              );
-                            }
+                            _handleSave(context);
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: buttonBlue,

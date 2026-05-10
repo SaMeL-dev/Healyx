@@ -1,32 +1,33 @@
 package com.smu.healyx.review.dto;
 
 import com.smu.healyx.review.domain.Review;
-import com.smu.healyx.review.domain.ReviewImage;
 import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Getter
 @Builder
 public class MyReviewResponse {
 
     private Long reviewId;
-    private String hospitalName;
-    private int rating;
-    private String content;
-    private List<String> images;
+    private String hospitalName;    // 병원 이름
+    private String contentPreview;  // 후기 최대 20자, 초과 시 "..." 처리
+    private int rating;             // 별점
     private LocalDateTime createdAt;
 
-    public static MyReviewResponse of(Review review, List<ReviewImage> reviewImages) {
+    public static MyReviewResponse from(Review review) {
         return MyReviewResponse.builder()
                 .reviewId(review.getReviewId())
                 .hospitalName(review.getHospital().getName())
+                .contentPreview(preview(review.getContent()))
                 .rating(review.getRating())
-                .content(review.getContent())
-                .images(reviewImages.stream().map(ReviewImage::getImageUrl).toList())
                 .createdAt(review.getCreatedAt())
                 .build();
+    }
+
+    private static String preview(String content) {
+        if (content == null) return "";
+        return content.length() <= 20 ? content : content.substring(0, 20) + "...";
     }
 }

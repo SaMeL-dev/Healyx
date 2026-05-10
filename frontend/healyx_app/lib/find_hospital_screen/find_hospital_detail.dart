@@ -1,6 +1,6 @@
 // 병원 찾기 상세 화면
 // 로그인에 따라 리뷰쓰기 버튼 클릭 시 로그인 팝업 또는 리뷰 작성 화면으로 분기 (테스트용)
-// 로그인 여부는 병원 찾기 결과 화면에서 전달받는 isLoggedIn 변수로 판단 
+// 리뷰쓰기 버튼 클릭 시 accessToken 유무로 로그인 상태를 판단함
 import 'package:flutter/material.dart';
 
 import '../review_screen/review_receipt_upload.dart';
@@ -9,6 +9,7 @@ import 'widgets/hospital_empty_review_view.dart';
 import 'widgets/hospital_review_header.dart';
 import '../../dialogs/login_required_dialog.dart';
 import '../../dialogs/duplicate_review_dialog.dart';
+import '../services/auth_service.dart';
 
 class FindHospitalDetailScreen extends StatefulWidget {
   const FindHospitalDetailScreen({
@@ -31,7 +32,7 @@ class FindHospitalDetailScreen extends StatefulWidget {
 
   // true = 로그인한 사용자
   // false = 비로그인 사용자
-  // TODO: 추후 토큰 기반 로그인 상태값으로 교체
+  // 현재 리뷰쓰기 버튼 권한은 AuthService.isLoggedIn()으로 판단함
   final bool isLoggedIn;
 
   final String hospitalName;
@@ -88,11 +89,17 @@ class _FindHospitalDetailScreenState extends State<FindHospitalDetailScreen> {
     ),
   ];
 
-  void _handleWriteReview() {
+  Future<void> _handleWriteReview() async {
+    final loggedIn = await AuthService.isLoggedIn();
+
+    if (!mounted) return;
+
     // 비로그인 사용자면 로그인 팝업 실행
-    // TODO: 추후 accessToken 존재 여부로 교체
-    if (!widget.isLoggedIn) {
-      showDialog(context: context, builder: (_) => const LoginRequiredDialog());
+    if (!loggedIn) {
+      showDialog(
+        context: context,
+        builder: (_) => const LoginRequiredDialog(),
+      );
       return;
     }
 

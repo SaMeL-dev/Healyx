@@ -4,9 +4,15 @@ import 'find_id_screen.dart';
 import 'find_password_screen.dart';
 import '../login_signup_screen/sign_up_screen.dart';
 import 'find_password_success_screen.dart';
+import '../services/password_reset_service.dart';
 
 class FindPasswordResetScreen extends StatefulWidget {
-  const FindPasswordResetScreen({super.key});
+  final String username;
+
+  const FindPasswordResetScreen({
+    super.key,
+    required this.username,
+  });
 
   @override
   State<FindPasswordResetScreen> createState() =>
@@ -20,6 +26,7 @@ class _FindPasswordResetScreenState extends State<FindPasswordResetScreen> {
 
   bool _obscureNewPassword = true;
   bool _obscureConfirmPassword = true;
+  bool _isResetting = false;
 
   @override
   void dispose() {
@@ -49,21 +56,78 @@ class _FindPasswordResetScreenState extends State<FindPasswordResetScreen> {
     );
   }
 
-  void _onConfirm() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const FindPasswordSuccessScreen(),
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
       ),
     );
+  }
+
+  bool _isValidPassword(String password) {
+    final passwordRegex = RegExp(
+      r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#\+=]).{8,}$',
+    );
+
+    return passwordRegex.hasMatch(password);
+  }
+
+  Future<void> _onConfirm() async {
+    final newPassword = _newPasswordController.text.trim();
+    final confirmNewPassword = _confirmPasswordController.text.trim();
+
+    if (newPassword.isEmpty) {
+      _showMessage('새 비밀번호를 입력해주세요.');
+      return;
+    }
+
+    if (confirmNewPassword.isEmpty) {
+      _showMessage('새 비밀번호 확인을 입력해주세요.');
+      return;
+    }
+
+    if (newPassword != confirmNewPassword) {
+      _showMessage('비밀번호가 일치하지 않습니다.');
+      return;
+    }
+
+    if (!_isValidPassword(newPassword)) {
+      _showMessage('비밀번호는 8자 이상이며 영문, 숫자, 특수문자(!@#+=)를 포함해야 합니다.');
+      return;
+    }
+
+    setState(() {
+      _isResetting = true;
+    });
+
+    final result = await PasswordResetService.resetPassword(
+      username: widget.username,
+      newPassword: newPassword,
+      confirmNewPassword: confirmNewPassword,
+    );
+
+    if (!mounted) return;
+
+    setState(() {
+      _isResetting = false;
+    });
+
+    if (result.success) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const FindPasswordSuccessScreen(),
+        ),
+      );
+    } else {
+      _showMessage(result.message);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     const Color primaryBlue = Color(0xFF2F64F5);
     const Color subBlue = Color(0xFF6A8AF7);
-    const Color lightBlue = Color(0xFFEDF2FF);
-    const Color hintBlue = Color(0xFF8EA6F3);
     const Color buttonBlue = Color(0xFF2260FF);
     const Color borderBlue = Color(0xFFD6E0FF);
 
@@ -200,17 +264,19 @@ class _FindPasswordResetScreenState extends State<FindPasswordResetScreen> {
                       width: double.infinity,
                       height: 54,
                       child: ElevatedButton(
-                        onPressed: _onConfirm,
+                        onPressed: _isResetting ? null : _onConfirm,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: buttonBlue,
+                          backgroundColor: _isResetting
+                              ? const Color(0xFFD7E1FB)
+                              : buttonBlue,
                           elevation: 0,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(28),
                           ),
                         ),
-                        child: const Text(
-                          '확인',
-                          style: TextStyle(
+                        child: Text(
+                          _isResetting ? '변경 중...' : '확인',
+                          style: const TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.w700,
                             color: Colors.white,
@@ -358,11 +424,16 @@ class _FindPasswordResetScreenState extends State<FindPasswordResetScreen> {
             fontSize: 16,
           ),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 18,
+            vertical: 16,
+          ),
           suffixIcon: IconButton(
             onPressed: onToggleVisibility,
             icon: Icon(
-              obscureText ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+              obscureText
+                  ? Icons.visibility_off_outlined
+                  : Icons.visibility_outlined,
               color: const Color(0xFF8EA6F3),
             ),
           ),

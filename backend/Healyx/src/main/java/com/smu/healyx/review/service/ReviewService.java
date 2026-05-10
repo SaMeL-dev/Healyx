@@ -187,8 +187,7 @@ public class ReviewService {
                 .findByUser_UserIdOrderByCreatedAtDesc(userId, pageable);
 
         List<MyReviewResponse> reviews = reviewPage.getContent().stream()
-                .map(r -> MyReviewResponse.of(r,
-                        reviewImageRepository.findByReview_ReviewIdOrderBySortOrderAsc(r.getReviewId())))
+                .map(MyReviewResponse::from)
                 .toList();
 
         return Map.of(

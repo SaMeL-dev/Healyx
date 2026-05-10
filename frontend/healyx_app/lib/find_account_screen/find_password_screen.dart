@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'find_id_screen.dart';
 import '../login_signup_screen/sign_up_screen.dart';
 import 'find_password_reset_screen.dart';
+import '../services/password_reset_service.dart';
 
 class FindPasswordScreen extends StatefulWidget {
   const FindPasswordScreen({super.key});
@@ -15,7 +18,15 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _codeController = TextEditingController();
 
+  bool _isSendingCode = false;
+  bool _isVerifying = false;
+
+  Timer? _verificationTimer;
+  int _remainingSeconds = 0;
+  bool _hasRequestedCode = false;
+
   bool get _isEmailEntered => _emailController.text.trim().isNotEmpty;
+  bool get _isTimerRunning => _remainingSeconds > 0;
 
   @override
   void initState() {
@@ -27,6 +38,7 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
 
   @override
   void dispose() {
+    _verificationTimer?.cancel();
     _idController.dispose();
     _emailController.dispose();
     _codeController.dispose();
@@ -47,21 +59,159 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
     );
   }
 
-  void _requestVerification() {
+  bool _isValidEmail(String email) {
+    final emailRegex = RegExp(
+      r'^[\w\.-]+@[\w\.-]+\.\w+$',
+    );
+    return emailRegex.hasMatch(email);
+  }
+
+  void _showMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('인증요청이 전송되었습니다.'),
+      SnackBar(
+        content: Text(message),
       ),
     );
   }
 
-  void _confirmAction() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const FindPasswordResetScreen(),
-      ),
+  void _startVerificationCountdown() {
+    _verificationTimer?.cancel();
+
+    setState(() {
+      _hasRequestedCode = true;
+      _remainingSeconds = 180;
+    });
+
+    _verificationTimer = Timer.periodic(
+      const Duration(seconds: 1),
+          (timer) {
+        if (_remainingSeconds <= 1) {
+          timer.cancel();
+
+          if (!mounted) return;
+
+          setState(() {
+            _remainingSeconds = 0;
+          });
+
+          return;
+        }
+
+        if (!mounted) return;
+
+        setState(() {
+          _remainingSeconds--;
+        });
+      },
     );
+  }
+
+  String _formatRemainingTime() {
+    final minutes = (_remainingSeconds ~/ 60).toString();
+    final seconds = (_remainingSeconds % 60).toString().padLeft(2, '0');
+
+    return '$minutes:$seconds';
+  }
+
+  Future<void> _requestVerification() async {
+    final email = _emailController.text.trim();
+
+    if (email.isEmpty) {
+      _showMessage('이메일을 입력해주세요.');
+      return;
+    }
+
+    if (!_isValidEmail(email)) {
+      _showMessage('올바른 이메일 형식이 아닙니다.');
+      return;
+    }
+
+    setState(() {
+      _isSendingCode = true;
+    });
+
+    final result = await PasswordResetService.sendResetPasswordEmailCode(
+      email: email,
+    );
+
+    if (!mounted) return;
+
+    setState(() {
+      _isSendingCode = false;
+    });
+
+    if (result.success) {
+      _startVerificationCountdown();
+    }
+
+    _showMessage(result.message);
+  }
+
+  Future<void> _confirmAction() async {
+    final username = _idController.text.trim();
+    final email = _emailController.text.trim();
+    final verificationCode = _codeController.text.trim();
+
+    if (username.isEmpty) {
+      _showMessage('아이디를 입력해주세요.');
+      return;
+    }
+
+    if (email.isEmpty) {
+      _showMessage('이메일을 입력해주세요.');
+      return;
+    }
+
+    if (!_isValidEmail(email)) {
+      _showMessage('올바른 이메일 형식이 아닙니다.');
+      return;
+    }
+
+    if (verificationCode.isEmpty) {
+      _showMessage('인증번호를 입력해주세요.');
+      return;
+    }
+
+    if (!_hasRequestedCode) {
+      _showMessage('인증요청을 먼저 진행해주세요.');
+      return;
+    }
+
+    if (_remainingSeconds <= 0) {
+      _showMessage('인증시간이 만료되었습니다. 인증요청을 다시 눌러주세요.');
+      return;
+    }
+
+    setState(() {
+      _isVerifying = true;
+    });
+
+    final result = await PasswordResetService.verifyResetPassword(
+      username: username,
+      email: email,
+      verificationCode: verificationCode,
+    );
+
+    if (!mounted) return;
+
+    setState(() {
+      _isVerifying = false;
+    });
+
+    if (result.success) {
+      _verificationTimer?.cancel();
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => FindPasswordResetScreen(
+            username: username,
+          ),
+        ),
+      );
+    } else {
+      _showMessage(result.message);
+    }
   }
 
   @override
@@ -171,20 +321,42 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
                     _buildEmailWithButtonField(
                       controller: _emailController,
                       hintText: '이메일을 입력하세요',
-                      buttonText: '인증요청',
-                      enabled: _isEmailEntered,
-                      onPressed: _isEmailEntered ? _requestVerification : null,
+                      buttonText: _isSendingCode ? '전송중' : '인증요청',
+                      enabled:
+                      _isEmailEntered && !_isSendingCode && !_isTimerRunning,
+                      onPressed:
+                      _isEmailEntered && !_isSendingCode && !_isTimerRunning
+                          ? _requestVerification
+                          : null,
                     ),
 
                     const SizedBox(height: 28),
 
-                    const Text(
-                      '인증번호',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.black,
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          '인증번호',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.black,
+                          ),
+                        ),
+                        if (_hasRequestedCode)
+                          Text(
+                            _isTimerRunning
+                                ? _formatRemainingTime()
+                                : '인증시간 만료',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: _isTimerRunning
+                                  ? buttonBlue
+                                  : Colors.red,
+                            ),
+                          ),
+                      ],
                     ),
                     const SizedBox(height: 10),
                     _buildInputField(
@@ -198,17 +370,18 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
                       width: double.infinity,
                       height: 54,
                       child: ElevatedButton(
-                        onPressed: _confirmAction,
+                        onPressed: _isVerifying ? null : _confirmAction,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: buttonBlue,
+                          backgroundColor:
+                          _isVerifying ? const Color(0xFFD7E1FB) : buttonBlue,
                           elevation: 0,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(28),
                           ),
                         ),
-                        child: const Text(
-                          '확인',
-                          style: TextStyle(
+                        child: Text(
+                          _isVerifying ? '확인 중...' : '확인',
+                          style: const TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.w700,
                             color: Colors.white,
@@ -353,7 +526,10 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
             fontSize: 16,
           ),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 18,
+            vertical: 16,
+          ),
         ),
       ),
     );
@@ -384,7 +560,10 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
                   fontSize: 16,
                 ),
                 border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 16,
+                ),
               ),
             ),
           ),
@@ -395,7 +574,7 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
               onPressed: onPressed,
               style: ElevatedButton.styleFrom(
                 backgroundColor: enabled
-                    ? const Color(0xFF9FB6F5)
+                    ? const Color(0xFF2260FF)
                     : const Color(0xFFD7E1FB),
                 elevation: 0,
                 shape: const RoundedRectangleBorder(

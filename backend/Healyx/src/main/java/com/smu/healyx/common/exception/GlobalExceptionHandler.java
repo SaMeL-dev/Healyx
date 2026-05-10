@@ -1,6 +1,7 @@
 package com.smu.healyx.common.exception;
 
 import com.smu.healyx.common.dto.ApiResponse;
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +33,23 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleValidationException(MethodArgumentNotValidException e) {
         String message = e.getBindingResult().getFieldErrors().stream()
             .map(fe -> fe.getField() + ": " + fe.getDefaultMessage())
+            .findFirst()
+            .orElse("입력값이 유효하지 않습니다.");
+        return ResponseEntity
+            .status(HttpStatus.BAD_REQUEST)
+            .body(ApiResponse.error("INVALID_INPUT", message));
+    }
+
+    // @RequestParam / @PathVariable constraint violations from @Validated at type level
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleConstraintViolationException(ConstraintViolationException e) {
+        String message = e.getConstraintViolations().stream()
+            .map(cv -> {
+                String path = cv.getPropertyPath().toString();
+                // strip method name prefix (e.g. "checkEmail.email" → "email")
+                int dot = path.lastIndexOf('.');
+                return (dot >= 0 ? path.substring(dot + 1) : path) + ": " + cv.getMessage();
+            })
             .findFirst()
             .orElse("입력값이 유효하지 않습니다.");
         return ResponseEntity
