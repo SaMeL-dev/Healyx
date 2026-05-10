@@ -58,7 +58,8 @@ public class SecurityConfig {
                                  "/api/auth/check-username").permitAll()
                 // 게스트 허용: 병원 찾기
                 .requestMatchers("/api/hospitals/**").permitAll()
-                // 게스트 허용: 의료 번역
+                // 게스트 허용: 의료 번역 (보관함 조회·삭제 제외 — 로그인 필요)
+                .requestMatchers("/api/translations/archive", "/api/translations/archive/**").authenticated()
                 .requestMatchers("/api/translation/**", "/api/translations/**").permitAll()
                 // 게스트 허용: GPT 증상 분석
                 .requestMatchers("/api/gpt/**").permitAll()
