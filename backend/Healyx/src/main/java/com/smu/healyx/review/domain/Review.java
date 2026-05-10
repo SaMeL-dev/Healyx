@@ -5,6 +5,8 @@ import com.smu.healyx.user.domain.User;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "reviews",
@@ -38,6 +40,10 @@ public class Review {
 
     @Column(name = "receipt_image_url", length = 500)
     private String receiptImageUrl;
+
+    @OneToMany(mappedBy = "review", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @Builder.Default
+    private List<ReviewImage> reviewImages = new ArrayList<>();
 
     @Column(name = "receipt_verified", nullable = false,
             columnDefinition = "TINYINT(1) DEFAULT 0")

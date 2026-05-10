@@ -1,12 +1,15 @@
 package com.smu.healyx.translation.service;
 
+import com.smu.healyx.common.exception.AuthException;
 import com.smu.healyx.common.service.S3UploadService;
 import com.smu.healyx.deepl.service.TranslationService;
+import org.springframework.http.HttpStatus;
 import com.smu.healyx.ocr.service.VisionService;
 import com.smu.healyx.translation.domain.MedicalTranslation;
 import com.smu.healyx.translation.dto.MedicalTranslationRequest;
 import com.smu.healyx.translation.dto.MedicalTranslationResponse;
 import com.smu.healyx.translation.dto.TextBlock;
+import com.smu.healyx.translation.dto.TranslationArchiveItem;
 import com.smu.healyx.translation.repository.MedicalTranslationRepository;
 import com.smu.healyx.user.domain.User;
 import com.smu.healyx.user.repository.UserRepository;
@@ -87,6 +90,59 @@ public class MedicalTranslationService {
         );
 
         return MedicalTranslationResponse.fromEntity(saved);
+    }
+
+    /** 번역 보관함 항목 개별 조회 — 본인 소유 확인 */
+    @Transactional(readOnly = true)
+    public TranslationArchiveItem getArchiveItem(Long userId, Long translationId) {
+        MedicalTranslation translation = medicalTranslationRepository.findById(translationId)
+                .orElseThrow(() -> new AuthException("TRANSLATION_NOT_FOUND",
+                        "번역 항목을 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
+
+        if (translation.getUser() == null || !translation.getUser().getUserId().equals(userId)) {
+            throw new AuthException("ACCESS_DENIED",
+                    "해당 번역 항목에 접근할 권한이 없습니다.", HttpStatus.FORBIDDEN);
+        }
+
+        return TranslationArchiveItem.from(translation);
+    }
+
+    /** 번역 보관함 항목 삭제 — 본인 소유 확인 후 S3 이미지 및 DB 레코드 삭제 */
+    @Transactional
+    public void deleteArchiveItem(Long userId, Long translationId) {
+        MedicalTranslation translation = medicalTranslationRepository.findById(translationId)
+                .orElseThrow(() -> new AuthException("TRANSLATION_NOT_FOUND",
+                        "번역 항목을 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
+
+        if (translation.getUser() == null || !translation.getUser().getUserId().equals(userId)) {
+            throw new AuthException("ACCESS_DENIED",
+                    "해당 번역 항목을 삭제할 권한이 없습니다.", HttpStatus.FORBIDDEN);
+        }
+
+        // S3 이미지 삭제 (실패해도 DB 삭제는 진행)
+        deleteS3ImageQuietly(translation.getImageUrl());
+        deleteS3ImageQuietly(translation.getTranslatedImageUrl());
+
+        medicalTranslationRepository.delete(translation);
+    }
+
+    private void deleteS3ImageQuietly(String imageUrl) {
+        if (imageUrl == null) return;
+        try {
+            s3UploadService.delete(imageUrl);
+        } catch (Exception e) {
+            log.warn("S3 이미지 삭제 실패 (무시하고 계속 진행): url={}, error={}", imageUrl, e.getMessage());
+        }
+    }
+
+    /** 번역 보관함 조회 — 최신순 */
+    @Transactional(readOnly = true)
+    public List<TranslationArchiveItem> getArchive(Long userId) {
+        return medicalTranslationRepository
+                .findByUser_UserIdOrderByCreatedAtDesc(userId)
+                .stream()
+                .map(TranslationArchiveItem::from)
+                .toList();
     }
 
     private byte[] generateOverlay(byte[] imageBytes, List<TextBlock> blocks) {

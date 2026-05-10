@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface PostImageRepository extends JpaRepository<PostImage, Long> {
     List<PostImage> findByPost_PostIdOrderBySortOrderAsc(Long postId);
+    List<PostImage> findByPost_User_UserId(Long userId);
 }
