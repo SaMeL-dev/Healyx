@@ -53,15 +53,17 @@ public class UserProfileService {
         user.updateLanguage(languageCode);
     }
 
-    /** 회원 탈퇴 — 소프트 삭제 및 Refresh Token 제거 */
+    /** 회원 탈퇴 — soft delete 후 Refresh Token 제거 (DB 성공 확인 후 Redis 삭제) */
     @Transactional
     public void withdraw(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AuthException("USER_NOT_FOUND", "사용자를 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
 
-        redisTemplate.delete("user:" + userId + ":refresh_token");
+        user.withdraw();
+        userRepository.save(user);
 
-        userRepository.delete(user);
+        // DB 커밋 성공 후 Redis 삭제 — 순서 역전 시 불일치 방지
+        redisTemplate.delete("user:" + userId + ":refresh_token");
         log.info("회원 탈퇴 완료: userId={}", userId);
     }
 

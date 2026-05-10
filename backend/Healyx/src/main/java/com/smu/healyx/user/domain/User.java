@@ -2,6 +2,7 @@ package com.smu.healyx.user.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLRestriction;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -11,6 +12,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
+@SQLRestriction("deleted_at IS NULL")
 public class User {
 
     @Id
@@ -66,6 +68,9 @@ public class User {
             columnDefinition = "TINYINT(1) DEFAULT 1")
     private boolean isActive;
 
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
     /** 비밀번호 변경 */
     public void updatePassword(String newPasswordHash) {
         this.passwordHash = newPasswordHash;
@@ -100,6 +105,11 @@ public class User {
     /** 알림 설정 변경 */
     public void updatePushSetting(boolean pushEnabled) {
         this.pushEnabled = pushEnabled;
+    }
+
+    /** 회원 탈퇴 — 소프트 삭제 */
+    public void withdraw() {
+        this.deletedAt = LocalDateTime.now();
     }
 
     /** 프로필 일괄 수정 (실명·이메일·닉네임·건강보험 가입 상태) */
