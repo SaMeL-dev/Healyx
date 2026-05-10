@@ -52,4 +52,13 @@ public class UserController {
         userProfileService.updateProfile(userId, request);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
+
+    /** 회원 탈퇴 — 소프트 삭제 */
+    @Operation(summary = "회원 탈퇴", description = "계정을 즉시 비활성화합니다.")
+    @DeleteMapping("/me")
+    public ResponseEntity<ApiResponse<Void>> withdraw(Authentication authentication) {
+        Long userId = SecurityUtils.extractUserId(authentication);
+        userProfileService.withdraw(userId);
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
 }

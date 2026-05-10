@@ -8,17 +8,21 @@ import com.smu.healyx.user.dto.UserProfileDto;
 import com.smu.healyx.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserProfileService {
 
     private final UserRepository userRepository;
+    private final StringRedisTemplate redisTemplate;
 
     @Transactional(readOnly = true)
     public UserProfileDto getProfile(Long userId) {
@@ -38,6 +42,18 @@ public class UserProfileService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AuthException("USER_NOT_FOUND", "사용자를 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
         user.updateLanguage(languageCode);
+    }
+
+    /** 회원 탈퇴 — 소프트 삭제 및 Refresh Token 제거 */
+    @Transactional
+    public void withdraw(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AuthException("USER_NOT_FOUND", "사용자를 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
+
+        user.deactivate();
+
+        redisTemplate.delete("user:" + userId + ":refresh_token");
+        log.info("회원 탈퇴 완료: userId={}", userId);
     }
 
     /** 프로필 일괄 수정 (실명·이메일·닉네임·건강보험 가입 상태) */

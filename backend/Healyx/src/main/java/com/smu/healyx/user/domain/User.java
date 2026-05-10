@@ -97,6 +97,11 @@ public class User {
         this.preferredLanguage = languageCode;
     }
 
+    /** 회원 탈퇴 — 소프트 삭제 */
+    public void deactivate() {
+        this.isActive = false;
+    }
+
     /** 프로필 일괄 수정 (실명·이메일·닉네임·건강보험 가입 상태) */
     public void updateProfile(String realName, String email, String nickname, boolean insured) {
         this.realName = realName;
