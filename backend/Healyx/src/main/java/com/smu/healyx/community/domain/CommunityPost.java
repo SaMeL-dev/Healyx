@@ -50,6 +50,10 @@ public class CommunityPost {
     @Builder.Default
     private List<CommunityLike> likes = new ArrayList<>();
 
+    @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @Builder.Default
+    private List<PostImage> postImages = new ArrayList<>();
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 

@@ -1,6 +1,7 @@
 package com.smu.healyx.user.domain;
 
 import com.smu.healyx.community.domain.*;
+import com.smu.healyx.cost.domain.CostPrediction;
 import com.smu.healyx.review.domain.Review;
 import com.smu.healyx.translation.domain.MedicalTranslation;
 import jakarta.persistence.*;
@@ -104,6 +105,10 @@ public class User {
     @OneToMany(mappedBy = "reporter", cascade = CascadeType.REMOVE, orphanRemoval = true)
     @Builder.Default
     private List<Report> reports = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @Builder.Default
+    private List<CostPrediction> costPredictions = new ArrayList<>();
 
     // ── 도메인 메서드 ────────────────────────────────────────────────────────
 

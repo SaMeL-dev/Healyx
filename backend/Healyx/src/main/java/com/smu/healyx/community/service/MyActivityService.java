@@ -1,25 +1,32 @@
 package com.smu.healyx.community.service;
 
 import com.smu.healyx.common.exception.AuthException;
+import com.smu.healyx.common.service.S3UploadService;
 import com.smu.healyx.community.domain.CommunityComment;
 import com.smu.healyx.community.domain.CommunityPost;
+import com.smu.healyx.community.domain.PostImage;
 import com.smu.healyx.community.dto.MyCommentResponse;
 import com.smu.healyx.community.dto.MyPostResponse;
 import com.smu.healyx.community.repository.CommunityCommentRepository;
 import com.smu.healyx.community.repository.CommunityPostRepository;
+import com.smu.healyx.community.repository.PostImageRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MyActivityService {
 
     private final CommunityPostRepository communityPostRepository;
     private final CommunityCommentRepository communityCommentRepository;
+    private final PostImageRepository postImageRepository;
+    private final S3UploadService s3UploadService;
 
     /** 내가 쓴 게시글 목록 — 최신순 */
     @Transactional(readOnly = true)
@@ -30,7 +37,7 @@ public class MyActivityService {
                 .toList();
     }
 
-    /** 내 게시글 삭제 — 하드 삭제 */
+    /** 내 게시글 삭제 — S3 이미지 먼저 삭제 후 DB 삭제 (cascade로 post_images 함께 제거) */
     @Transactional
     public void deleteMyPost(Long userId, Long postId) {
         CommunityPost post = communityPostRepository.findById(postId)
@@ -40,6 +47,11 @@ public class MyActivityService {
             throw new AuthException("ACCESS_DENIED", "해당 게시글을 삭제할 권한이 없습니다.", HttpStatus.FORBIDDEN);
         }
 
+        // 첨부 이미지 S3 삭제
+        List<PostImage> images = postImageRepository.findByPost_PostIdOrderBySortOrderAsc(postId);
+        images.forEach(img -> deleteS3ImageQuietly(img.getImageUrl()));
+
+        // DB 삭제 — CommunityPost cascade로 comments·bookmarks·likes·postImages 함께 삭제
         communityPostRepository.delete(post);
     }
 
@@ -65,5 +77,14 @@ public class MyActivityService {
                 .stream()
                 .map(MyCommentResponse::from)
                 .toList();
+    }
+
+    private void deleteS3ImageQuietly(String imageUrl) {
+        if (imageUrl == null || imageUrl.isBlank()) return;
+        try {
+            s3UploadService.delete(imageUrl);
+        } catch (Exception e) {
+            log.warn("S3 이미지 삭제 실패 (무시됨): url={}", imageUrl, e);
+        }
     }
 }

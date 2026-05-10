@@ -15,6 +15,8 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.Objects;
 
@@ -55,7 +57,7 @@ public class UserProfileService {
         user.updateLanguage(languageCode);
     }
 
-    /** 회원 탈퇴 — hard delete (DB 삭제 → Redis 삭제 순으로 불일치 방지) */
+    /** 회원 탈퇴 — hard delete, Redis 삭제는 DB 커밋 완료 후 afterCommit() 훅에서 실행 */
     @Transactional
     public void withdraw(Long userId) {
         User user = userRepository.findById(userId)
@@ -67,9 +69,14 @@ public class UserProfileService {
         // User cascade: reviews·posts·comments·bookmarks·likes·notifications·translations·reports
         userRepository.delete(user);
 
-        // Redis 삭제는 DB 삭제 성공 후 마지막에 실행
-        redisTemplate.delete("user:" + userId + ":refresh_token");
-        log.info("회원 탈퇴 완료: userId={}", userId);
+        // DB 커밋 완료 후 Redis 삭제 — 커밋 실패 시 Redis 미변경 보장
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                redisTemplate.delete("user:" + userId + ":refresh_token");
+                log.info("회원 탈퇴 완료: userId={}", userId);
+            }
+        });
     }
 
     /** 프로필 일괄 수정 (실명·이메일·닉네임·건강보험 가입 상태) */
