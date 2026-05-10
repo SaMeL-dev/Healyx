@@ -3,6 +3,7 @@ package com.smu.healyx.user.service;
 import com.smu.healyx.common.exception.AuthException;
 import com.smu.healyx.user.domain.User;
 import com.smu.healyx.user.dto.MyProfileResponse;
+import com.smu.healyx.user.dto.ProfileUpdateRequest;
 import com.smu.healyx.user.dto.UserProfileDto;
 import com.smu.healyx.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -10,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -37,12 +40,24 @@ public class UserProfileService {
         user.updateLanguage(languageCode);
     }
 
-    /** 건강보험 가입 상태 업데이트 */
+    /** 프로필 일괄 수정 (실명·이메일·닉네임·건강보험 가입 상태) */
     @Transactional
-    public void updateInsuranceStatus(Long userId, String insuranceStatus) {
+    public void updateProfile(Long userId, ProfileUpdateRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AuthException("USER_NOT_FOUND", "사용자를 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
-        user.updateInsuranceStatus("insured".equals(insuranceStatus));
+
+        // 이메일이 변경된 경우에만 다른 사용자의 중복 여부 확인
+        if (!Objects.equals(user.getEmail(), request.getEmail()) &&
+                userRepository.existsByEmailAndUserIdNot(request.getEmail(), userId)) {
+            throw new AuthException("EMAIL_ALREADY_EXISTS", "이미 사용 중인 이메일입니다.", HttpStatus.CONFLICT);
+        }
+
+        user.updateProfile(
+                request.getRealName(),
+                request.getEmail(),
+                request.getNickname(),
+                "insured".equals(request.getInsuranceStatus())
+        );
     }
 
     /** 자동 로그인 및 프로필 화면용 전체 프로필 조회 */

@@ -2,9 +2,9 @@ package com.smu.healyx.user.controller;
 
 import com.smu.healyx.common.dto.ApiResponse;
 import com.smu.healyx.common.security.SecurityUtils;
-import com.smu.healyx.user.dto.InsuranceUpdateRequest;
 import com.smu.healyx.user.dto.LanguageUpdateRequest;
 import com.smu.healyx.user.dto.MyProfileResponse;
+import com.smu.healyx.user.dto.ProfileUpdateRequest;
 import com.smu.healyx.user.service.UserProfileService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -42,14 +42,14 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
-    /** 건강보험 가입 상태 변경 — 저장 버튼 클릭 시 호출 */
-    @Operation(summary = "건강보험 가입 상태 변경", description = "insuranceStatus: insured(가입) / uninsured(미가입)")
-    @PatchMapping("/me/insurance")
-    public ResponseEntity<ApiResponse<Void>> updateInsuranceStatus(
-            @Valid @RequestBody InsuranceUpdateRequest request,
+    /** 프로필 일괄 수정 — 실명·이메일·닉네임·건강보험 가입 상태를 한 번에 변경 */
+    @Operation(summary = "프로필 수정", description = "실명, 이메일, 닉네임, 건강보험 가입 상태를 한 번에 변경합니다.")
+    @PatchMapping("/me/profile")
+    public ResponseEntity<ApiResponse<Void>> updateProfile(
+            @Valid @RequestBody ProfileUpdateRequest request,
             Authentication authentication) {
         Long userId = SecurityUtils.extractUserId(authentication);
-        userProfileService.updateInsuranceStatus(userId, request.getInsuranceStatus());
+        userProfileService.updateProfile(userId, request);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }
