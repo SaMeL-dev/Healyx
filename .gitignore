@@ -1,3 +1,10 @@
 # IDE
 .idea/
 *.iml
+
+# === Claude Code 개인 도구 (커밋 금지) ===
+CLAUDE.md
+.claude/
+
+# === HEALYX 문서 (팀 합의: repo 외 보관) ===
+docs/
