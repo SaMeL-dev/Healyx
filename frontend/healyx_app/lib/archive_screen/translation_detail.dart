@@ -1,11 +1,11 @@
-﻿// 번역 보관함 상세 화면 (가로/세로 버전 두 개)
-// 원본 이미지와 번역 이미지가 각각 가로/세로 버전으로 보여짐
+// 번역 보관함 상세 화면
+// 원본 이미지와 번역 이미지를 S3 URL을 통해 표시
 import 'package:flutter/material.dart';
-import '../app_language.dart'; 
-import 'translation_list.dart'; // TranslationItem 모델이 여기 있음
+import '../app_language.dart';
+import '../services/translation_service.dart';
 
 class TranslationDetailScreen extends StatelessWidget {
-  final TranslationItem item;
+  final TranslationArchiveItem item;
 
   const TranslationDetailScreen({
     super.key,
@@ -38,7 +38,6 @@ class TranslationDetailScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── 원본 이미지 ──
             Text(
               AppLanguage.t('archive_original_image'), // '원본 이미지'
               style: const TextStyle(
@@ -48,13 +47,12 @@ class TranslationDetailScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-            _ImageBox(isHorizontal: item.isHorizontal),
+            _NetworkImageBox(imageUrl: item.originalImageUrl),
 
             const SizedBox(height: 16),
             const Divider(color: Color(0xFFE0E0E0), thickness: 1),
             const SizedBox(height: 16),
 
-            // ── 번역 이미지 ──
             Text(
               AppLanguage.t('archive_translated_image'), // '번역 이미지'
               style: const TextStyle(
@@ -64,7 +62,7 @@ class TranslationDetailScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-            _ImageBox(isHorizontal: item.isHorizontal),
+            _NetworkImageBox(imageUrl: item.translatedImageUrl),
 
             const SizedBox(height: 32),
           ],
@@ -74,38 +72,68 @@ class TranslationDetailScreen extends StatelessWidget {
   }
 }
 
-/// isHorizontal: true  → 가로 이미지 (4:3 비율)
-/// isHorizontal: false → 세로 이미지 (3:4 비율)
-class _ImageBox extends StatelessWidget {
-  final bool isHorizontal;
+// S3 URL 이미지 박스 (자동 비율 조정)
+class _NetworkImageBox extends StatelessWidget {
+  final String imageUrl;
 
-  const _ImageBox({required this.isHorizontal});
+  const _NetworkImageBox({required this.imageUrl});
 
   @override
   Widget build(BuildContext context) {
     final double width = MediaQuery.of(context).size.width - 40;
-    final double height = isHorizontal ? width * (3 / 4) : width * (4 / 3);
+
+    if (imageUrl.isEmpty) {
+      return _placeholder(width);
+    }
 
     return Container(
       width: width,
-      height: height,
+      constraints: BoxConstraints(minHeight: width * (3 / 4)),
       decoration: BoxDecoration(
         color: const Color(0xFFEEEEEE),
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: const Color(0xFFDDDDDD)),
       ),
-      child: Column(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(10),
+        child: Image.network(
+          imageUrl,
+          fit: BoxFit.contain,
+          loadingBuilder: (context, child, progress) {
+            if (progress == null) return child;
+            return SizedBox(
+              height: width * (3 / 4),
+              child: const Center(
+                child: CircularProgressIndicator(
+                  color: Color(0xFF2260FF),
+                  strokeWidth: 2,
+                ),
+              ),
+            );
+          },
+          errorBuilder: (context, error, stackTrace) => _placeholder(width),
+        ),
+      ),
+    );
+  }
+
+  Widget _placeholder(double width) {
+    return Container(
+      width: width,
+      height: width * (3 / 4),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEEEEEE),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFDDDDDD)),
+      ),
+      child: const Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            isHorizontal ? Icons.panorama : Icons.image_outlined,
-            color: const Color(0xFFBBBBBB),
-            size: 48,
-          ),
-          const SizedBox(height: 8),
+          Icon(Icons.image_outlined, color: Color(0xFFBBBBBB), size: 48),
+          SizedBox(height: 8),
           Text(
-            isHorizontal ? '가로 이미지' : '세로 이미지',
-            style: const TextStyle(color: Color(0xFFBBBBBB), fontSize: 13),
+            '이미지를 불러올 수 없습니다',
+            style: TextStyle(color: Color(0xFFBBBBBB), fontSize: 13),
           ),
         ],
       ),

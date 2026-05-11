@@ -1,11 +1,11 @@
-﻿// 번역 인식 로딩 화면
-// 번역 인식이 진행되는 동안 로딩 애니메이션과 함께 이미지 미리보기를 보여주는 화면
-// 성공 시 번역 결과 화면으로 이동, 실패 시 번역 인식 에러 화면으로 이동 (True/false로 분기)
-import 'dart:async';
+// 번역 인식 로딩 화면
+// 이미지를 서버로 전송하고 OCR + 번역 응답을 기다리는 화면
+// 성공 시 번역 결과 화면으로 이동, 실패 시 번역 인식 에러 화면으로 이동
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import '../app_language.dart'; //추가
+import '../app_language.dart';
+import '../services/translation_service.dart';
 import 'translation_result.dart';
 import 'translation_upload.dart';
 import 'translation_error.dart';
@@ -26,45 +26,55 @@ class TranslationLoadingScreen extends StatefulWidget {
 }
 
 class _TranslationLoadingScreenState extends State<TranslationLoadingScreen> {
-  Timer? _timer;
   final ImagePicker _picker = ImagePicker();
+  bool _cancelled = false;
 
   @override
   void initState() {
     super.initState();
-
-    _timer = Timer(const Duration(seconds: 2), () {
-      if (!mounted) return;
-
-      final bool isSuccess = true; // 퍼블리싱 단계용 임시값
-
-      if (isSuccess) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => TranslationResultScreen(
-              originalImagePath: widget.imagePath,
-              translatedImagePath: widget.imagePath,
-            ),
-          ),
-        );
-      } else {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => TranslationErrorScreen(
-              isCameraError: widget.isFromCamera,
-            ),
-          ),
-        );
-      }
-    });
+    _callTranslationApi();
   }
 
+  // 의료 번역 API 호출 (OCR + DeepL + 이미지 오버레이)
+  Future<void> _callTranslationApi() async {
+    final result = await TranslationService.translateMedicalDocument(
+      imagePath: widget.imagePath,
+      targetLanguage: AppLanguage.currentLang.value,
+    );
+
+    if (_cancelled || !mounted) return;
+
+    if (result != null) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => TranslationResultScreen(
+            originalImagePath: widget.imagePath,
+            translatedImageUrl: result.translatedImageUrl,
+            translatedImageBase64: result.translatedImageBase64,
+            isSaved: result.isSaved,
+          ),
+        ),
+      );
+    } else {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => TranslationErrorScreen(
+            isCameraError: widget.isFromCamera,
+          ),
+        ),
+      );
+    }
+  }
+
+  // 이미지 재선택 (진행 중인 API 호출 무시 처리)
   Future<void> _retryPickImage() async {
-    _timer?.cancel();
+    _cancelled = true;
 
     final XFile? image = await _picker.pickImage(
       source: widget.isFromCamera ? ImageSource.camera : ImageSource.gallery,
       imageQuality: 85,
+      maxWidth: 1920,
+      maxHeight: 1920,
     );
 
     if (!mounted) return;
@@ -92,7 +102,7 @@ class _TranslationLoadingScreenState extends State<TranslationLoadingScreen> {
 
   @override
   void dispose() {
-    _timer?.cancel();
+    _cancelled = true;
     super.dispose();
   }
 
@@ -114,7 +124,7 @@ class _TranslationLoadingScreenState extends State<TranslationLoadingScreen> {
               Center(
                 child: Text(
                   AppLanguage.t('translation_title'), // '의료번역'
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.w700,
                     color: primaryBlue,
@@ -124,7 +134,7 @@ class _TranslationLoadingScreenState extends State<TranslationLoadingScreen> {
               const SizedBox(height: 110),
               Text(
                 AppLanguage.t('translation_loading_preview'), // '이미지 미리보기'
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w700,
                   color: primaryBlue,
@@ -133,7 +143,7 @@ class _TranslationLoadingScreenState extends State<TranslationLoadingScreen> {
               const SizedBox(height: 8),
               Text(
                 AppLanguage.t('translation_loading_check'), // '번역하고자 하는 이미지를 확인해주세요.'
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
                   color: lightGray,
@@ -195,7 +205,7 @@ class _TranslationLoadingScreenState extends State<TranslationLoadingScreen> {
               const SizedBox(height: 56),
               Text(
                 AppLanguage.t('translation_loading_recognizing'), // '이미지를 인식중입니다...'
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w700,
                   color: primaryBlue,

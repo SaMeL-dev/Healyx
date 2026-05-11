@@ -1,43 +1,93 @@
-﻿// 번역 결과 화면
-// 번역이 완료된 후 원본 이미지와 번역된 이미지를 보여주는 화면
-// 저장하기 버튼 클릭 시 accessToken 유무로 로그인 상태를 판단함
-
+// 번역 결과 화면
+// 원본 이미지(로컬)와 번역된 이미지를 보여주는 화면
+// 로그인 사용자: S3 URL(Image.network), 게스트: Base64(Image.memory)
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import '../app_language.dart'; 
-import 'package:healyx_app/services/auth_service.dart';
-
-import '../../../dialogs/login_required_dialog.dart';
+import '../app_language.dart';
+import '../dialogs/login_required_dialog.dart';
 import '../common/common_toast.dart';
 
 class TranslationResultScreen extends StatelessWidget {
   final String originalImagePath;
-  final String translatedImagePath;
+  final String translatedImageUrl;       // 로그인 사용자: S3 URL
+  final String translatedImageBase64;    // 게스트: Base64 인코딩 이미지
+  final bool isSaved;
 
   const TranslationResultScreen({
     super.key,
     required this.originalImagePath,
-    required this.translatedImagePath,
+    required this.translatedImageUrl,
+    required this.translatedImageBase64,
+    required this.isSaved,
   });
 
-  Future<void> _handleSave(BuildContext context) async {
-    final isLoggedIn = await AuthService.isLoggedIn();
-
-    if (!context.mounted) return;
-
-    if (isLoggedIn) {
-      // TODO: 추후 실제 보관함 저장 API 또는 로컬 저장 로직으로 교체
+  void _handleSave(BuildContext context) {
+    if (isSaved) {
+      // 로그인 사용자: 백엔드에서 이미 보관함에 저장됨
       CommonToast.show(
         context,
         message: AppLanguage.t('translation_saved'), // '보관함에 저장되었습니다.'
       );
     } else {
+      // 비로그인(게스트): 로그인 유도 다이얼로그
       showDialog(
         context: context,
         barrierColor: const Color(0x802260FF),
         builder: (context) => const LoginRequiredDialog(),
       );
     }
+  }
+
+  // 번역 이미지 위젯 빌드
+  // 우선순위: S3 URL → Base64 → 플레이스홀더 텍스트
+  Widget _buildTranslatedImage(Color grayText) {
+    if (translatedImageUrl.isNotEmpty) {
+      return Image.network(
+        translatedImageUrl,
+        fit: BoxFit.contain,
+        loadingBuilder: (context, child, progress) {
+          if (progress == null) return child;
+          return const Center(
+            child: CircularProgressIndicator(
+              color: Color(0xFF2260FF),
+              strokeWidth: 2,
+            ),
+          );
+        },
+        errorBuilder: (context, error, stackTrace) =>
+            _buildPlaceholder(grayText),
+      );
+    }
+
+    if (translatedImageBase64.isNotEmpty) {
+      try {
+        final bytes = base64Decode(translatedImageBase64);
+        return Image.memory(
+          bytes,
+          fit: BoxFit.contain,
+          errorBuilder: (context, error, stackTrace) =>
+              _buildPlaceholder(grayText),
+        );
+      } catch (_) {
+        // Base64 디코딩 실패 시 플레이스홀더
+      }
+    }
+
+    return _buildPlaceholder(grayText);
+  }
+
+  Widget _buildPlaceholder(Color grayText) {
+    return Center(
+      child: Text(
+        AppLanguage.t('translation_result_placeholder'), // '번역 이미지가 표시될 영역'
+        style: TextStyle(
+          fontSize: 16,
+          color: grayText,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+    );
   }
 
   @override
@@ -79,7 +129,7 @@ class TranslationResultScreen extends StatelessWidget {
                     ),
                     Text(
                       AppLanguage.t('translation_title'), // '의료번역'
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.w700,
                         color: primaryBlue,
@@ -127,7 +177,7 @@ class TranslationResultScreen extends StatelessWidget {
                           children: [
                             Text(
                               AppLanguage.t('archive_original_image'), // '원본 이미지'
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w700,
                                 color: Color(0xFF757D95),
@@ -151,14 +201,14 @@ class TranslationResultScreen extends StatelessWidget {
                                   children: [
                                     Text(
                                       AppLanguage.t('translation_done_badge'), // '번역 완료'
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                         color: Colors.white,
                                         fontSize: 14,
                                         fontWeight: FontWeight.w700,
                                       ),
                                     ),
-                                    SizedBox(width: 8),
-                                    Icon(
+                                    const SizedBox(width: 8),
+                                    const Icon(
                                       Icons.check,
                                       color: Color(0xFF304476),
                                       size: 20,
@@ -194,7 +244,7 @@ class TranslationResultScreen extends StatelessWidget {
                     children: [
                       Text(
                         AppLanguage.t('archive_translated_image'), // '번역 이미지'
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.w700,
                           color: titleColor,
@@ -202,6 +252,7 @@ class TranslationResultScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 24),
 
+                      // 번역된 이미지 (S3 URL 또는 Base64)
                       Container(
                         width: double.infinity,
                         height: 320,
@@ -210,24 +261,7 @@ class TranslationResultScreen extends StatelessWidget {
                           border: Border.all(color: const Color(0xFFBDBDBD)),
                         ),
                         child: ClipRRect(
-                          child: Image.file(
-                            File(translatedImagePath),
-                            fit: BoxFit.contain,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Container(
-                                alignment: Alignment.center,
-                                color: Colors.white,
-                                child: Text(
-                                  AppLanguage.t('translation_result_placeholder'), // '번역 이미지가 표시될 영역'
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: grayText,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
+                          child: _buildTranslatedImage(grayText),
                         ),
                       ),
 
@@ -237,9 +271,7 @@ class TranslationResultScreen extends StatelessWidget {
                         width: 150,
                         height: 45,
                         child: ElevatedButton(
-                          onPressed: () {
-                            _handleSave(context);
-                          },
+                          onPressed: () => _handleSave(context),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: buttonBlue,
                             foregroundColor: Colors.white,
@@ -251,7 +283,7 @@ class TranslationResultScreen extends StatelessWidget {
                           ),
                           child: Text(
                             AppLanguage.t('translation_save'), // '저장하기'
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w700,
                             ),

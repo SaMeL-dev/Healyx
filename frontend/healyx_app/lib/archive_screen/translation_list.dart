@@ -1,24 +1,12 @@
-﻿// 번역 보관함 리스트 화면
-// 번역 보관함에 저장된 번역 결과들을 리스트 형태로 보여주는 화면
+// 번역 보관함 리스트 화면
+// API에서 번역 보관함 목록을 불러와 카드 형태로 표시
+// 각 항목은 탭 시 상세 화면으로 이동, 삭제 버튼으로 항목 삭제 가능
 
 import 'package:flutter/material.dart';
 import 'package:healyx_app/dialogs/archive_delete_dialog.dart';
-import '../app_language.dart'; 
+import '../app_language.dart';
+import '../services/translation_service.dart';
 import 'translation_detail.dart';
-
-class TranslationItem {
-  final String id;
-  final String date;
-  final String language;
-  final bool isHorizontal;
-
-  const TranslationItem({
-    required this.id,
-    required this.date,
-    required this.language,
-    this.isHorizontal = false,
-  });
-}
 
 class TranslationListScreen extends StatefulWidget {
   const TranslationListScreen({super.key});
@@ -28,15 +16,47 @@ class TranslationListScreen extends StatefulWidget {
 }
 
 class _TranslationListScreenState extends State<TranslationListScreen> {
-  final List<TranslationItem> _items = [
-    TranslationItem(id: '1', date: '2026-04-01', language: '중국어', isHorizontal: false),
-    TranslationItem(id: '2', date: '2026-03-31', language: '중국어', isHorizontal: true),
-    TranslationItem(id: '3', date: '2026-03-30', language: '중국어', isHorizontal: false),
-    TranslationItem(id: '4', date: '2026-03-24', language: '중국어', isHorizontal: false),
-    TranslationItem(id: '5', date: '2026-03-20', language: '중국어', isHorizontal: true),
-    TranslationItem(id: '6', date: '2026-03-11', language: '중국어', isHorizontal: false),
-    TranslationItem(id: '7', date: '2026-03-02', language: '중국어', isHorizontal: false),
-  ];
+  List<TranslationArchiveItem> _items = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadArchive();
+  }
+
+  // 보관함 목록 API 호출
+  Future<void> _loadArchive() async {
+    setState(() => _isLoading = true);
+    final items = await TranslationService.getArchive();
+    if (!mounted) return;
+    setState(() {
+      _items = items;
+      _isLoading = false;
+    });
+  }
+
+  // 항목 삭제 — 다이얼로그 확인 후 API 호출
+  Future<void> _deleteItem(TranslationArchiveItem item) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierColor: const Color(0xFF2260FF).withValues(alpha: 0.4),
+      builder: (ctx) => const ArchiveDeleteDialog(),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    final success = await TranslationService.deleteArchiveItem(item.id);
+    if (!mounted) return;
+
+    if (success) {
+      setState(() => _items.removeWhere((e) => e.id == item.id));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLanguage.t('error_retry'))),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,38 +79,58 @@ class _TranslationListScreenState extends State<TranslationListScreen> {
           ),
         ),
       ),
-      body: ListView.separated(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        itemCount: _items.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 12),
-        itemBuilder: (context, index) {
-          final item = _items[index];
-          return _TranslationCard(
-            item: item,
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => TranslationDetailScreen(item: item),
-                ),
-              );
-            },
-            onDelete: () {
-               showDialog(
-               context: context,
-               barrierColor: const Color(0xFF2260FF).withOpacity(0.4),
-               builder: (_) => const ArchiveDeleteDialog(),
-               );
-            },
-          );
-        },
-      ),
+      body: _buildBody(),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(color: Color(0xFF2260FF)),
+      );
+    }
+
+    if (_items.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.image_search, size: 56, color: Color(0xFFBBBBBB)),
+            const SizedBox(height: 16),
+            Text(
+              AppLanguage.t('archive_empty_translation'), // '저장된 번역이 없습니다.'
+              style: const TextStyle(fontSize: 15, color: Color(0xFF9E9E9E)),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.separated(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      itemCount: _items.length,
+      separatorBuilder: (context, index) => const SizedBox(height: 12),
+      itemBuilder: (context, index) {
+        final item = _items[index];
+        return _TranslationCard(
+          item: item,
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => TranslationDetailScreen(item: item),
+              ),
+            );
+          },
+          onDelete: () => _deleteItem(item),
+        );
+      },
     );
   }
 }
 
 class _TranslationCard extends StatelessWidget {
-  final TranslationItem item;
+  final TranslationArchiveItem item;
   final VoidCallback onTap;
   final VoidCallback onDelete;
 
@@ -111,7 +151,7 @@ class _TranslationCard extends StatelessWidget {
           border: Border.all(color: const Color(0xFFE8E8E8)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: Colors.black.withValues(alpha: 0.04),
               blurRadius: 6,
               offset: const Offset(0, 2),
             ),
@@ -119,17 +159,23 @@ class _TranslationCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Container(
-              width: 90,
-              height: 80,
-              decoration: const BoxDecoration(
-                color: Color(0xFFEEEEEE),
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(12),
-                  bottomLeft: Radius.circular(12),
-                ),
+            // 번역 이미지 썸네일
+            ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(12),
+                bottomLeft: Radius.circular(12),
               ),
-              child: const Icon(Icons.image_outlined, color: Color(0xFFBBBBBB), size: 32),
+              child: SizedBox(
+                width: 90,
+                height: 80,
+                child: item.translatedImageUrl.isNotEmpty
+                    ? Image.network(
+                        item.translatedImageUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => const _ThumbnailPlaceholder(),
+                      )
+                    : const _ThumbnailPlaceholder(),
+              ),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -137,7 +183,7 @@ class _TranslationCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    item.date,
+                    item.formattedDate,
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -146,7 +192,7 @@ class _TranslationCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    item.language,
+                    item.languageName,
                     style: const TextStyle(fontSize: 13, color: Colors.black54),
                   ),
                 ],
@@ -159,6 +205,18 @@ class _TranslationCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _ThumbnailPlaceholder extends StatelessWidget {
+  const _ThumbnailPlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: const Color(0xFFEEEEEE),
+      child: const Icon(Icons.image_outlined, color: Color(0xFFBBBBBB), size: 32),
     );
   }
 }
