@@ -1,5 +1,6 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:healyx_app/app_language.dart'; 
 import 'find_hospital_result.dart';
 
 class FindHospitalLoading extends StatefulWidget {
@@ -85,11 +86,11 @@ class _FindHospitalLoadingState extends State<FindHospitalLoading>
                       size: 22,
                     ),
                   ),
-                  const Expanded(
+                  Expanded( // 수정
                     child: Center(
                       child: Text(
-                        '병원 찾기',
-                        style: TextStyle(
+                        AppLanguage.t('find_hospital'), // '병원 찾기'
+                        style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w800,
                           color: Color(0xFF2260FF),
@@ -102,18 +103,18 @@ class _FindHospitalLoadingState extends State<FindHospitalLoading>
               ),
             ),
             const Spacer(),
-            const Text(
-              '병원을 찾고있습니다',
-              style: TextStyle(
+            Text( // 수정
+              AppLanguage.t('hospital_searching'), // '병원을 찾고있습니다'
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
                 color: Color(0xFF2260FF),
               ),
             ),
             const SizedBox(height: 6),
-            const Text(
-              '잠시만 기다려주세요',
-              style: TextStyle(
+            Text( // 수정
+              AppLanguage.t('please_wait'), // '잠시만 기다려주세요'
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
                 color: Color(0xFF2260FF),

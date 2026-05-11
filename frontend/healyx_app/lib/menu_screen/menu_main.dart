@@ -1,4 +1,4 @@
-// 메뉴 메인 화면
+﻿// 메뉴 메인 화면
 // 로그인 비로그인 (true/false) 상태에 따라 보여지는 메뉴 항목이 달라지는 화면
 // 17번째 줄 부분에서만 true/false로 로그인 상태를 바꿔가며 테스트하면 됨! 그 이외의 부분은 자동으로 반영됨!!
 import 'package:flutter/material.dart';
@@ -10,11 +10,12 @@ import 'reset_password_screen/password_verify.dart';
 import '../archive_screen/archive_main.dart';
 import '../dialogs/logout_dialog.dart';
 import '../login_signup_screen/login_screen.dart';
+import '../app_language.dart'; 
 
 class MenuScreen extends StatelessWidget {
   final bool isLoggedIn;
 
-  const MenuScreen({super.key, this.isLoggedIn = false}); //true=로그인, false=비로그인
+  const MenuScreen({super.key, this.isLoggedIn = true}); //true=로그인, false=비로그인
 
   @override
   Widget build(BuildContext context) {
@@ -28,9 +29,9 @@ class MenuScreen extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
         centerTitle: true,
-        title: const Text(
-          '메뉴',
-          style: TextStyle(
+        title: Text( 
+          AppLanguage.t('menu_title'), // '메뉴'
+          style: const TextStyle(
             color: Color(0xFF2260FF),
             fontSize: 20,
             fontWeight: FontWeight.w600,
@@ -65,18 +66,18 @@ class _GuestBody extends StatelessWidget {
                 MaterialPageRoute(builder: (_) => const LoginScreen()),
               );
             },
-            child: const Row(
+            child: Row(
               children: [
-                Text(
-                  '로그인을 해주세요',
-                  style: TextStyle(
+                Text( 
+                  AppLanguage.t('menu_login_prompt'), // '로그인을 해주세요'
+                  style: const TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.w700,
                     color: Colors.black87,
                   ),
                 ),
-                SizedBox(width: 4),
-                Icon(
+                const SizedBox(width: 4),
+                const Icon(
                   Icons.chevron_right,
                   color: Color(0xFF2260FF),
                   size: 26,
@@ -89,7 +90,7 @@ class _GuestBody extends StatelessWidget {
 
           _MenuTile(
             icon: Icons.settings_outlined,
-            label: '설정',
+            label: AppLanguage.t('settings_title'), // '설정'
             onTap: () {
               Navigator.push(
                 context,
@@ -165,8 +166,8 @@ class _LoggedInBody extends StatelessWidget {
 
           const SizedBox(height: 14),
 
-          const Text(
-            '닉네임123님 안녕하세요',
+          Text(
+               AppLanguage.t('menu_greeting').replaceAll('{nickname}', '닉네임123'), // '닉네임123님 안녕하세요.'
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w700,
@@ -182,7 +183,7 @@ class _LoggedInBody extends StatelessWidget {
               children: [
                 _MenuTile(
                   icon: Icons.inventory_2_outlined,
-                  label: '보관함',
+                  label: AppLanguage.t('menu_archive'), // '보관함'
                   onTap: () {
                     Navigator.push(
                       context,
@@ -194,7 +195,7 @@ class _LoggedInBody extends StatelessWidget {
                 ),
                 _MenuTile(
                   icon: Icons.settings_outlined,
-                  label: '설정',
+                  label: AppLanguage.t('settings_title'), // '설정'
                   onTap: () {
                     Navigator.push(
                       context,
@@ -205,7 +206,7 @@ class _LoggedInBody extends StatelessWidget {
                 ),
                 _MenuTile(
                   icon: Icons.lock_outline,
-                  label: '비밀번호 변경',
+                  label: AppLanguage.t('menu_change_password'), // '비밀번호 변경'
                   // 비밀번호 변경 → menu_screen/reset_password_screen/password_verify.dart (STEP1)
                   onTap: () {
                     Navigator.push(
@@ -216,7 +217,7 @@ class _LoggedInBody extends StatelessWidget {
                 ),
                 _MenuTile(
                   icon: Icons.logout,
-                  label: '로그아웃',
+                  label: AppLanguage.t('menu_logout'), // '로그아웃'
                   onTap: () {
                     showDialog(
                       context: context,

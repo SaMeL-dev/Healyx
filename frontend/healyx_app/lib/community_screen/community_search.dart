@@ -1,5 +1,6 @@
-// 커뮤니티 검색 화면 (검색창과 추천 검색어 영역)
+﻿// 커뮤니티 검색 화면 (검색창과 추천 검색어 영역)
 import 'package:flutter/material.dart';
+import '../app_language.dart'; 
 import 'community_search_result.dart';
 
 class CommunitySearchScreen extends StatefulWidget {
@@ -53,9 +54,9 @@ class _CommunitySearchScreenState extends State<CommunitySearchScreen> {
                       ),
                     ),
                   ),
-                  const Text(
-                    '커뮤니티',
-                    style: TextStyle(
+                  Text(
+                    AppLanguage.t('community'), // '커뮤니티'
+                    style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w700,
                       color: primaryBlue,
@@ -80,8 +81,8 @@ class _CommunitySearchScreenState extends State<CommunitySearchScreen> {
                     Expanded(
                       child: TextField(
                         controller: _searchController,
-                        decoration: const InputDecoration(
-                          hintText: '검색어를 입력하세요.',
+                        decoration: InputDecoration(
+                          hintText: AppLanguage.t('search_hint'), // '검색어를 입력하세요.'
                           hintStyle: TextStyle(
                             color: Color(0xFF809CFF),
                             fontSize: 16,
@@ -115,9 +116,9 @@ class _CommunitySearchScreenState extends State<CommunitySearchScreen> {
 
               const SizedBox(height: 48),
 
-              // 🔥 추천 영역 복구
+              // 추천 영역 복구
               Row(
-                children: const [
+                children: [
                   Icon(
                     Icons.search,
                     color: primaryBlue,
@@ -125,7 +126,7 @@ class _CommunitySearchScreenState extends State<CommunitySearchScreen> {
                   ),
                   SizedBox(width: 10),
                   Text(
-                    '이런 내용을 검색해보세요.',
+                    AppLanguage.t('community_search_recommend_label'), // '이런 내용을 검색해보세요.'
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
@@ -135,10 +136,9 @@ class _CommunitySearchScreenState extends State<CommunitySearchScreen> {
               ),
 
               const SizedBox(height: 18),
-
-              const _RecommendText(text: '한의원 추천'),
-              const _RecommendText(text: '병원 주변 맛집'),
-              const _RecommendText(text: '약봉투 번역 팁'),
+             _RecommendText(text: AppLanguage.t('community_search_recommend_1')), // '한의원 추천'
+             _RecommendText(text: AppLanguage.t('community_search_recommend_2')), // '병원 주변 맛집'
+             _RecommendText(text: AppLanguage.t('community_search_recommend_3')), // '약봉투 번역 팁'
             ],
           ),
         ),

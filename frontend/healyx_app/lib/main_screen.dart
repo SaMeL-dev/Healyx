@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'find_hospital_screen/find_hospital_main.dart';
 import 'translation_screen/translation_upload.dart';
 import 'community_screen/community_main.dart';
@@ -7,6 +7,7 @@ import 'community_screen/community_notification.dart';
 import 'menu_screen/menu_main.dart';
 import 'login_signup_screen/login_screen.dart';
 import 'services/auth_service.dart';
+import 'app_language.dart'; 
 
 class MainScreen extends StatefulWidget {
   // true = 로그인 상태, false = 비로그인 상태
@@ -66,10 +67,10 @@ class _MainScreenState extends State<MainScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
-                  '로그인이 필요한 기능입니다.\n로그인 하시겠습니까?',
+                Text(
+                  AppLanguage.t('login_required'), // '로그인이 필요한 기능입니다.\n로그인 하시겠습니까?'
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 18,
                     height: 1.45,
                     fontWeight: FontWeight.w700,
@@ -101,9 +102,9 @@ class _MainScreenState extends State<MainScreen> {
                               borderRadius: BorderRadius.circular(28),
                             ),
                           ),
-                          child: const Text(
-                            '예',
-                            style: TextStyle(
+                          child: Text(
+                            AppLanguage.t('yes'), // '예'
+                            style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
                             ),
@@ -127,9 +128,9 @@ class _MainScreenState extends State<MainScreen> {
                               borderRadius: BorderRadius.circular(28),
                             ),
                           ),
-                          child: const Text(
-                            '아니오',
-                            style: TextStyle(
+                          child: Text(
+                            AppLanguage.t('no'), // '아니요'
+                            style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
                             ),
@@ -265,7 +266,7 @@ class _MainScreenState extends State<MainScreen> {
                           Expanded(
                             child: _buildTopMenuCard(
                               icon: Icons.search,
-                              title: '병원 찾기',
+                              title: AppLanguage.t('find_hospital'), // '병원 찾기'
                               onTap: () {
                                 Navigator.push(
                                   context,
@@ -281,7 +282,7 @@ class _MainScreenState extends State<MainScreen> {
                           Expanded(
                             child: _buildTopMenuCard(
                               icon: Icons.translate,
-                              title: '의료 번역',
+                              title: AppLanguage.t('medical_translation'), // '의료 번역'
                               onTap: () {
                                 Navigator.push(
                                   context,
@@ -306,7 +307,7 @@ class _MainScreenState extends State<MainScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildSectionTitle(
-                            title: '리뷰',
+                            title: AppLanguage.t('review'), // '리뷰'
                             // 리뷰 더보기 → 로그인 필요
                             onArrowTap: () {
                               _moveIfLoggedIn(
@@ -331,7 +332,7 @@ class _MainScreenState extends State<MainScreen> {
                           ),
                           const SizedBox(height: 18),
                           _buildSectionTitle(
-                            title: '커뮤니티',
+                            title: AppLanguage.t('community'), // '커뮤니티' 
                             // 커뮤니티 더보기 → 로그인 필요
                             onArrowTap: () {
                               _moveIfLoggedIn(

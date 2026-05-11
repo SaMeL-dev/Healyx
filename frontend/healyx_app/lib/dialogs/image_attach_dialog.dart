@@ -1,5 +1,6 @@
 // 이미지 첨부 팝업 (글 작성 시 카메라 촬영/갤러리 선택) -> 리뷰 작성과 커뮤니티 글 작성에서 사용
 import 'package:flutter/material.dart';
+import 'package:healyx_app/app_language.dart'; 
 import 'package:image_picker/image_picker.dart';
 
 class ImageAttachDialog extends StatelessWidget {
@@ -33,7 +34,7 @@ class ImageAttachDialog extends StatelessWidget {
             Expanded(
               child: _AttachOption(
                 icon: Icons.camera_alt_outlined,
-                title: '카메라 촬영',
+                title: AppLanguage.t('review_upload_camera_title'), // '사진 촬영'
                 iconColor: iconGray,
                 primaryBlue: primaryBlue,
                 cardBlue: cardBlue,
@@ -47,7 +48,7 @@ class ImageAttachDialog extends StatelessWidget {
             Expanded(
               child: _AttachOption(
                 icon: Icons.photo,
-                title: '이미지 선택',
+                title: AppLanguage.t('review_upload_gallery_title'), // '이미지 선택' 
                 iconColor: iconGray,
                 primaryBlue: primaryBlue,
                 cardBlue: cardBlue,

@@ -1,5 +1,6 @@
-// 커뮤니티 검색 결과 화면 (검색창에서 검색 후 나오는 화면)
+﻿// 커뮤니티 검색 결과 화면 (검색창에서 검색 후 나오는 화면)
 import 'package:flutter/material.dart';
+import '../app_language.dart'; 
 
 import 'community_search.dart';
 import 'community_detail.dart';
@@ -64,10 +65,10 @@ class _CommunitySearchResultScreenState
                           icon: const Icon(Icons.arrow_back_ios,
                               color: mainBlue, size: 20),
                         ),
-                        const Expanded(
+                        Expanded(
                           child: Center(
                             child: Text(
-                              '커뮤니티',
+                              AppLanguage.t('community'), // '커뮤니티'
                               style: TextStyle(
                                 color: mainBlue,
                                 fontSize: 28,
@@ -102,9 +103,9 @@ class _CommunitySearchResultScreenState
 
                   const SizedBox(height: 28),
 
-                  const Text(
-                    '검색 결과',
-                    style: TextStyle(
+                  Text(
+                    AppLanguage.t('community_search_result_title'), // '검색 결과'
+                    style: const TextStyle(
                       color: mainBlue,
                       fontSize: 26,
                       fontWeight: FontWeight.w900,
@@ -113,9 +114,9 @@ class _CommunitySearchResultScreenState
 
                   const SizedBox(height: 6),
 
-                  const Text(
-                    '원하는 정보를 찾아보세요.',
-                    style: TextStyle(
+                  Text(
+                    AppLanguage.t('community_search_result_subtitle'), // '원하는 정보를 찾아보세요.'
+                    style: const TextStyle(
                       color: Colors.black,
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
@@ -130,19 +131,19 @@ class _CommunitySearchResultScreenState
                     child: Row(
                       children: [
                         _FilterButton(
-                          text: '제목+글',
+                          text: AppLanguage.t('community_filter_title_content'), // '제목+글'
                           isSelected: selectedFilter == '제목+글',
                           onTap: () => setState(() => selectedFilter = '제목+글'),
                         ),
                         const SizedBox(width: 8),
                         _FilterButton(
-                          text: '제목',
+                          text: AppLanguage.t('community_filter_title'), // '제목'
                           isSelected: selectedFilter == '제목',
                           onTap: () => setState(() => selectedFilter = '제목'),
                         ),
                         const SizedBox(width: 8),
                         _FilterButton(
-                          text: '글',
+                          text: AppLanguage.t('community_filter_content'), // '글'
                           isSelected: selectedFilter == '글',
                           onTap: () => setState(() => selectedFilter = '글'),
                         ),
@@ -176,7 +177,7 @@ class _CommunitySearchResultScreenState
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text('최신순'),
+                                Text(AppLanguage.t('community_sort_newest')), // '최신순'
                                 if (selectedSort == '최신순')
                                   const Icon(Icons.check, color: mainBlue, size: 18),
                               ],
@@ -187,7 +188,7 @@ class _CommunitySearchResultScreenState
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text('인기순'),
+                                Text(AppLanguage.t('community_sort_popular')), // '인기순'
                                 if (selectedSort == '인기순')
                                   const Icon(Icons.check, color: mainBlue, size: 18),
                               ],
@@ -198,7 +199,7 @@ class _CommunitySearchResultScreenState
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              '정렬: $selectedSort',
+                              AppLanguage.t('community_sort_label').replaceAll('{sort}', selectedSort == '최신순' ? AppLanguage.t('community_sort_newest') : AppLanguage.t('community_sort_popular')), // '정렬: {sort}'
                               style: const TextStyle(
                                 color: Colors.black,
                                 fontSize: 14,
@@ -267,8 +268,9 @@ class _FilterButton extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        width: text == '제목+글' ? 90 : 72,
+        constraints: const BoxConstraints(minWidth: 72), //수정
         height: 36,
+        padding: const EdgeInsets.symmetric(horizontal: 14), //수정
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: isSelected ? mainBlue : tabInactive,
@@ -276,9 +278,11 @@ class _FilterButton extends StatelessWidget {
         ),
         child: Text(
           text,
+          maxLines: 1, //수정
+          overflow: TextOverflow.ellipsis, //수정
           style: const TextStyle(
             color: Colors.white,
-            fontSize: 15,
+            fontSize: 13, //수정
             fontWeight: FontWeight.w700,
           ),
         ),

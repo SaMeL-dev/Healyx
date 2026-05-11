@@ -1,7 +1,8 @@
-// 번역 업로드 화면
+﻿// 번역 업로드 화면
 // 번역 업로드 화면에서는 사용자가 카메라 촬영 또는 갤러리 선택을 통해 이미지를 업로드할 수 있도록 구성
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import '../app_language.dart'; 
 import 'translation_loading.dart';
 
 class TranslationUploadScreen extends StatefulWidget {
@@ -35,7 +36,7 @@ class _TranslationUploadScreenState extends State<TranslationUploadScreen> {
         ),
       );
     } catch (e) {
-      _showMessage('카메라를 여는 중 문제가 발생했습니다.');
+      _showMessage(AppLanguage.t('translation_camera_error')); // '카메라를 여는 중 문제가 발생했습니다.'
     }
   }
 
@@ -59,7 +60,7 @@ class _TranslationUploadScreenState extends State<TranslationUploadScreen> {
         ),
       );
     } catch (e) {
-      _showMessage('이미지를 불러오는 중 문제가 발생했습니다.');
+      _showMessage(AppLanguage.t('translation_gallery_error')); // '이미지를 불러오는 중 문제가 발생했습니다.'
     }
   }
 
@@ -105,8 +106,8 @@ class _TranslationUploadScreenState extends State<TranslationUploadScreen> {
                       ),
                     ),
                   ),
-                  const Text(
-                    '의료번역',
+                  Text(
+                    AppLanguage.t('translation_title'), // '의료번역'
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w700,
@@ -116,8 +117,8 @@ class _TranslationUploadScreenState extends State<TranslationUploadScreen> {
                 ],
               ),
               const SizedBox(height: 120),
-              const Text(
-                '이미지 업로드 방식을 선택해주세요.',
+              Text(
+                AppLanguage.t('translation_upload_select_method'), // '이미지 업로드 방식을 선택해주세요.'
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
@@ -127,8 +128,8 @@ class _TranslationUploadScreenState extends State<TranslationUploadScreen> {
               const SizedBox(height: 36),
               _UploadOptionCard(
                 icon: Icons.camera_alt_outlined,
-                title: '카메라 촬영',
-                subtitle: '사진을 촬영하세요',
+                title: AppLanguage.t('review_upload_camera_title'), // '카메라 촬영'
+                subtitle: AppLanguage.t('translation_upload_camera_subtitle'), // '사진을 촬영하세요'
                 backgroundColor: cardBlue,
                 titleColor: primaryBlue,
                 subtitleColor: grayText,
@@ -137,8 +138,8 @@ class _TranslationUploadScreenState extends State<TranslationUploadScreen> {
               const SizedBox(height: 28),
               _UploadOptionCard(
                 icon: Icons.image_outlined,
-                title: '이미지 선택',
-                subtitle: '사진을 선택하세요',
+                title: AppLanguage.t('review_upload_gallery_title'), // '이미지 선택'
+                subtitle: AppLanguage.t('translation_upload_gallery_subtitle'), // '사진을 선택하세요'
                 backgroundColor: cardBlue,
                 titleColor: primaryBlue,
                 subtitleColor: grayText,

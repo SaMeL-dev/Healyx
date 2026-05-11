@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:healyx_app/app_language.dart'; 
 import 'pain_score_slide.dart';
 
 class FindHospitalMic extends StatefulWidget {
@@ -19,7 +20,7 @@ class _FindHospitalMicState extends State<FindHospitalMic> {
         _recognizedText = '';
       } else {
         _isListening = false;
-        _recognizedText = '예시) 머리가 아프고 열이 나는 것 같아요.';
+        _recognizedText = AppLanguage.t('symptom_example'); // '예시) 머리가 아프고 열이 나는 것 같아요.'
       }
     });
   }
@@ -47,11 +48,11 @@ class _FindHospitalMicState extends State<FindHospitalMic> {
                       size: 22,
                     ),
                   ),
-                  const Expanded(
+                  Expanded( 
                     child: Center(
                       child: Text(
-                        '병원 찾기',
-                        style: TextStyle(
+                        AppLanguage.t('find_hospital'), // '병원 찾기'
+                        style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w800,
                           color: Color(0xFF2260FF),
@@ -64,9 +65,9 @@ class _FindHospitalMicState extends State<FindHospitalMic> {
               ),
             ),
             const SizedBox(height: 70),
-            const Text(
-              '귀하의 증상을 말씀해주세요',
-              style: TextStyle(
+            Text( 
+              AppLanguage.t('symptom_mic_prompt'), // '귀하의 증상을 말씀해주세요'
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
                 color: Color(0xFF2260FF),
@@ -74,27 +75,27 @@ class _FindHospitalMicState extends State<FindHospitalMic> {
             ),
             const SizedBox(height: 14),
             if (_isListening) ...[
-              const Text(
-                '음성을 듣고 있습니다',
-                style: TextStyle(
+              Text( 
+                AppLanguage.t('mic_listening'), // '음성을 듣고 있습니다'
+                style: const TextStyle(
                   fontSize: 14,
                   color: Colors.black54,
                   fontWeight: FontWeight.w500,
                 ),
               ),
               const SizedBox(height: 4),
-              const Text(
-                '입력을 마치려면 마이크를 다시 클릭하세요',
-                style: TextStyle(
+              Text( 
+                AppLanguage.t('mic_listening_hint'), // '입력을 마치려면 마이크를 다시 클릭하세요'
+                style: const TextStyle(
                   fontSize: 14,
                   color: Colors.black54,
                   fontWeight: FontWeight.w500,
                 ),
               ),
             ] else ...[
-              const Text(
-                '마이크를 클릭하면 입력이 시작됩니다',
-                style: TextStyle(
+              Text( 
+                AppLanguage.t('mic_click_to_start'), // '마이크를 클릭하면 입력이 시작됩니다'
+                style: const TextStyle(
                   fontSize: 14,
                   color: Colors.black54,
                   fontWeight: FontWeight.w500,
@@ -169,9 +170,9 @@ class _FindHospitalMicState extends State<FindHospitalMic> {
                     borderRadius: BorderRadius.circular(30),
                   ),
                 ),
-                child: const Text(
-                  '확인',
-                  style: TextStyle(
+                child: Text( 
+                  AppLanguage.t('confirm'), // '확인'
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
                   ),

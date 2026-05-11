@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'app_language.dart';
 import 'main_screen.dart';
 
 class ChooseLanguageScreen extends StatefulWidget {
@@ -22,10 +23,14 @@ class _ChooseLanguageScreenState extends State<ChooseLanguageScreen> {
   ];
 
   Future<void> onSelectLanguage() async {
-    // 선택한 언어 코드를 SharedPreferences에 저장
-    final prefs = await SharedPreferences.getInstance();
     final code = languages[selectedIndex]['code'] ?? 'ko';
-    await prefs.setString('language_pref', code);
+
+    // 선택한 언어 코드를 SharedPreferences에 저장
+    // final prefs = await SharedPreferences.getInstance(); // → app_language.dart의 AppLanguage.setLang()에서 공통 처리
+    // await prefs.setString('language_pref', code);       // → app_language.dart의 AppLanguage.setLang()에서 공통 처리
+    
+    // 언어 저장 + 전역 언어 상태 업데이트
+    await AppLanguage.setLang(code); // 추가 
 
     if (!mounted) return;
     Navigator.pushReplacement(
@@ -53,9 +58,9 @@ class _ChooseLanguageScreenState extends State<ChooseLanguageScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(
-                    '언어 선택',
-                    style: TextStyle(
+                  Text(
+                    AppLanguage.t('language_select_title'), // '언어 선택'
+                    style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w700,
                       color: Color(0xFF7B8FD9),
@@ -168,9 +173,9 @@ class _ChooseLanguageScreenState extends State<ChooseLanguageScreen> {
                           borderRadius: BorderRadius.circular(22),
                         ),
                       ),
-                      child: const Text(
-                        '선택',
-                        style: TextStyle(
+                      child: Text(
+                        AppLanguage.t('language_select_btn'), // '선택'
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
                         ),

@@ -1,8 +1,9 @@
-// 병원 찾기 결과 화면
+﻿// 병원 찾기 결과 화면
 // 로그인/비로그인 상태에 따라 화면이 조금 다름
 // accessToken 유무를 기준으로 로그인 상태를 판단함
 
 import 'package:flutter/material.dart';
+import 'package:healyx_app/app_language.dart'; 
 import 'find_hospital_detail.dart';
 import 'pain_score_slide.dart';
 import '../constants/hospital_constants.dart';
@@ -26,7 +27,7 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
   // 비로그인 상태에서 물음표 클릭 시 로그인 안내 팝업 표시 여부
   bool showLoginGuide = false;
 
-  String selectedSort = '추천순';
+  String selectedSort = AppLanguage.t('sort_recommended'); // '추천순'
 
   final Color mainBlue = const Color(0xFF2260FF);
   final Color cardColor = const Color(0xFFCAD6FF);
@@ -119,7 +120,7 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
           ),
           Center(
             child: Text(
-              '병원 찾기',
+              AppLanguage.t('find_hospital'), // '병원 찾기'
               style: TextStyle(
                 color: mainBlue,
                 fontSize: 24,
@@ -186,7 +187,7 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          '예측된 의료비는 건강보험 미적용 기준으로 계산되었습니다.',
+                          AppLanguage.t('cost_uninsured_notice'), // '예측된 의료비는 건강보험 미적용 기준으로 계산되었습니다.'
                           style: TextStyle(color: mainBlue, fontSize: 10.5),
                         ),
                         const SizedBox(width: 4),
@@ -204,7 +205,7 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
                   const SizedBox(height: 10),
 
                   Text(
-                    '본 예측 비용은 통계 데이터에 기반한 참고용 수치입니다.\n정확한 의료비 산출을 위해 반드시 병원 관계자와 상담하시기 바랍니다.',
+                    AppLanguage.t('cost_disclaimer'), // '본 예측 비용은 통계 데이터에 기반한 참고용 수치입니다.\n정확한 의료비 산출을 위해 반드시 병원 관계자와 상담하시기 바랍니다.'
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: mainBlue,
@@ -253,14 +254,14 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
                             ),
                           ),
                         ),
-                        const Padding(
-                          padding: EdgeInsets.only(top: 2),
+                        Padding( // 수정
+                          padding: const EdgeInsets.only(top: 2),
                           child: SizedBox(
                             width: 150,
                             child: Text(
-                              '건강보험이 적용된 의료비를\n확인하려면 로그인을 해주세요',
+                              AppLanguage.t('cost_login_for_insured'), // '건강보험이 적용된 의료비를\n확인하려면 로그인을 해주세요'
                               textAlign: TextAlign.center,
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 11,
                                 color: Colors.black87,
                                 height: 1.35,
@@ -284,9 +285,9 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        _sortButton('추천순'),
+        _sortButton(AppLanguage.t('sort_recommended')), // '추천순'
         const SizedBox(width: 18),
-        _sortButton('거리순'),
+        _sortButton(AppLanguage.t('sort_by_distance')), // '거리순'
       ],
     );
   }
@@ -392,7 +393,7 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
                         ),
                         const SizedBox(width: 3),
                         Text(
-                          '*참고용입니다',
+                          AppLanguage.t('cost_reference_note'), // '*참고용입니다'
                           style: TextStyle(
                             color: mainBlue,
                             fontSize: 10,
@@ -432,9 +433,9 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
                           borderRadius: BorderRadius.circular(18),
                         ),
                       ),
-                      child: const Text(
-                        '상세 정보',
-                        style: TextStyle(
+                      child: Text(
+                        AppLanguage.t('hospital_detail_btn'), // '상세 정보'
+                        style: const TextStyle(
                           fontSize: 13,
                           color: Colors.white,
                           fontWeight: FontWeight.w600,

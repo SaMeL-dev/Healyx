@@ -1,8 +1,9 @@
-// 커뮤니티 글쓰기 화면
+﻿// 커뮤니티 글쓰기 화면
 // 제목 입력, 내용 입력, 사진 첨부 기능이 있는 화면
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import '../app_language.dart'; 
 import 'package:image_picker/image_picker.dart';
 
 import '../dialogs/image_attach_dialog.dart';
@@ -104,9 +105,9 @@ class _CommunityWriteScreenState extends State<CommunityWriteScreen> {
                     ),
                   ),
                 ),
-                const Text(
-                  '커뮤니티',
-                  style: TextStyle(
+                Text(
+                  AppLanguage.t('community'), // '커뮤니티'
+                  style: const TextStyle(
                     color: mainBlue,
                     fontSize: 28,
                     fontWeight: FontWeight.w800,
@@ -125,9 +126,9 @@ class _CommunityWriteScreenState extends State<CommunityWriteScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // 제목 라벨
-                    const Text(
-                      '제목',
-                      style: TextStyle(
+                    Text(
+                      AppLanguage.t('community_write_title_label'), // '제목'
+                      style: const TextStyle(
                         color: mainBlue,
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
@@ -152,11 +153,11 @@ class _CommunityWriteScreenState extends State<CommunityWriteScreen> {
                         onChanged: (_) {
                           if (_titleError) setState(() => _titleError = false);
                         },
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           border: InputBorder.none,
-                          hintText: '제목을 입력하세요',
+                          hintText: AppLanguage.t('community_write_title_hint'), // '제목을 입력하세요'
                           hintStyle:
-                              TextStyle(color: Colors.black38, fontSize: 15),
+                              const TextStyle(color: Colors.black38, fontSize: 15),
                         ),
                       ),
                     ),
@@ -164,12 +165,12 @@ class _CommunityWriteScreenState extends State<CommunityWriteScreen> {
                     // 에러 메시지
                     if (_titleError) ...[
                       const SizedBox(height: 6),
-                      const Row(
+                      Row(
                         children: [
-                          Icon(Icons.error, color: Colors.red, size: 15),
-                          SizedBox(width: 4),
+                          const Icon(Icons.error, color: Colors.red, size: 15),
+                          const SizedBox(width: 4),
                           Text(
-                            '제목을 입력해주세요.',
+                            AppLanguage.t('community_write_title_error'), // '제목을 입력해주세요.'
                             style: TextStyle(
                               color: Colors.red,
                               fontSize: 13,
@@ -185,9 +186,9 @@ class _CommunityWriteScreenState extends State<CommunityWriteScreen> {
                     const SizedBox(height: 20),
 
                     // 내용 라벨
-                    const Text(
-                      '내용을 작성해주세요',
-                      style: TextStyle(
+                    Text(
+                      AppLanguage.t('review_content_label'), // '내용을 작성해주세요'
+                      style: const TextStyle(
                         color: mainBlue,
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
@@ -209,12 +210,12 @@ class _CommunityWriteScreenState extends State<CommunityWriteScreen> {
                         keyboardType: TextInputType.multiline,
                         textAlignVertical: TextAlignVertical.top,
                         style: const TextStyle(fontSize: 15),
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           border: InputBorder.none,
-                          contentPadding: EdgeInsets.all(16),
-                          hintText: '내용을 입력하세요',
+                          contentPadding: const EdgeInsets.all(16),
+                          hintText: AppLanguage.t('community_write_content_hint'), // '내용을 입력하세요'
                           hintStyle:
-                              TextStyle(color: Colors.black38, fontSize: 15),
+                              const TextStyle(color: Colors.black38, fontSize: 15),
                         ),
                       ),
                     ),
@@ -226,9 +227,9 @@ class _CommunityWriteScreenState extends State<CommunityWriteScreen> {
                     // 사진 첨부 라벨
                     Row(
                       children: [
-                        const Text(
-                          '사진 첨부',
-                          style: TextStyle(
+                        Text(
+                          AppLanguage.t('community_write_photo_label'), // '사진 첨부'
+                          style: const TextStyle(
                             color: mainBlue,
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
@@ -319,14 +320,14 @@ class _CommunityWriteScreenState extends State<CommunityWriteScreen> {
                       children: [
                         Expanded(
                           child: _ActionButton(
-                            text: '등록',
+                            text: AppLanguage.t('review_submit'), // '등록'
                             onTap: _submitPost,
                           ),
                         ),
                         const SizedBox(width: 14),
                         Expanded(
                           child: _ActionButton(
-                            text: '취소',
+                            text: AppLanguage.t('community_cancel'), // '취소'
                             onTap: () => Navigator.pop(context),
                           ),
                         ),

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'find_id_screen.dart';
 import '../login_signup_screen/sign_up_screen.dart';
 import 'find_password_reset_screen.dart';
+import '../app_language.dart';
 import '../services/password_reset_service.dart';
 
 class FindPasswordScreen extends StatefulWidget {
@@ -84,7 +85,7 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
 
     _verificationTimer = Timer.periodic(
       const Duration(seconds: 1),
-          (timer) {
+      (timer) {
         if (_remainingSeconds <= 1) {
           timer.cancel();
 
@@ -117,12 +118,12 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
     final email = _emailController.text.trim();
 
     if (email.isEmpty) {
-      _showMessage('이메일을 입력해주세요.');
+      _showMessage(AppLanguage.t('pw_enter_email')); // '이메일을 입력해주세요.'
       return;
     }
 
     if (!_isValidEmail(email)) {
-      _showMessage('올바른 이메일 형식이 아닙니다.');
+      _showMessage(AppLanguage.t('pw_invalid_email')); // '올바른 이메일 형식이 아닙니다.'
       return;
     }
 
@@ -153,32 +154,32 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
     final verificationCode = _codeController.text.trim();
 
     if (username.isEmpty) {
-      _showMessage('아이디를 입력해주세요.');
+      _showMessage(AppLanguage.t('pw_enter_username')); // '아이디를 입력해주세요.'
       return;
     }
 
     if (email.isEmpty) {
-      _showMessage('이메일을 입력해주세요.');
+      _showMessage(AppLanguage.t('pw_enter_email')); // '이메일을 입력해주세요.'
       return;
     }
 
     if (!_isValidEmail(email)) {
-      _showMessage('올바른 이메일 형식이 아닙니다.');
+      _showMessage(AppLanguage.t('pw_invalid_email')); // '올바른 이메일 형식이 아닙니다.'
       return;
     }
 
     if (verificationCode.isEmpty) {
-      _showMessage('인증번호를 입력해주세요.');
+      _showMessage(AppLanguage.t('pw_enter_verification_code')); // '인증번호를 입력해주세요.'
       return;
     }
 
     if (!_hasRequestedCode) {
-      _showMessage('인증요청을 먼저 진행해주세요.');
+      _showMessage(AppLanguage.t('pw_request_verification_first')); // '인증요청을 먼저 진행해주세요.'
       return;
     }
 
     if (_remainingSeconds <= 0) {
-      _showMessage('인증시간이 만료되었습니다. 인증요청을 다시 눌러주세요.');
+      _showMessage(AppLanguage.t('pw_verification_timeout_retry')); // '인증시간이 만료되었습니다. 인증요청을 다시 눌러주세요.'
       return;
     }
 
@@ -248,10 +249,10 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
                         ),
-                        const Expanded(
+                        Expanded(
                           child: Center(
                             child: Text(
-                              '비밀번호 재설정',
+                              AppLanguage.t('pw_reset_title'), // '비밀번호 재설정'
                               style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w800,
@@ -266,11 +267,11 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
 
                     const SizedBox(height: 26),
 
-                    const Center(
+                    Center(
                       child: Column(
                         children: [
                           Text(
-                            'STEP 1. 본인 인증',
+                            AppLanguage.t('pw_step1_title'), // 'STEP 1. 본인 인증'
                             style: TextStyle(
                               fontSize: 17,
                               fontWeight: FontWeight.w800,
@@ -279,7 +280,7 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
                           ),
                           SizedBox(height: 6),
                           Text(
-                            '안전한 비밀번호 변경을 위해 본인 확인이 필요합니다.',
+                            AppLanguage.t('pw_step1_desc'), // '안전한 비밀번호 변경을 위해 본인 확인이 필요합니다.'
                             style: TextStyle(
                               fontSize: 14,
                               color: Color(0xFF6A8AF7),
@@ -293,8 +294,8 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
 
                     const SizedBox(height: 44),
 
-                    const Text(
-                      '아이디',
+                    Text(
+                      AppLanguage.t('username_label'), // '아이디'
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
@@ -304,13 +305,13 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
                     const SizedBox(height: 10),
                     _buildInputField(
                       controller: _idController,
-                      hintText: '아이디를 입력하세요',
+                      hintText: AppLanguage.t('username_hint'), // '아이디를 입력하세요'
                     ),
 
                     const SizedBox(height: 28),
 
-                    const Text(
-                      '이메일',
+                    Text(
+                      AppLanguage.t('profile_email'), // '이메일'
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
@@ -320,14 +321,16 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
                     const SizedBox(height: 10),
                     _buildEmailWithButtonField(
                       controller: _emailController,
-                      hintText: '이메일을 입력하세요',
-                      buttonText: _isSendingCode ? '전송중' : '인증요청',
+                      hintText: AppLanguage.t('email_hint'), // '이메일을 입력하세요'
+                      buttonText: _isSendingCode
+                          ? AppLanguage.t('pw_sending') // '전송중'
+                          : AppLanguage.t('request_verification'), // '인증요청'
                       enabled:
-                      _isEmailEntered && !_isSendingCode && !_isTimerRunning,
+                          _isEmailEntered && !_isSendingCode && !_isTimerRunning,
                       onPressed:
-                      _isEmailEntered && !_isSendingCode && !_isTimerRunning
-                          ? _requestVerification
-                          : null,
+                          _isEmailEntered && !_isSendingCode && !_isTimerRunning
+                              ? _requestVerification
+                              : null,
                     ),
 
                     const SizedBox(height: 28),
@@ -335,8 +338,8 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          '인증번호',
+                        Text(
+                          AppLanguage.t('verification_code_label'), // '인증번호'
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w800,
@@ -347,7 +350,7 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
                           Text(
                             _isTimerRunning
                                 ? _formatRemainingTime()
-                                : '인증시간 만료',
+                                : AppLanguage.t('pw_verification_expired'), // '인증시간 만료'
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w700,
@@ -361,7 +364,7 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
                     const SizedBox(height: 10),
                     _buildInputField(
                       controller: _codeController,
-                      hintText: '인증번호를 입력하세요',
+                      hintText: AppLanguage.t('verification_code_hint'), // '인증번호를 입력하세요'
                     ),
 
                     const SizedBox(height: 34),
@@ -373,14 +376,16 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
                         onPressed: _isVerifying ? null : _confirmAction,
                         style: ElevatedButton.styleFrom(
                           backgroundColor:
-                          _isVerifying ? const Color(0xFFD7E1FB) : buttonBlue,
+                              _isVerifying ? const Color(0xFFD7E1FB) : buttonBlue,
                           elevation: 0,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(28),
                           ),
                         ),
                         child: Text(
-                          _isVerifying ? '확인 중...' : '확인',
+                          _isVerifying
+                              ? AppLanguage.t('pw_verifying') // '확인 중...'
+                              : AppLanguage.t('confirm'), // '확인'
                           style: const TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.w700,
@@ -419,8 +424,8 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
                           padding: const EdgeInsets.symmetric(horizontal: 2),
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
-                        child: const Text(
-                          '아이디 찾기',
+                        child: Text(
+                          AppLanguage.t('find_id_title'), // '아이디 찾기'
                           style: TextStyle(
                             fontSize: 15,
                             color: Color(0xFF8EA0F5),
@@ -428,7 +433,7 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
                           ),
                         ),
                       ),
-                      const Text(
+                      Text(
                         ' | ',
                         style: TextStyle(
                           fontSize: 15,
@@ -443,8 +448,8 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
                           padding: const EdgeInsets.symmetric(horizontal: 2),
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
-                        child: const Text(
-                          '비밀번호 찾기',
+                        child: Text(
+                          AppLanguage.t('find_password'), // '비밀번호 찾기'
                           style: TextStyle(
                             fontSize: 15,
                             color: Color(0xFF8EA0F5),
@@ -452,7 +457,7 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
                           ),
                         ),
                       ),
-                      const Text(
+                      Text(
                         ' | ',
                         style: TextStyle(
                           fontSize: 15,
@@ -467,8 +472,8 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
                           padding: const EdgeInsets.symmetric(horizontal: 2),
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
-                        child: const Text(
-                          '회원가입',
+                        child: Text(
+                          AppLanguage.t('sign_up'), // '회원가입'
                           style: TextStyle(
                             fontSize: 15,
                             color: Color(0xFF8EA0F5),
@@ -479,7 +484,7 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  const Row(
+                  Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
@@ -489,7 +494,7 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
                       ),
                       SizedBox(width: 6),
                       Text(
-                        '개인정보는 안전하게 보호됩니다.',
+                        AppLanguage.t('privacy_notice'), // '개인정보는 안전하게 보호됩니다.'
                         style: TextStyle(
                           fontSize: 13,
                           color: Color(0xFF9AA7E8),

@@ -1,8 +1,9 @@
-// 번역 보관함 리스트 화면
+﻿// 번역 보관함 리스트 화면
 // 번역 보관함에 저장된 번역 결과들을 리스트 형태로 보여주는 화면
 
 import 'package:flutter/material.dart';
 import 'package:healyx_app/dialogs/archive_delete_dialog.dart';
+import '../app_language.dart'; 
 import 'translation_detail.dart';
 
 class TranslationItem {
@@ -49,9 +50,9 @@ class _TranslationListScreenState extends State<TranslationListScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         centerTitle: true,
-        title: const Text(
-          '의료 번역 보관함',
-          style: TextStyle(
+        title: Text(
+          AppLanguage.t('archive_menu_translation'), // '의료 번역 보관함'
+          style: const TextStyle(
             color: Color(0xFF2260FF),
             fontSize: 20,
             fontWeight: FontWeight.w600,

@@ -2,6 +2,7 @@ import 'dart:convert';
 // JSON 데이터를 Dart에서 사용할 수 있게 변환할 때 사용
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:healyx_app/app_language.dart';
 // pubspec.yaml에서 쓴 Flutter에서 서버 API 호출할 때 사용하는 패키지
 
 import 'package:shared_preferences/shared_preferences.dart';
@@ -103,7 +104,7 @@ class AuthService {
 
           return LoginResult(
             success: false,
-            message: '로그인 토큰을 받지 못했습니다.',
+            message: AppLanguage.t('auth_token_error'), // '로그인 토큰을 받지 못했습니다.'
           );
         }
 
@@ -142,21 +143,21 @@ class AuthService {
 
         return LoginResult(
           success: true,
-          message: '로그인 성공',
+          message: AppLanguage.t('login_success'), // '로그인 성공'
         );
       }
 
 
       return LoginResult(
         success: false,
-        message: responseData['message'] ?? '아이디 또는 비밀번호가 일치하지 않습니다.',
+        message: responseData['message'] ?? AppLanguage.t('login_error'), // '아이디 및 비밀번호가 일치하지 않습니다.'
       );
     } catch (e) {
       debugPrint('LOGIN ERROR: $e');
 
       return LoginResult(
         success: false,
-        message: '서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.',
+        message: AppLanguage.t('server_error'), // '서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.'
       );
     }
   }
@@ -199,7 +200,7 @@ class AuthService {
       if (response.statusCode == 200 && data['success'] == true) {
         return data['data'] == true;
       }
-      throw Exception(data['message'] ?? '사용 중인 이메일입니다.');
+      throw Exception(data['message'] ?? AppLanguage.t('email_taken')); // '이미 사용 중인 이메일입니다.'
     } catch (e) {
       debugPrint('CHECK_EMAIL ERROR: $e');
       rethrow;
@@ -216,7 +217,7 @@ class AuthService {
       if (response.statusCode == 200 && data['success'] == true) {
         return data['data'] == true;
       }
-      throw Exception(data['message'] ?? '사용 중인 아이디입니다.');
+      throw Exception(data['message'] ?? AppLanguage.t('username_taken')); // '이미 사용 중인 아이디입니다.'
     } catch (e) {
       debugPrint('CHECK_USERNAME ERROR: $e');
       rethrow;
@@ -242,13 +243,13 @@ class AuthService {
       }
       return EmailSendResult(
         success: false,
-        message: data['message'] ?? '인증 코드 발송에 실패했습니다.',
+        message: data['message'] ?? AppLanguage.t('verification_send_failed'), // '인증 코드 발송에 실패했습니다.'
       );
     } catch (e) {
       debugPrint('SEND_EMAIL ERROR: $e');
       return EmailSendResult(
         success: false,
-        message: '서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.',
+        message: AppLanguage.t('server_error'), // '서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.'
       );
     }
   }
@@ -280,13 +281,13 @@ class AuthService {
       }
       return FindIdResult(
         success: false,
-        message: data['message'] ?? '아이디를 찾을 수 없습니다.',
+        message: data['message'] ?? AppLanguage.t('find_id_not_found'), // '아이디를 찾을 수 없습니다.'
       );
     } catch (e) {
       debugPrint('FIND_ID ERROR: $e');
       return FindIdResult(
         success: false,
-        message: '서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.',
+        message: AppLanguage.t('server_error'), // '서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.'
       );
     }
   }
@@ -311,13 +312,13 @@ class AuthService {
       }
       return VerifyPasswordResult(
         success: false,
-        message: data['message'] ?? '비밀번호가 일치하지 않습니다.',
+        message: data['message'] ?? AppLanguage.t('pw_mismatch'), // '비밀번호가 일치하지 않습니다.'
       );
     } catch (e) {
       debugPrint('VERIFY_CURRENT_PASSWORD ERROR: $e');
       return VerifyPasswordResult(
         success: false,
-        message: '서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.',
+        message: AppLanguage.t('server_error'), // '서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.'
       );
     }
   }
@@ -348,13 +349,13 @@ class AuthService {
       }
       return ChangePasswordResult(
         success: false,
-        message: data['message'] ?? '비밀번호 변경에 실패했습니다.',
+        message: data['message'] ?? AppLanguage.t('pw_change_error'), // '비밀번호 변경에 실패했습니다.'
       );
     } catch (e) {
       debugPrint('CHANGE_PASSWORD ERROR: $e');
       return ChangePasswordResult(
         success: false,
-        message: '서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.',
+        message: AppLanguage.t('server_error'), // '서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.'
       );
     }
   }
@@ -396,17 +397,17 @@ class AuthService {
       final data = jsonDecode(decoded);
 
       if (response.statusCode == 201 && data['success'] == true) {
-        return RegisterResult(success: true, message: '회원가입이 완료되었습니다.');
+        return RegisterResult(success: true, message: AppLanguage.t('signup_success')); // '회원가입이 완료되었습니다.'
       }
       return RegisterResult(
         success: false,
-        message: data['message'] ?? '회원가입에 실패했습니다.',
+        message: data['message'] ?? AppLanguage.t('signup_failed'), // '회원가입에 실패했습니다.'
       );
     } catch (e) {
       debugPrint('REGISTER ERROR: $e');
       return RegisterResult(
         success: false,
-        message: '서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.',
+        message: AppLanguage.t('server_error'), // '서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.'
       );
     }
   }

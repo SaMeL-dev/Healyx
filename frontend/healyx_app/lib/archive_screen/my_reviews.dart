@@ -1,8 +1,9 @@
-// 내 리뷰 보관함 화면
+﻿// 내 리뷰 보관함 화면
 // 내가 작성한 리뷰를 리스트 형태로 보여주는 화면
 import 'package:flutter/material.dart';
 import 'package:healyx_app/find_hospital_screen/find_hospital_detail.dart';
 import 'package:healyx_app/dialogs/archive_delete_dialog.dart';
+import '../app_language.dart'; 
 
 class ReviewItem {
   final String id;
@@ -47,9 +48,9 @@ class _MyReviewsScreenState extends State<MyReviewsScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         centerTitle: true,
-        title: const Text(
-          '내 리뷰',
-          style: TextStyle(
+        title: Text(
+          AppLanguage.t('archive_menu_reviews'), // '내 리뷰'
+          style: const TextStyle(
             color: Color(0xFF2260FF),
             fontSize: 20,
             fontWeight: FontWeight.w600,

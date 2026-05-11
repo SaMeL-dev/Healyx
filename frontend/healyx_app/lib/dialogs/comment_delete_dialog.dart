@@ -1,6 +1,7 @@
 //댓글 삭제 확인 팝업
 // 댓글을 정말로 삭제하시겠습니까? 삭제 후에는 복구할 수 없습니다. 예/아니오 버튼
 import 'package:flutter/material.dart';
+import 'package:healyx_app/app_language.dart'; 
 
 class CommentDeleteDialog extends StatelessWidget {
   const CommentDeleteDialog({super.key});
@@ -23,10 +24,10 @@ class CommentDeleteDialog extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              '댓글을 삭제할까요?\n삭제 후에는 복구할 수 없습니다.',
+            Text(
+              AppLanguage.t('dialog_comment_delete'), // '댓글을 정말로 삭제하시겠습니까?\n삭제 후에는 복구할 수 없습니다.'     
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
                 color: primaryBlue,
@@ -45,9 +46,9 @@ class CommentDeleteDialog extends StatelessWidget {
                         borderRadius: BorderRadius.circular(28),
                       ),
                     ),
-                    child: const Text(
-                      '예',
-                      style: TextStyle(color: Colors.white), // 👈 추가
+                    child: Text(
+                      AppLanguage.t('yes'), // '예'
+                      style: const TextStyle(color: Colors.white),
                     ),
                   ),
                 ),
@@ -59,7 +60,7 @@ class CommentDeleteDialog extends StatelessWidget {
                       backgroundColor: lightPurple,
                       foregroundColor: primaryBlue,
                     ),
-                    child: const Text('아니오'),
+                    child: Text(AppLanguage.t('no')), // '아니오' 
                   ),
                 ),
               ],

@@ -1,6 +1,7 @@
-// 리뷰 검색 결과 화면
+﻿// 리뷰 검색 결과 화면
 // 리뷰 검색 결과 목록을 보여주는 화면
 import 'package:flutter/material.dart';
+import '../app_language.dart'; 
 import '../find_hospital_screen/find_hospital_detail.dart';
 import '../constants/hospital_constants.dart'; // 👈 더미 데이터 import
 
@@ -44,9 +45,9 @@ class ReviewSearchResultScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const Text(
-                    '리뷰',
-                    style: TextStyle(
+                  Text(
+                    AppLanguage.t('review'), // '리뷰'
+                    style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w700,
                       color: primaryBlue,
@@ -162,9 +163,9 @@ class ReviewSearchResultScreen extends StatelessWidget {
                                           ),
                                         ),
                                       ),
-                                      child: const Text(
-                                        '상세 정보',
-                                        style: TextStyle(
+                                      child: Text(
+                                        AppLanguage.t('hospital_detail_btn'), // '상세 정보'
+                                        style: const TextStyle(
                                           fontSize: 15,
                                           fontWeight: FontWeight.w600,
                                         ),

@@ -1,6 +1,7 @@
-// 병원 리뷰가 없는 경우 나타나는 뷰
+﻿// 병원 리뷰가 없는 경우 나타나는 뷰
 // 첫번째 리뷰를 써보세요. 텍스트와 함께 드래그 가능한 시트 형태로 나타남
 import 'package:flutter/material.dart';
+import 'package:healyx_app/app_language.dart'; // 추가
 
 class HospitalEmptyReviewView extends StatelessWidget {
   const HospitalEmptyReviewView({
@@ -47,7 +48,7 @@ class HospitalEmptyReviewView extends StatelessWidget {
                 height: 280,
                 child: Center(
                   child: Text(
-                    '첫번째 리뷰를 써보세요.',
+                    AppLanguage.t('hospital_first_review_prompt'), // '첫번째 리뷰를 써보세요.'
                     style: TextStyle(
                       color: mainBlue,
                       fontSize: 13,

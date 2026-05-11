@@ -1,6 +1,7 @@
 //게시물 삭제 확인 팝업
 //정말로 삭제하시겠습니까? 예/아니오 버튼
 import 'package:flutter/material.dart';
+import 'package:healyx_app/app_language.dart'; 
 
 class ArchiveDeleteDialog extends StatelessWidget {
   const ArchiveDeleteDialog({super.key});
@@ -23,10 +24,10 @@ class ArchiveDeleteDialog extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              '정말로 삭제하시겠습니까?',
+            Text(
+              AppLanguage.t('dialog_delete_confirm'), // '정말로 삭제하시겠습니까?' 
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
                 color: primaryBlue,
@@ -45,9 +46,9 @@ class ArchiveDeleteDialog extends StatelessWidget {
                         borderRadius: BorderRadius.circular(28),
                       ),
                     ),
-                    child: const Text(
-                      '예',
-                      style: TextStyle(color: Colors.white),
+                    child: Text(
+                      AppLanguage.t('yes'), // '예' 
+                      style: const TextStyle(color: Colors.white),
                     ),
                   ),
                 ),
@@ -62,7 +63,7 @@ class ArchiveDeleteDialog extends StatelessWidget {
                         borderRadius: BorderRadius.circular(28),
                       ),
                     ),
-                    child: const Text('아니오'),
+                    child: Text(AppLanguage.t('no')), // '아니요' 
                   ),
                 ),
               ],

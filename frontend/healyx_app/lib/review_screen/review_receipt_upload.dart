@@ -1,8 +1,9 @@
-// 리뷰 영수증 업로드 화면
+﻿// 리뷰 영수증 업로드 화면
 // 리뷰 결과 목록에서 선택한 병원 정보와 함께 영수증 인증 방식을 선택하는 화면
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import '../app_language.dart'; 
 import 'review_receipt_loading.dart';
 import 'review_receipt_error.dart';
 
@@ -153,9 +154,9 @@ class _ReviewReceiptUploadScreenState extends State<ReviewReceiptUploadScreen> {
                       ),
                     ),
                   ),
-                  const Text(
-                    '리뷰',
-                    style: TextStyle(
+                  Text(
+                    AppLanguage.t('review'), // '리뷰'
+                    style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w700,
                       color: primaryBlue,
@@ -164,8 +165,8 @@ class _ReviewReceiptUploadScreenState extends State<ReviewReceiptUploadScreen> {
                 ],
               ),
               const SizedBox(height: 120),
-              const Text(
-                '영수증 인증 방식을 선택해주세요.',
+              Text(
+                AppLanguage.t('review_receipt_select_method'), // '영수증 인증 방식을 선택해주세요.'
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
@@ -175,8 +176,8 @@ class _ReviewReceiptUploadScreenState extends State<ReviewReceiptUploadScreen> {
               const SizedBox(height: 36),
               _UploadOptionCard(
                 icon: Icons.camera_alt_outlined,
-                title: '카메라 촬영',
-                subtitle: '영수증을 촬영하세요',
+                title: AppLanguage.t('review_upload_camera_title'), // '카메라 촬영'
+                subtitle: AppLanguage.t('review_upload_camera_subtitle'), // '영수증을 촬영하세요'
                 backgroundColor: cardBlue,
                 titleColor: primaryBlue,
                 subtitleColor: grayText,
@@ -185,8 +186,8 @@ class _ReviewReceiptUploadScreenState extends State<ReviewReceiptUploadScreen> {
               const SizedBox(height: 28),
               _UploadOptionCard(
                 icon: Icons.photo,
-                title: '이미지 선택',
-                subtitle: '영수증 사진을 선택하세요',
+                title: AppLanguage.t('review_upload_gallery_title'), // '이미지 선택'
+                subtitle: AppLanguage.t('review_upload_gallery_subtitle'), // '영수증 사진을 선택하세요'
                 backgroundColor: cardBlue,
                 titleColor: primaryBlue,
                 subtitleColor: grayText,

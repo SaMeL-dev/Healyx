@@ -1,9 +1,10 @@
-// 번역 인식 실패 화면
+﻿// 번역 인식 실패 화면
 // 번역 인식이 실패했을 때 사용자에게 안내 메시지를 보여주는 화면
 // - 카메라 촬영 실패: 사진이 흐리거나 일부만 촬영된 경우
 // - 갤러리 선택 실패: 사진이 흐리거나 전체가 아닌 일부의 이미지인 경우 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import '../app_language.dart'; 
 import 'translation_loading.dart';
 
 class TranslationErrorScreen extends StatefulWidget {
@@ -50,10 +51,12 @@ class _TranslationErrorScreenState extends State<TranslationErrorScreen> {
     const Color bgColor = Color(0xFFFFFFFF);
 
     final String guideText = widget.isCameraError
-        ? '사진이 흐리거나 일부만 촬영된 경우\n정확한 인식이 어려울 수 있어요.'
-        : '사진이 흐리거나 전체가 아닌 일부의 이미지인 경우\n정확한 인식이 어려울 수 있어요.';
+        ? AppLanguage.t('review_error_guide_camera') // '사진이 흐리거나 일부만 촬영된 경우\n정확한 인식이 어려울 수 있어요.'
+        : AppLanguage.t('review_error_guide_gallery'); // '사진이 흐리거나 전체가 아닌 일부의 이미지인\n경우 정확한 인식이 어려울 수 있어요.'
 
-    final String buttonText = widget.isCameraError ? '다시 촬영하기' : '다시 선택하기';
+    final String buttonText = widget.isCameraError
+        ? AppLanguage.t('review_retry_camera') // '다시 촬영하기'
+        : AppLanguage.t('review_retry_gallery'); // '다시 선택하기'
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -81,8 +84,8 @@ class _TranslationErrorScreenState extends State<TranslationErrorScreen> {
                       ),
                     ),
                   ),
-                  const Text(
-                    '의료번역',
+                  Text(
+                    AppLanguage.t('translation_title'), // '의료번역'
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w700,
@@ -95,10 +98,10 @@ class _TranslationErrorScreenState extends State<TranslationErrorScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text(
-                      '인식에\n실패하였습니다.',
+                    Text(
+                      AppLanguage.t('review_recognition_failed'), // '인식에\n실패하였습니다.'
                       textAlign: TextAlign.center,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 22,
                         height: 1.5,
                         fontWeight: FontWeight.w700,

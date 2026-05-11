@@ -1,7 +1,8 @@
-// 비밀번호 재설정 완료 화면
+﻿// 비밀번호 재설정 완료 화면
 
 import 'package:flutter/material.dart';
 import 'package:healyx_app/login_signup_screen/login_screen.dart';
+import '../../app_language.dart'; 
 
 class PasswordResetSuccessScreen extends StatelessWidget {
   const PasswordResetSuccessScreen({super.key});
@@ -18,8 +19,8 @@ class PasswordResetSuccessScreen extends StatelessWidget {
         elevation: 0,
         automaticallyImplyLeading: false, // 비밀번호 변경 완료 후 뒤로가기 차단
         centerTitle: true,
-        title: const Text(
-          '비밀번호 재설정',
+        title: Text( 
+          AppLanguage.t('pw_reset_title'), // '비밀번호 재설정'
           style: TextStyle(color: mainBlue, fontSize: 20, fontWeight: FontWeight.w600),
         ),
       ),
@@ -35,8 +36,8 @@ class PasswordResetSuccessScreen extends StatelessWidget {
                     const SizedBox(height: 40),
 
                     // 축하 타이틀
-                    const Text(
-                      '축하드립니다! 🎉',
+                    Text( 
+                      AppLanguage.t('pw_congrats'), // '축하드립니다! 🎉'
                       style: TextStyle(
                         fontSize: 26,
                         fontWeight: FontWeight.w800,
@@ -66,8 +67,8 @@ class PasswordResetSuccessScreen extends StatelessWidget {
                             child: const Icon(Icons.check, color: mainBlue, size: 56),
                           ),
                           const SizedBox(height: 20),
-                          const Text(
-                            '비밀번호 변경완료!',
+                          Text( 
+                            AppLanguage.t('pw_change_complete'), // '비밀번호 변경완료!'
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w700,
@@ -75,8 +76,8 @@ class PasswordResetSuccessScreen extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 8),
-                          const Text(
-                            '입력하신 비밀번호로 변경이 완료되었습니다.',
+                          Text( 
+                            AppLanguage.t('pw_change_desc'), // '입력하신 비밀번호로 변경이 완료되었습니다.'
                             style: TextStyle(fontSize: 13, color: Colors.black54),
                           ),
                         ],
@@ -104,8 +105,8 @@ class PasswordResetSuccessScreen extends StatelessWidget {
                           elevation: 0,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                         ),
-                        child: const Text(
-                          '로그인하기',
+                        child: Text( 
+                          AppLanguage.t('go_to_login'), // '로그인하기'
                           style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
                         ),
                       ),
@@ -120,10 +121,10 @@ class PasswordResetSuccessScreen extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 24),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
+                children:[
                   Icon(Icons.lock_outline, size: 14, color: mainBlue),
                   SizedBox(width: 6),
-                  Text('개인정보는 안전하게 보호됩니다.', style: TextStyle(fontSize: 12, color: Colors.black45)),
+                  Text(AppLanguage.t('privacy_notice'), style: TextStyle(fontSize: 12, color: Colors.black45)), // '개인정보는 안전하게 보호됩니다.'
                 ],
               ),
             ),

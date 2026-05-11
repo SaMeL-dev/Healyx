@@ -1,6 +1,7 @@
 // 리뷰 등록 시, 이미 해당 병원에 리뷰를 작성한 경우 나타나는 팝업
 // 해당 병원에 이미 리뷰를 작성하셨습니다. 확인 버튼
 import 'package:flutter/material.dart';
+import 'package:healyx_app/app_language.dart'; 
 
 class DuplicateReviewDialog extends StatelessWidget {
   const DuplicateReviewDialog({super.key});
@@ -23,10 +24,10 @@ class DuplicateReviewDialog extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              '해당 병원에 이미\n리뷰를 작성하셨습니다',
+            Text(
+              AppLanguage.t('dialog_duplicate_review'), // '해당 병원에 이미 리뷰를 작성하셨습니다.'  
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 18,
                 height: 1.45,
                 fontWeight: FontWeight.w700,
@@ -51,9 +52,9 @@ class DuplicateReviewDialog extends StatelessWidget {
                     borderRadius: BorderRadius.circular(28),
                   ),
                 ),
-                child: const Text(
-                  '확인',
-                  style: TextStyle(
+                child: Text(
+                  AppLanguage.t('confirm'), // '확인' 
+                  style: const TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.w700,
                   ),

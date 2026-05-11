@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:healyx_app/app_language.dart'; 
 import 'pain_score_slide.dart';
 
 class FindHospitalText extends StatefulWidget {
@@ -49,11 +50,11 @@ class _FindHospitalTextState extends State<FindHospitalText> {
                       size: 22,
                     ),
                   ),
-                  const Expanded(
+                  Expanded( 
                     child: Center(
                       child: Text(
-                        '병원 찾기',
-                        style: TextStyle(
+                        AppLanguage.t('find_hospital'), // '병원 찾기'
+                        style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w800,
                           color: Color(0xFF2260FF),
@@ -66,9 +67,9 @@ class _FindHospitalTextState extends State<FindHospitalText> {
               ),
             ),
             const SizedBox(height: 90),
-            const Text(
-              '귀하의 증상을 글로 적어주세요',
-              style: TextStyle(
+            Text( 
+              AppLanguage.t('symptom_text_prompt'), // '귀하의 증상을 글로 적어주세요'
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
                 color: Color(0xFF2260FF),
@@ -89,14 +90,14 @@ class _FindHospitalTextState extends State<FindHospitalText> {
                   maxLines: null,
                   expands: true,
                   textAlignVertical: TextAlignVertical.top,
-                  decoration: const InputDecoration(
-                    hintText: '증상을 입력해주세요.',
-                    hintStyle: TextStyle(
+                  decoration: InputDecoration( // 수정
+                    hintText: AppLanguage.t('symptom_text_hint'), // '증상을 입력해주세요.'
+                    hintStyle: const TextStyle(
                       color: Colors.black38,
                       fontSize: 16,
                     ),
                     border: InputBorder.none,
-                    contentPadding: EdgeInsets.all(20),
+                    contentPadding: const EdgeInsets.all(20),
                   ),
                   style: const TextStyle(
                     fontSize: 16,
@@ -133,9 +134,9 @@ class _FindHospitalTextState extends State<FindHospitalText> {
                       borderRadius: BorderRadius.circular(30),
                     ),
                   ),
-                  child: const Text(
-                    '확인',
-                    style: TextStyle(
+                  child: Text( 
+                    AppLanguage.t('confirm'), // '확인'
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
                     ),

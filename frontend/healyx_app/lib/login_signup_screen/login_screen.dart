@@ -1,5 +1,6 @@
-// 로그인 화면 구현
+﻿// 로그인 화면 구현
 import 'package:flutter/material.dart';
+import 'package:healyx_app/app_language.dart'; 
 import '../login_signup_screen/sign_up_screen.dart';
 import '../find_account_screen/find_id_screen.dart';
 import '../find_account_screen/find_password_screen.dart';
@@ -39,12 +40,12 @@ class _LoginScreenState extends State<LoginScreen> {
     bool hasError = false;
 
     if (id.isEmpty) {
-      idErrorText = '필수 항목입니다.';
+      idErrorText = AppLanguage.t('required_field'); // '필수 항목입니다.'
       hasError = true;
     }
 
     if (password.isEmpty) {
-      passwordErrorText = '필수 항목입니다.';
+      passwordErrorText = AppLanguage.t('required_field'); // '필수 항목입니다.'
       hasError = true;
     }
 
@@ -79,7 +80,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     } else {
       setState(() {
-        loginErrorText = result.message ?? '아이디 및 비밀번호가 일치하지 않습니다.';
+        loginErrorText = result.message ?? AppLanguage.t('login_error'); // '아이디 및 비밀번호가 일치하지 않습니다.'
       });
     }
   }
@@ -119,11 +120,11 @@ class _LoginScreenState extends State<LoginScreen> {
                             color: Color(0xFF4E7CFF),
                           ),
                         ),
-                        const Expanded(
+                        Expanded( // 수정
                           child: Center(
                             child: Text(
-                              '로그인',
-                              style: TextStyle(
+                              AppLanguage.t('login_title'), // '로그인'
+                              style: const TextStyle(
                                 fontSize: 28,
                                 fontWeight: FontWeight.w800,
                                 color: Color(0xFF4E7CFF),
@@ -137,10 +138,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
                     const SizedBox(height: 12),
 
-                    const Center(
+                    Center( // 수정
                       child: Text(
-                        '계정으로 로그인 하여 서비스를 이용하세요.',
-                        style: TextStyle(
+                        AppLanguage.t('login_subtitle'), // '계정으로 로그인 하여 서비스를 이용하세요.'
+                        style: const TextStyle(
                           fontSize: 14,
                           color: Color(0xFF9AA7E8),
                           fontWeight: FontWeight.w600,
@@ -150,9 +151,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
                     const SizedBox(height: 56),
 
-                    const Text(
-                      '아이디',
-                      style: TextStyle(
+                    Text( // 수정
+                      AppLanguage.t('username_label'), // '아이디'
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
                         color: Colors.black87,
@@ -162,16 +163,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
                     _buildInputField(
                       controller: idController,
-                      hintText: '아이디를 입력하세요',
+                      hintText: AppLanguage.t('username_hint'), // '아이디를 입력하세요'
                       obscureText: false,
                       errorText: idErrorText,
                     ),
 
                     const SizedBox(height: 28),
 
-                    const Text(
-                      '비밀번호',
-                      style: TextStyle(
+                    Text( // 수정
+                      AppLanguage.t('password_label'), // '비밀번호'
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
                         color: Colors.black87,
@@ -181,7 +182,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                     _buildInputField(
                       controller: passwordController,
-                      hintText: '비밀번호를 입력하세요',
+                      hintText: AppLanguage.t('password_hint'), // '비밀번호를 입력하세요'
                       obscureText: isObscure,
                       errorText: passwordErrorText,
                       suffixIcon: IconButton(
@@ -224,9 +225,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        const Text(
-                          '자동 로그인',
-                          style: TextStyle(
+                        Text( // 수정
+                          AppLanguage.t('auto_login'), // '자동 로그인'
+                          style: const TextStyle(
                             fontSize: 15,
                             color: Color(0xFF4E7CFF),
                             fontWeight: FontWeight.w500,
@@ -259,9 +260,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             color: Colors.white,
                           ),
                         )
-                            : const Text(
-                          '로그인',
-                          style: TextStyle(
+                            : Text( // 수정
+                          AppLanguage.t('login_title'), // '로그인'
+                          style: const TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.w700,
                             color: Colors.white,
@@ -306,7 +307,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       _buildBottomTextButton(
-                        text: '아이디 찾기',
+                        text: AppLanguage.t('find_id_title'), // '아이디 찾기'
                         onTap: () {
                           Navigator.push(
                             context,
@@ -324,7 +325,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       _buildBottomTextButton(
-                        text: '비밀번호 찾기',
+                        text: AppLanguage.t('find_password'), // '비밀번호 찾기'
                         onTap: () {
                           Navigator.push(
                             context,
@@ -342,7 +343,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       _buildBottomTextButton(
-                        text: '회원가입',
+                        text: AppLanguage.t('sign_up'), // '회원가입'
                         onTap: () {
                           Navigator.push(
                             context,
@@ -355,18 +356,18 @@ class _LoginScreenState extends State<LoginScreen> {
                     ],
                   ),
                   const SizedBox(height: 18),
-                  const Row(
+                  Row( // 수정
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.lock,
                         size: 16,
                         color: Color(0xFF9AA7E8),
                       ),
-                      SizedBox(width: 6),
+                      const SizedBox(width: 6),
                       Text(
-                        '개인정보는 안전하게 보호됩니다.',
-                        style: TextStyle(
+                        AppLanguage.t('privacy_notice'), // '개인정보는 안전하게 보호됩니다.'
+                        style: const TextStyle(
                           fontSize: 13,
                           color: Color(0xFF9AA7E8),
                           fontWeight: FontWeight.w500,

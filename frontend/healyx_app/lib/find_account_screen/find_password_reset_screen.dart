@@ -1,9 +1,10 @@
-// 변경할 비밀번호 입력 화면
+﻿// 변경할 비밀번호 입력 화면
 import 'package:flutter/material.dart';
 import 'find_id_screen.dart';
 import 'find_password_screen.dart';
 import '../login_signup_screen/sign_up_screen.dart';
 import 'find_password_success_screen.dart';
+import '../app_language.dart';
 import '../services/password_reset_service.dart';
 
 class FindPasswordResetScreen extends StatefulWidget {
@@ -22,7 +23,7 @@ class FindPasswordResetScreen extends StatefulWidget {
 class _FindPasswordResetScreenState extends State<FindPasswordResetScreen> {
   final TextEditingController _newPasswordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
-  TextEditingController();
+      TextEditingController();
 
   bool _obscureNewPassword = true;
   bool _obscureConfirmPassword = true;
@@ -77,22 +78,22 @@ class _FindPasswordResetScreenState extends State<FindPasswordResetScreen> {
     final confirmNewPassword = _confirmPasswordController.text.trim();
 
     if (newPassword.isEmpty) {
-      _showMessage('새 비밀번호를 입력해주세요.');
+      _showMessage(AppLanguage.t('pw_enter_new')); // '새 비밀번호를 입력해주세요.'
       return;
     }
 
     if (confirmNewPassword.isEmpty) {
-      _showMessage('새 비밀번호 확인을 입력해주세요.');
+      _showMessage(AppLanguage.t('pw_enter_new_confirm')); // '새 비밀번호 확인을 입력해주세요.'
       return;
     }
 
     if (newPassword != confirmNewPassword) {
-      _showMessage('비밀번호가 일치하지 않습니다.');
+      _showMessage(AppLanguage.t('pw_mismatch')); // '비밀번호가 일치하지 않습니다.'
       return;
     }
 
     if (!_isValidPassword(newPassword)) {
-      _showMessage('비밀번호는 8자 이상이며 영문, 숫자, 특수문자(!@#+=)를 포함해야 합니다.');
+      _showMessage(AppLanguage.t('pw_password_rule')); // '비밀번호는 8자 이상이며 영문, 숫자, 특수문자(!@#+=)를 포함해야 합니다.'
       return;
     }
 
@@ -156,10 +157,10 @@ class _FindPasswordResetScreenState extends State<FindPasswordResetScreen> {
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
                         ),
-                        const Expanded(
+                        Expanded(
                           child: Center(
                             child: Text(
-                              '비밀번호 재설정',
+                              AppLanguage.t('pw_reset_title'), // '비밀번호 재설정'
                               style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w800,
@@ -174,11 +175,11 @@ class _FindPasswordResetScreenState extends State<FindPasswordResetScreen> {
 
                     const SizedBox(height: 34),
 
-                    const Center(
+                    Center(
                       child: Column(
                         children: [
                           Text(
-                            'STEP 2. 새로운 비밀번호 설정',
+                            AppLanguage.t('pw_step2_title'), // 'STEP 2. 새로운 비밀번호 설정'
                             style: TextStyle(
                               fontSize: 17,
                               fontWeight: FontWeight.w800,
@@ -188,7 +189,7 @@ class _FindPasswordResetScreenState extends State<FindPasswordResetScreen> {
                           ),
                           SizedBox(height: 6),
                           Text(
-                            '안전한 계정 보호를 위해 새로운 비밀번호를 설정합니다',
+                            AppLanguage.t('pw_step2_desc'), // '안전한 계정 보호를 위해 새로운 비밀번호를 설정합니다'
                             style: TextStyle(
                               fontSize: 14,
                               color: subBlue,
@@ -202,8 +203,8 @@ class _FindPasswordResetScreenState extends State<FindPasswordResetScreen> {
 
                     const SizedBox(height: 46),
 
-                    const Text(
-                      '새로운 비밀번호',
+                    Text(
+                      AppLanguage.t('pw_new'), // '새로운 비밀번호'
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
@@ -214,7 +215,7 @@ class _FindPasswordResetScreenState extends State<FindPasswordResetScreen> {
 
                     _buildPasswordField(
                       controller: _newPasswordController,
-                      hintText: '새 비밀번호 입력',
+                      hintText: AppLanguage.t('pw_new_input_hint'), // '새 비밀번호 입력'
                       obscureText: _obscureNewPassword,
                       onToggleVisibility: () {
                         setState(() {
@@ -225,10 +226,10 @@ class _FindPasswordResetScreenState extends State<FindPasswordResetScreen> {
 
                     const SizedBox(height: 8),
 
-                    const Text(
-                      '영문, 숫자, 특수문자(!@#+=)를 포함해주세요.',
-                      style: TextStyle(
-                        fontSize: 13,
+                    Text(
+                      AppLanguage.t('pw_format_hint'), // '영문, 숫자, 특수문자(!@#+=)를 포함해주세요.'
+                      style: const TextStyle(
+                        fontSize: 14,
                         color: subBlue,
                         fontWeight: FontWeight.w600,
                       ),
@@ -236,8 +237,8 @@ class _FindPasswordResetScreenState extends State<FindPasswordResetScreen> {
 
                     const SizedBox(height: 28),
 
-                    const Text(
-                      '새로운 비밀번호 확인',
+                    Text(
+                      AppLanguage.t('pw_new_confirm'), // '새로운 비밀번호 확인'
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
@@ -248,12 +249,12 @@ class _FindPasswordResetScreenState extends State<FindPasswordResetScreen> {
 
                     _buildPasswordField(
                       controller: _confirmPasswordController,
-                      hintText: '새 비밀번호 확인',
+                      hintText: AppLanguage.t('pw_confirm_input_hint'), // '새 비밀번호 확인'
                       obscureText: _obscureConfirmPassword,
                       onToggleVisibility: () {
                         setState(() {
                           _obscureConfirmPassword =
-                          !_obscureConfirmPassword;
+                              !_obscureConfirmPassword;
                         });
                       },
                     ),
@@ -275,7 +276,9 @@ class _FindPasswordResetScreenState extends State<FindPasswordResetScreen> {
                           ),
                         ),
                         child: Text(
-                          _isResetting ? '변경 중...' : '확인',
+                          _isResetting
+                              ? AppLanguage.t('pw_verifying') // '확인 중...'
+                              : AppLanguage.t('confirm'), // '확인'
                           style: const TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.w700,
@@ -314,8 +317,8 @@ class _FindPasswordResetScreenState extends State<FindPasswordResetScreen> {
                           padding: const EdgeInsets.symmetric(horizontal: 2),
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
-                        child: const Text(
-                          '아이디 찾기',
+                        child: Text(
+                          AppLanguage.t('find_id_title'), // '아이디 찾기'
                           style: TextStyle(
                             fontSize: 15,
                             color: Color(0xFF8EA0F5),
@@ -323,7 +326,7 @@ class _FindPasswordResetScreenState extends State<FindPasswordResetScreen> {
                           ),
                         ),
                       ),
-                      const Text(
+                      Text(
                         ' | ',
                         style: TextStyle(
                           fontSize: 15,
@@ -338,8 +341,8 @@ class _FindPasswordResetScreenState extends State<FindPasswordResetScreen> {
                           padding: const EdgeInsets.symmetric(horizontal: 2),
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
-                        child: const Text(
-                          '비밀번호 찾기',
+                        child: Text(
+                          AppLanguage.t('find_password'), // '비밀번호 찾기'
                           style: TextStyle(
                             fontSize: 15,
                             color: Color(0xFF8EA0F5),
@@ -347,7 +350,7 @@ class _FindPasswordResetScreenState extends State<FindPasswordResetScreen> {
                           ),
                         ),
                       ),
-                      const Text(
+                      Text(
                         ' | ',
                         style: TextStyle(
                           fontSize: 15,
@@ -362,8 +365,8 @@ class _FindPasswordResetScreenState extends State<FindPasswordResetScreen> {
                           padding: const EdgeInsets.symmetric(horizontal: 2),
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
-                        child: const Text(
-                          '회원가입',
+                        child: Text(
+                          AppLanguage.t('sign_up'), // '회원가입'
                           style: TextStyle(
                             fontSize: 15,
                             color: Color(0xFF8EA0F5),
@@ -374,7 +377,7 @@ class _FindPasswordResetScreenState extends State<FindPasswordResetScreen> {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  const Row(
+                  Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
@@ -384,7 +387,7 @@ class _FindPasswordResetScreenState extends State<FindPasswordResetScreen> {
                       ),
                       SizedBox(width: 6),
                       Text(
-                        '개인정보는 안전하게 보호됩니다.',
+                        AppLanguage.t('privacy_notice'), // '개인정보는 안전하게 보호됩니다.'
                         style: TextStyle(
                           fontSize: 13,
                           color: Color(0xFF9AA7E8),

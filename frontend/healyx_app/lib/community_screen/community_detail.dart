@@ -1,7 +1,8 @@
-// 커뮤니티 게시글 상세 화면
+﻿// 커뮤니티 게시글 상세 화면
 // 게시글 제목, 작성자 닉네임, 작성 날짜, 본문 내용, 좋아요 수, 댓글 수 등이 표시됨
 // 게시글이 본인 글인지 여부에 따라 메뉴 버튼에서 수정/삭제 또는 신고/원문보기 옵션이 다르게 보임
 import 'package:flutter/material.dart';
+import '../app_language.dart'; 
 
 import '../../dialogs/report_dialog.dart';
 import '../../dialogs/delete_confirm_dialog.dart';
@@ -13,7 +14,7 @@ class CommunityDetailScreen extends StatelessWidget {
 
   const CommunityDetailScreen({
     super.key,
-    this.isMyPost = false, //true로 하면 내 글, false로 하면 다른 사람 글 화면 보여줌 (메뉴 버튼 다르게 보이도록)
+    this.isMyPost = true, //true로 하면 내 글, false로 하면 다른 사람 글 화면 보여줌 (메뉴 버튼 다르게 보이도록)
   });
 
   static const Color mainBlue = Color(0xFF2260FF);
@@ -46,9 +47,9 @@ class CommunityDetailScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                const Text(
-                  '커뮤니티',
-                  style: TextStyle(
+                Text(
+                  AppLanguage.t('community'), // '커뮤니티'
+                  style: const TextStyle(
                     color: mainBlue,
                     fontSize: 28,
                     fontWeight: FontWeight.w800,
@@ -123,25 +124,25 @@ class CommunityDetailScreen extends StatelessWidget {
                                 },
                                 itemBuilder: (context) {
                                   if (isMyPost) {
-                                    return const [
+                                    return [
                                       PopupMenuItem(
                                         value: 'edit',
-                                        child: Text('수정하기'),
+                                        child: Text(AppLanguage.t('community_menu_edit')), // '수정하기'
                                       ),
                                       PopupMenuItem(
                                         value: 'delete',
-                                        child: Text('삭제하기'),
+                                        child: Text(AppLanguage.t('community_menu_delete')), // '삭제하기'
                                       ),
                                     ];
                                   } else {
-                                    return const [
+                                    return [
                                       PopupMenuItem(
                                         value: 'report',
-                                        child: Text('신고하기'),
+                                        child: Text(AppLanguage.t('community_menu_report')), // '신고하기'
                                       ),
                                       PopupMenuItem(
                                         value: 'view',
-                                        child: Text('원문보기'),
+                                        child: Text(AppLanguage.t('community_menu_original')), // '원문보기'
                                       ),
                                     ];
                                   }
@@ -178,9 +179,9 @@ class CommunityDetailScreen extends StatelessWidget {
 
                     const SizedBox(height: 34),
 
-                    const Text(
-                      '본문',
-                      style: TextStyle(
+                    Text(
+                      AppLanguage.t('community_post_body'), // '본문'
+                      style: const TextStyle(
                         color: mainBlue,
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
@@ -240,14 +241,14 @@ class CommunityDetailScreen extends StatelessWidget {
                         ),
                       ),
                       padding: const EdgeInsets.fromLTRB(20, 20, 20, 30),
-                      child: const Column(
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // 댓글 개수 표시
                           Padding(
                             padding: EdgeInsets.only(left: 4, bottom: 14),
                             child: Text(
-                              '댓글 2 >',
+                              AppLanguage.t('community_comment_count').replaceAll('{count}', '2'), // '댓글 {count} >'
                               style: TextStyle(
                                 color: mainBlue,
                                 fontSize: 18,
@@ -354,8 +355,8 @@ class _CommentCard extends StatelessWidget {
                       color: softBg,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Text(
-                      '삭제',
+                    child: Text(
+                      AppLanguage.t('community_delete'), // '삭제'
                       style: TextStyle(
                         color: mainBlue,
                         fontSize: 13,
@@ -404,8 +405,8 @@ class _CommentCard extends StatelessWidget {
                   color: mainBlue,
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: const Text(
-                  '답글 쓰기',
+                child: Text(
+                  AppLanguage.t('community_reply_write'), // '답글 쓰기'
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 13,
@@ -497,8 +498,8 @@ class _ReplyCard extends StatelessWidget {
                       color: softBg,
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Text(
-                      '삭제',
+                    child: Text(
+                      AppLanguage.t('community_delete'), // '삭제'
                       style: TextStyle(
                         color: mainBlue,
                         fontSize: 12,
