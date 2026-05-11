@@ -214,7 +214,10 @@ public class HospitalAgentService {
                         .longitude(dto.getLongitude())
                         .latitude(dto.getLatitude())
                         .distance(dto.getDistance())
+                        .clCd(dto.getClCd())
                         .hospitalType(dto.getHospitalType())
+                        .sidoCd(dto.getSidoCd())
+                        .sidoCdNm(dto.getSidoCdNm())
                         .foreignCertified(certifiedYkihos.contains(dto.getYkiho()))  // 병원별 판별
                         .build())
                 .collect(Collectors.toList());

@@ -15,6 +15,12 @@ public class HospitalSearchRequest {
      */
     private String dgsbjtCd;
 
+    /**
+     * 요양기관명 — 병원명 검색 키워드 (선택)
+     * 리뷰 전용 병원 검색(UI-REV-01,02)에서만 사용. 한글 입력 → URL 인코딩 처리 필수.
+     */
+    private String yadmNm;
+
     /** 종별코드 (필수) — 01:상급종합, 11:종합병원, 21:병원, 31:의원
      *  위험도에 따른 요청 종별 코드 값이 있어야 함
      * */

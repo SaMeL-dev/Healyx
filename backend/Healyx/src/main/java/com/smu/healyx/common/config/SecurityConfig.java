@@ -58,6 +58,8 @@ public class SecurityConfig {
                                  "/api/auth/check-username").permitAll()
                 // 게스트 허용: 병원 찾기
                 .requestMatchers("/api/hospitals/**").permitAll()
+                // 병원별 리뷰 조회: 비로그인 허용 / 나머지 리뷰 API: 인증 필요
+                .requestMatchers(HttpMethod.GET, "/api/reviews/hospitals/**").permitAll()
                 // 게스트 허용: 의료 번역 (보관함 조회·삭제 제외 — 로그인 필요)
                 .requestMatchers("/api/translations/archive", "/api/translations/archive/**").authenticated()
                 .requestMatchers("/api/translation/**", "/api/translations/**").permitAll()

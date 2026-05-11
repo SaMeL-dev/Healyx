@@ -15,6 +15,8 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -67,6 +69,11 @@ public class HiraApiService {
         }
         if (StringUtils.hasText(request.getClCd())) {
             sb.append("&clCd=").append(request.getClCd());
+        }
+        // 병원명 검색 — 한글 입력 가능하므로 URL 인코딩 필수
+        if (StringUtils.hasText(request.getYadmNm())) {
+            sb.append("&yadmNm=")
+              .append(URLEncoder.encode(request.getYadmNm(), StandardCharsets.UTF_8));
         }
         if (request.getXPos() != 0.0) {
             sb.append("&xPos=").append(request.getXPos());
@@ -136,7 +143,10 @@ public class HiraApiService {
                 .longitude(item.getLongitude())
                 .latitude(item.getLatitude())
                 .distance((int) Math.round(item.getDistance()))
+                .clCd(item.getClCd())
                 .hospitalType(item.getClCdNm())
+                .sidoCd(item.getSidoCd())
+                .sidoCdNm(item.getSidoCdNm())
                 .foreignCertified(false) // DB 연동 완료 후 foreign_certified_hospital 테이블에서 조회
                 .build();
     }
