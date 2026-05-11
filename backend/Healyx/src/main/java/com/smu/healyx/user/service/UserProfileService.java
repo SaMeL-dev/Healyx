@@ -137,7 +137,7 @@ public class UserProfileService {
 
         return MyProfileResponse.builder()
                 .userId(user.getUserId())
-                .username(user.getUsername())
+                .realName(user.getUsername())
                 .nickname(user.getNickname())
                 .name(user.getRealName())
                 .email(user.getEmail())

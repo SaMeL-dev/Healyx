@@ -11,7 +11,7 @@ import java.time.LocalDate;
 public class MyProfileResponse {
 
     private Long userId;
-    private String username;
+    private String realName;
     private String nickname;
     private String name;
     private String email;
