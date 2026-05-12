@@ -278,6 +278,10 @@ class AppLanguage {
       'translation_save': '저장하기',
       'translation_saved': '보관함에 저장되었습니다.',
       'archive_empty_translation': '저장된 번역이 없습니다.',
+      'archive_empty_bookmark': '저장된 북마크가 없습니다.',
+      'archive_empty_posts': '작성한 게시글이 없습니다.',
+      'archive_empty_comments': '작성한 댓글이 없습니다.',
+      'archive_empty_reviews': '작성한 리뷰가 없습니다.',
       'error_retry': '오류가 발생했습니다. 다시 시도해주세요.',
 
       // 추가
@@ -547,6 +551,10 @@ class AppLanguage {
       'translation_save': 'Save',
       'translation_saved': 'Saved to archive.',
       'archive_empty_translation': 'No saved translations.',
+      'archive_empty_bookmark': 'No saved bookmarks.',
+      'archive_empty_posts': 'No posts written.',
+      'archive_empty_comments': 'No comments written.',
+      'archive_empty_reviews': 'No reviews written.',
       'error_retry': 'An error occurred. Please try again.',
 
       // 추가
@@ -817,6 +825,10 @@ class AppLanguage {
       'translation_save': '保存',
       'translation_saved': '已保存到保管箱。',
       'archive_empty_translation': '没有保存的翻译。',
+      'archive_empty_bookmark': '没有保存的书签。',
+      'archive_empty_posts': '没有写过的帖子。',
+      'archive_empty_comments': '没有写过的评论。',
+      'archive_empty_reviews': '没有写过的评价。',
       'error_retry': '发生错误，请重试。',
 
       // 비밀번호 찾기
@@ -1086,6 +1098,10 @@ class AppLanguage {
       'translation_save': '保存する',
       'translation_saved': 'アーカイブに保存されました。',
       'archive_empty_translation': '保存された翻訳がありません。',
+      'archive_empty_bookmark': '保存されたブックマークがありません。',
+      'archive_empty_posts': '投稿した記事がありません。',
+      'archive_empty_comments': '投稿したコメントがありません。',
+      'archive_empty_reviews': '投稿したレビューがありません。',
       'error_retry': 'エラーが発生しました。もう一度お試しください。',
 
       //추가
@@ -1354,6 +1370,10 @@ class AppLanguage {
       'translation_save': 'Lưu',
       'translation_saved': 'Đã lưu vào kho lưu trữ.',
       'archive_empty_translation': 'Không có bản dịch nào được lưu.',
+      'archive_empty_bookmark': 'Không có dấu trang nào được lưu.',
+      'archive_empty_posts': 'Không có bài viết nào.',
+      'archive_empty_comments': 'Không có bình luận nào.',
+      'archive_empty_reviews': 'Không có đánh giá nào.',
       'error_retry': 'Đã xảy ra lỗi. Vui lòng thử lại.',
 
       // 비밀번호 찾기
@@ -1625,6 +1645,10 @@ class AppLanguage {
       'translation_save': 'บันทึก',
       'translation_saved': 'บันทึกลงในคลังแล้ว',
       'archive_empty_translation': 'ไม่มีการแปลที่บันทึกไว้',
+      'archive_empty_bookmark': 'ไม่มีบุ๊กมาร์กที่บันทึกไว้',
+      'archive_empty_posts': 'ไม่มีโพสต์ที่เขียน',
+      'archive_empty_comments': 'ไม่มีความคิดเห็นที่เขียน',
+      'archive_empty_reviews': 'ไม่มีรีวิวที่เขียน',
       'error_retry': 'เกิดข้อผิดพลาด กรุณาลองอีกครั้ง',
 
       //추가

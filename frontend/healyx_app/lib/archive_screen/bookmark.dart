@@ -1,25 +1,11 @@
-﻿// 게시물 북마크 보관함 화면 
-// 게시물 북마크 리스트 형태로 보여주는 화면
+// 게시물 북마크 보관함 화면
+// GET  /api/community/bookmarks          — 북마크 목록 조회
+// DELETE /api/community/bookmarks/{postId} — 북마크 삭제
 import 'package:flutter/material.dart';
 import 'package:healyx_app/community_screen/community_detail.dart';
 import 'package:healyx_app/dialogs/archive_delete_dialog.dart';
-import '../app_language.dart'; 
-
-class BookmarkItem {
-  final String id;
-  final String title;
-  final String category;
-  final String preview;
-  final int likeCount;
-
-  const BookmarkItem({
-    required this.id,
-    required this.title,
-    required this.category,
-    required this.preview,
-    required this.likeCount,
-  });
-}
+import '../app_language.dart';
+import '../services/community_service.dart';
 
 class BookmarkScreen extends StatefulWidget {
   const BookmarkScreen({super.key});
@@ -29,14 +15,47 @@ class BookmarkScreen extends StatefulWidget {
 }
 
 class _BookmarkScreenState extends State<BookmarkScreen> {
-  final List<BookmarkItem> _items = [
-    const BookmarkItem(id: '1', title: '아산 병원 추천[42]', category: '병원추천인', preview: '제가 직접 다녀온 아산병원들 추천합니다 먼저..', likeCount: 5),
-    const BookmarkItem(id: '2', title: '건강보험 자동 가입[2]', category: '닉네임123', preview: '건강보험 자동 가입 되는거 아셨나요 저는 몰라..', likeCount: 1),
-    const BookmarkItem(id: '3', title: '제목[댓글수]', category: '작성자 닉네임', preview: '내용 미리보기', likeCount: 0),
-    const BookmarkItem(id: '4', title: '제목[댓글수]', category: '작성자 닉네임', preview: '내용 미리보기', likeCount: 0),
-    const BookmarkItem(id: '5', title: '제목[댓글수]', category: '작성자 닉네임', preview: '내용 미리보기', likeCount: 0),
-    const BookmarkItem(id: '6', title: '제목[댓글수]', category: '작성자 닉네임', preview: '내용 미리보기', likeCount: 0),
-  ];
+  List<BookmarkData> _items = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBookmarks();
+  }
+
+  // 북마크 목록 API 호출
+  Future<void> _loadBookmarks() async {
+    setState(() => _isLoading = true);
+    final items = await CommunityService.getBookmarks();
+    if (!mounted) return;
+    setState(() {
+      _items = items;
+      _isLoading = false;
+    });
+  }
+
+  // 북마크 삭제 — 다이얼로그 확인 후 API 호출
+  Future<void> _deleteItem(BookmarkData item) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierColor: const Color(0xFF2260FF).withValues(alpha: 0.4),
+      builder: (ctx) => const ArchiveDeleteDialog(),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    final success = await CommunityService.deleteBookmark(item.postId);
+    if (!mounted) return;
+
+    if (success) {
+      setState(() => _items.removeWhere((e) => e.postId == item.postId));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLanguage.t('error_retry'))),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,40 +78,59 @@ class _BookmarkScreenState extends State<BookmarkScreen> {
           ),
         ),
       ),
-      body: ListView.separated(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        itemCount: _items.length,
-        separatorBuilder: (_, __) =>
-            const Divider(height: 1, color: Color(0xFFF2F2F2)),
-        itemBuilder: (context, index) {
-          final item = _items[index];
-          return _BookmarkCard(
-            item: item,
-            // 북마크 카드 탭 → community_screen/community_detail.dart (남의 글 isMyPost: false)
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const CommunityDetailScreen(isMyPost: false),
-                ),
-              );
-            },
-            onDelete: () {
-              showDialog(
-                context: context,
-                barrierColor: const Color(0xFF2260FF).withOpacity(0.4),
-                builder: (_) => const ArchiveDeleteDialog(),
-              );
-            },
-          );
-        },
-      ),
+      body: _buildBody(),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(color: Color(0xFF2260FF)),
+      );
+    }
+
+    if (_items.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.bookmark_border, size: 56, color: Color(0xFFBBBBBB)),
+            const SizedBox(height: 16),
+            Text(
+              AppLanguage.t('archive_empty_bookmark'), // '저장된 북마크가 없습니다.'
+              style: const TextStyle(fontSize: 15, color: Color(0xFF9E9E9E)),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.separated(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      itemCount: _items.length,
+      separatorBuilder: (_, __) =>
+          const Divider(height: 1, color: Color(0xFFF2F2F2)),
+      itemBuilder: (context, index) {
+        final item = _items[index];
+        return _BookmarkCard(
+          item: item,
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const CommunityDetailScreen(isMyPost: false),
+              ),
+            );
+          },
+          onDelete: () => _deleteItem(item),
+        );
+      },
     );
   }
 }
 
 class _BookmarkCard extends StatelessWidget {
-  final BookmarkItem item;
+  final BookmarkData item;
   final VoidCallback onTap;
   final VoidCallback onDelete;
 
@@ -124,11 +162,13 @@ class _BookmarkCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 3),
-                  Text(item.category,
-                      style: const TextStyle(fontSize: 12, color: Colors.black45)),
+                  Text(
+                    item.authorNickname,
+                    style: const TextStyle(fontSize: 12, color: Colors.black45),
+                  ),
                   const SizedBox(height: 4),
                   Text(
-                    item.preview,
+                    item.contentPreview,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(fontSize: 13, color: Colors.black54),
@@ -136,11 +176,13 @@ class _BookmarkCard extends StatelessWidget {
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      const Icon(Icons.favorite_border, size: 14, color: Color(0xFF2260FF)),
+                      const Icon(Icons.favorite_border,
+                          size: 14, color: Color(0xFF2260FF)),
                       const SizedBox(width: 3),
                       Text(
                         item.likeCount == 0 ? 'N' : '${item.likeCount}',
-                        style: const TextStyle(fontSize: 12, color: Color(0xFF2260FF)),
+                        style: const TextStyle(
+                            fontSize: 12, color: Color(0xFF2260FF)),
                       ),
                     ],
                   ),
