@@ -31,7 +31,7 @@ class BookmarkData {
     return BookmarkData(
       postId: json['postId'] ?? 0,
       title: json['title'] ?? '',
-      authorNickname: json['authorNickname'] ?? json['nickname'] ?? '',
+      authorNickname: json['author'] ?? json['authorNickname'] ?? json['nickname'] ?? '',
       contentPreview: json['contentPreview'] ?? json['content'] ?? '',
       likeCount: json['likeCount'] ?? 0,
     );
