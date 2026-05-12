@@ -405,7 +405,7 @@ class AuthService {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
-        body: jsonEncode({'preferredLanguage': languageCode}),
+        body: jsonEncode({'languageCode': languageCode}),
       ).timeout(const Duration(seconds: 5));
     } catch (e) {
       debugPrint('UPDATE_LANGUAGE ERROR: $e');
