@@ -62,7 +62,12 @@ class _MenuScreenState extends State<MenuScreen> {
         ),
       ),
       body: widget.isLoggedIn
-          ? _LoggedInBody(nickname: _nickname)
+          ? _LoggedInBody(
+              nickname: _nickname,
+              onProfileUpdated: () {
+                if (mounted) _loadNickname();
+              },
+            )
           : const _GuestBody(),
     );
   }
@@ -136,8 +141,9 @@ class _GuestBody extends StatelessWidget {
 // ─────────────────────────────────────────
 class _LoggedInBody extends StatelessWidget {
   final String nickname;
+  final VoidCallback onProfileUpdated;
 
-  const _LoggedInBody({required this.nickname});
+  const _LoggedInBody({required this.nickname, required this.onProfileUpdated});
 
   @override
   Widget build(BuildContext context) {
@@ -151,7 +157,7 @@ class _LoggedInBody extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const ProfileEditScreen()),
-              );
+              ).then((_) => onProfileUpdated());
             },
             child: Stack(
               alignment: Alignment.center,
