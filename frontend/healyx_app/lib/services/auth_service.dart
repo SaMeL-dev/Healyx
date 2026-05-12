@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 // JSON 데이터를 Dart에서 사용할 수 있게 변환할 때 사용
 import 'package:flutter/foundation.dart';
@@ -178,18 +179,25 @@ class AuthService {
 
   // 로그아웃 — 서버에 Refresh Token 삭제 요청 후 로컬 저장소 정리
   static Future<void> logout() async {
-    try {
-      final token = await getAccessToken();
-      if (token != null && token.isNotEmpty) {
-        await http.post(
+    final token = await getAccessToken();
+    if (token != null && token.isNotEmpty) {
+      try {
+        final response = await http.post(
           Uri.parse('$baseUrl/api/auth/logout'),
           headers: {'Authorization': 'Bearer $token'},
         ).timeout(const Duration(seconds: 5));
+
+        if (response.statusCode < 200 || response.statusCode >= 300) {
+          throw Exception('Logout failed on server: ${response.statusCode}');
+        }
+      } on TimeoutException {
+        // Network unreachable — clear locally anyway, token expires in 7 days
+      } catch (_) {
+        // Any other error — clear locally so the user is not stuck
       }
-    } catch (_) {
-      // 서버 요청 실패해도 로컬 토큰은 무조건 삭제
     }
 
+    // Clear local credentials (runs after 2xx, timeout, or any error)
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('accessToken');
     await prefs.remove('refreshToken');
