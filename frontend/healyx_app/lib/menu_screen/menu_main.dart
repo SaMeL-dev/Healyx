@@ -1,7 +1,8 @@
-﻿// 메뉴 메인 화면
-// 로그인 비로그인 (true/false) 상태에 따라 보여지는 메뉴 항목이 달라지는 화면
-// 17번째 줄 부분에서만 true/false로 로그인 상태를 바꿔가며 테스트하면 됨! 그 이외의 부분은 자동으로 반영됨!!
+// 메뉴 메인 화면
+// 로그인/비로그인 상태에 따라 보여지는 메뉴 항목이 달라지는 화면
+// isLoggedIn은 main_screen.dart의 _openMenu()에서 AuthService.isLoggedIn() 결과를 받아 전달됨
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'profile_edit.dart';
 import 'settings.dart';
@@ -10,12 +11,34 @@ import 'reset_password_screen/password_verify.dart';
 import '../archive_screen/archive_main.dart';
 import '../dialogs/logout_dialog.dart';
 import '../login_signup_screen/login_screen.dart';
-import '../app_language.dart'; 
+import '../app_language.dart';
 
-class MenuScreen extends StatelessWidget {
+class MenuScreen extends StatefulWidget {
   final bool isLoggedIn;
 
-  const MenuScreen({super.key, this.isLoggedIn = true}); //true=로그인, false=비로그인
+  const MenuScreen({super.key, this.isLoggedIn = false}); // false=비로그인 기본값
+
+  @override
+  State<MenuScreen> createState() => _MenuScreenState();
+}
+
+class _MenuScreenState extends State<MenuScreen> {
+  String _nickname = '';
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.isLoggedIn) _loadNickname();
+  }
+
+  // SharedPreferences에서 닉네임 로드
+  Future<void> _loadNickname() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
+    setState(() {
+      _nickname = prefs.getString('nickname') ?? '';
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +52,7 @@ class MenuScreen extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
         centerTitle: true,
-        title: Text( 
+        title: Text(
           AppLanguage.t('menu_title'), // '메뉴'
           style: const TextStyle(
             color: Color(0xFF2260FF),
@@ -38,7 +61,9 @@ class MenuScreen extends StatelessWidget {
           ),
         ),
       ),
-      body: isLoggedIn ? const _LoggedInBody() : const _GuestBody(),
+      body: widget.isLoggedIn
+          ? _LoggedInBody(nickname: _nickname)
+          : const _GuestBody(),
     );
   }
 }
@@ -68,7 +93,7 @@ class _GuestBody extends StatelessWidget {
             },
             child: Row(
               children: [
-                Text( 
+                Text(
                   AppLanguage.t('menu_login_prompt'), // '로그인을 해주세요'
                   style: const TextStyle(
                     fontSize: 22,
@@ -94,8 +119,8 @@ class _GuestBody extends StatelessWidget {
             onTap: () {
               Navigator.push(
                 context,
-                // 비로그인 → isLoggedIn: false → 설정에서 언어 변경만 표시(위 결과에 따라 자동 반영. 부울 수정 x)
-                MaterialPageRoute(builder: (_) => const SettingsScreen(isLoggedIn: false)),
+                MaterialPageRoute(
+                    builder: (_) => const SettingsScreen(isLoggedIn: false)),
               );
             },
             isLast: true,
@@ -110,7 +135,9 @@ class _GuestBody extends StatelessWidget {
 // 로그인 UI
 // ─────────────────────────────────────────
 class _LoggedInBody extends StatelessWidget {
-  const _LoggedInBody();
+  final String nickname;
+
+  const _LoggedInBody({required this.nickname});
 
   @override
   Widget build(BuildContext context) {
@@ -167,8 +194,8 @@ class _LoggedInBody extends StatelessWidget {
           const SizedBox(height: 14),
 
           Text(
-               AppLanguage.t('menu_greeting').replaceAll('{nickname}', '닉네임123'), // '닉네임123님 안녕하세요.'
-            style: TextStyle(
+            AppLanguage.t('menu_greeting').replaceAll('{nickname}', nickname),
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w700,
               color: Colors.black87,
@@ -199,19 +226,20 @@ class _LoggedInBody extends StatelessWidget {
                   onTap: () {
                     Navigator.push(
                       context,
-                      // 로그인 → isLoggedIn: true → 설정에서 언어변경 + 알림설정 + 회원탈퇴 표시 (위 결과에 따라 자동 반영. 부울 수정 x)
-                      MaterialPageRoute(builder: (_) => const SettingsScreen(isLoggedIn: true)),
+                      MaterialPageRoute(
+                          builder: (_) =>
+                              const SettingsScreen(isLoggedIn: true)),
                     );
                   },
                 ),
                 _MenuTile(
                   icon: Icons.lock_outline,
                   label: AppLanguage.t('menu_change_password'), // '비밀번호 변경'
-                  // 비밀번호 변경 → menu_screen/reset_password_screen/password_verify.dart (STEP1)
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => const PasswordVerifyScreen()),
+                      MaterialPageRoute(
+                          builder: (_) => const PasswordVerifyScreen()),
                     );
                   },
                 ),
@@ -221,7 +249,8 @@ class _LoggedInBody extends StatelessWidget {
                   onTap: () {
                     showDialog(
                       context: context,
-                      barrierColor: const Color(0xFF2260FF).withOpacity(0.4),
+                      barrierColor:
+                          const Color(0xFF2260FF).withValues(alpha: 0.4),
                       builder: (_) => const LogoutDialog(),
                     );
                   },
