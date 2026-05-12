@@ -199,6 +199,7 @@ class AuthService {
     await prefs.remove('name');
     await prefs.remove('email');
     await prefs.remove('insuranceStatus');
+    await prefs.remove('pushEnabled');
   }
 
   // 이메일 사용 가능 여부 확인 — true: 사용 가능, false: 이미 사용 중
@@ -368,6 +369,27 @@ class AuthService {
         success: false,
         message: AppLanguage.t('server_error'), // '서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.'
       );
+    }
+  }
+
+  // 알림 설정 변경 (JWT 필요) — 성공 여부 반환
+  static Future<bool> updatePushEnabled(bool enabled) async {
+    final token = await getAccessToken();
+    if (token == null || token.isEmpty) return false;
+
+    try {
+      final response = await http.patch(
+        Uri.parse('$baseUrl/api/users/me/push'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'pushEnabled': enabled}),
+      ).timeout(const Duration(seconds: 5));
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('UPDATE_PUSH ERROR: $e');
+      return false;
     }
   }
 
