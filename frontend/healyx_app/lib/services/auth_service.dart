@@ -176,10 +176,21 @@ class AuthService {
     return prefs.getString('accessToken');
   }
 
-  // 로그아웃할 때 저장된 로그인 정보를 삭제하는 함수
+  // 로그아웃 — 서버에 Refresh Token 삭제 요청 후 로컬 저장소 정리
   static Future<void> logout() async {
-    final prefs = await SharedPreferences.getInstance();
+    try {
+      final token = await getAccessToken();
+      if (token != null && token.isNotEmpty) {
+        await http.post(
+          Uri.parse('$baseUrl/api/auth/logout'),
+          headers: {'Authorization': 'Bearer $token'},
+        ).timeout(const Duration(seconds: 5));
+      }
+    } catch (_) {
+      // 서버 요청 실패해도 로컬 토큰은 무조건 삭제
+    }
 
+    final prefs = await SharedPreferences.getInstance();
     await prefs.remove('accessToken');
     await prefs.remove('refreshToken');
     await prefs.remove('userId');
