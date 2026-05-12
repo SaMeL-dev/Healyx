@@ -1,23 +1,11 @@
-﻿// 내 리뷰 보관함 화면
-// 내가 작성한 리뷰를 리스트 형태로 보여주는 화면
+// 내 리뷰 보관함 화면
+// GET    /api/reviews/my             — 내가 작성한 리뷰 목록 조회
+// DELETE /api/reviews/my/{reviewId} — 내 리뷰 삭제 (하드 삭제)
 import 'package:flutter/material.dart';
 import 'package:healyx_app/find_hospital_screen/find_hospital_detail.dart';
 import 'package:healyx_app/dialogs/archive_delete_dialog.dart';
-import '../app_language.dart'; 
-
-class ReviewItem {
-  final String id;
-  final String hospitalName;
-  final String preview;
-  final int starCount;
-
-  const ReviewItem({
-    required this.id,
-    required this.hospitalName,
-    required this.preview,
-    required this.starCount,
-  });
-}
+import '../app_language.dart';
+import '../services/review_service.dart';
 
 class MyReviewsScreen extends StatefulWidget {
   const MyReviewsScreen({super.key});
@@ -27,14 +15,46 @@ class MyReviewsScreen extends StatefulWidget {
 }
 
 class _MyReviewsScreenState extends State<MyReviewsScreen> {
-  final List<ReviewItem> _items = [
-    const ReviewItem(id: '1', hospitalName: 'OO병원', preview: '의사 선생님 진짜 친절하세요', starCount: 5),
-    const ReviewItem(id: '2', hospitalName: '&&병원', preview: '데스크 직원이 불친절하고 바닥에 벌레가 있었..', starCount: 2),
-    const ReviewItem(id: '3', hospitalName: '병원 이름', preview: '리뷰 내용 미리보기', starCount: 0),
-    const ReviewItem(id: '4', hospitalName: '병원 이름', preview: '리뷰 내용 미리보기', starCount: 0),
-    const ReviewItem(id: '5', hospitalName: '병원 이름', preview: '리뷰 내용 미리보기', starCount: 0),
-    const ReviewItem(id: '6', hospitalName: '병원', preview: '리뷰 내용 미리보기', starCount: 0),
-  ];
+  List<MyReviewData> _items = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadReviews();
+  }
+
+  // 내 리뷰 목록 API 호출
+  Future<void> _loadReviews() async {
+    setState(() => _isLoading = true);
+    final items = await ReviewService.getMyReviews();
+    if (!mounted) return;
+    setState(() {
+      _items = items;
+      _isLoading = false;
+    });
+  }
+
+  // 리뷰 삭제 — 다이얼로그 확인 후 API 호출
+  Future<void> _deleteItem(MyReviewData item) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierColor: const Color(0xFF2260FF).withValues(alpha: 0.4),
+      builder: (_) => const ArchiveDeleteDialog(),
+    );
+    if (confirmed != true || !mounted) return;
+
+    final success = await ReviewService.deleteMyReview(item.reviewId);
+    if (!mounted) return;
+
+    if (success) {
+      setState(() => _items.removeWhere((e) => e.reviewId == item.reviewId));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLanguage.t('error_retry'))),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,47 +77,67 @@ class _MyReviewsScreenState extends State<MyReviewsScreen> {
           ),
         ),
       ),
-      body: ListView.separated(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        itemCount: _items.length,
-        separatorBuilder: (_, __) =>
-            const Divider(height: 1, color: Color(0xFFF2F2F2)),
-        itemBuilder: (context, index) {
-          final item = _items[index];
-          return _ReviewCard(
-            item: item,
-            // 리뷰 카드 탭 → find_hospital_screen/find_hospital_detail.dart (해당 병원 상세 화면)
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => FindHospitalDetailScreen(
-                    hospitalName: item.hospitalName,
-                    address: '',       // TODO: API 연동 시 실제 주소로 교체
-                    rating: item.starCount.toDouble(),
-                    hasReview: true,   // TODO: API 연동 시 실제 리뷰 여부로 교체
-                    hasBadge: false,   // TODO: API 연동 시 실제 배지 여부로 교체
-                    isLoggedIn: true,  // TODO: 토큰 기반 로그인 상태값으로 교체
-                  ),
+      body: _buildBody(),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(color: Color(0xFF2260FF)),
+      );
+    }
+
+    if (_items.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.rate_review_outlined,
+                size: 56, color: Color(0xFFBBBBBB)),
+            const SizedBox(height: 16),
+            Text(
+              AppLanguage.t('archive_empty_reviews'), // '작성한 리뷰가 없습니다.'
+              style: const TextStyle(fontSize: 15, color: Color(0xFF9E9E9E)),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.separated(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      itemCount: _items.length,
+      separatorBuilder: (_, __) =>
+          const Divider(height: 1, color: Color(0xFFF2F2F2)),
+      itemBuilder: (context, index) {
+        final item = _items[index];
+        return _ReviewCard(
+          item: item,
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => FindHospitalDetailScreen(
+                  hospitalName: item.hospitalName,
+                  address: item.address,
+                  rating: item.rating,
+                  hasReview: true,
+                  hasBadge: item.hasBadge,
+                  isLoggedIn: true,
                 ),
-              );
-            },
-            onDelete: () {
-              showDialog(
-                context: context,
-                barrierColor: const Color(0xFF2260FF).withOpacity(0.4),
-                builder: (_) => const ArchiveDeleteDialog(),
-              );
-            },
-          );
-        },
-      ),
+              ),
+            );
+          },
+          onDelete: () => _deleteItem(item),
+        );
+      },
     );
   }
 }
 
 class _ReviewCard extends StatelessWidget {
-  final ReviewItem item;
+  final MyReviewData item;
   final VoidCallback onTap;
   final VoidCallback onDelete;
 
@@ -130,19 +170,25 @@ class _ReviewCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    item.preview,
+                    item.contentPreview,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 13, color: Colors.black54),
+                    style: const TextStyle(
+                        fontSize: 13, color: Colors.black54),
                   ),
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      const Icon(Icons.star_border, size: 14, color: Color(0xFF2260FF)),
+                      const Icon(Icons.star,
+                          size: 14, color: Color(0xFF2260FF)),
                       const SizedBox(width: 3),
                       Text(
-                        item.starCount == 0 ? 'N' : '${item.starCount}',
-                        style: const TextStyle(fontSize: 12, color: Color(0xFF2260FF)),
+                        item.rating == 0
+                            ? 'N'
+                            : item.rating.toStringAsFixed(
+                                item.rating % 1 == 0 ? 0 : 1),
+                        style: const TextStyle(
+                            fontSize: 12, color: Color(0xFF2260FF)),
                       ),
                     ],
                   ),
@@ -150,7 +196,8 @@ class _ReviewCard extends StatelessWidget {
               ),
             ),
             IconButton(
-              icon: const Icon(Icons.close, color: Colors.black38, size: 18),
+              icon: const Icon(Icons.close,
+                  color: Colors.black38, size: 18),
               onPressed: onDelete,
             ),
           ],
