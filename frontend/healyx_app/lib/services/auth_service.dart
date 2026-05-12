@@ -371,6 +371,25 @@ class AuthService {
     }
   }
 
+  // 선호 언어 변경 (JWT 필요) — 비로그인 시 로컬 저장만 하므로 null 허용
+  static Future<void> updateLanguage(String languageCode) async {
+    final token = await getAccessToken();
+    if (token == null || token.isEmpty) return;
+
+    try {
+      await http.patch(
+        Uri.parse('$baseUrl/api/users/me/language'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'preferredLanguage': languageCode}),
+      ).timeout(const Duration(seconds: 5));
+    } catch (e) {
+      debugPrint('UPDATE_LANGUAGE ERROR: $e');
+    }
+  }
+
   // 회원가입 요청
   static Future<RegisterResult> register({
     required String realName,
