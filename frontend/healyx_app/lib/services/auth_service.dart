@@ -399,7 +399,7 @@ class AuthService {
     if (token == null || token.isEmpty) return;
 
     try {
-      await http.patch(
+      final response = await http.patch(
         Uri.parse('$baseUrl/api/users/me/language'),
         headers: {
           'Content-Type': 'application/json',
@@ -407,6 +407,12 @@ class AuthService {
         },
         body: jsonEncode({'languageCode': languageCode}),
       ).timeout(const Duration(seconds: 5));
+
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw Exception(
+          'Language update failed: ${response.statusCode} ${response.body}',
+        );
+      }
     } catch (e) {
       debugPrint('UPDATE_LANGUAGE ERROR: $e');
     }
