@@ -38,6 +38,10 @@ public class CommunityPost {
     @Builder.Default
     private int viewCount = 0;
 
+    @Column(name = "is_blinded", nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")
+    @Builder.Default
+    private boolean isBlinded = false;
+
     @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE, orphanRemoval = true)
     @Builder.Default
     private List<CommunityComment> comments = new ArrayList<>();
@@ -59,6 +63,10 @@ public class CommunityPost {
 
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    public void blind() {
+        this.isBlinded = true;
+    }
 
     @PrePersist
     public void prePersist() {
