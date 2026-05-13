@@ -141,6 +141,17 @@ class AuthService {
           await prefs.setBool('insuranceStatus', data['insuranceStatus']);
         }
 
+        // 서버에 저장된 pushEnabled 값으로 덮어쓰기 (로그아웃 후 재로그인 시 설정 유지)
+        if (data['pushEnabled'] != null) {
+          await prefs.setBool('pushEnabled', data['pushEnabled']);
+        }
+
+        // 서버에 저장된 선호 언어로 앱 전체 언어 변경
+        final String? preferredLanguage = data['preferredLanguage'];
+        if (preferredLanguage != null && preferredLanguage.isNotEmpty) {
+          await AppLanguage.setLang(preferredLanguage);
+        }
+
 
         return LoginResult(
           success: true,
