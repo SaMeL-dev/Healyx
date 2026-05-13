@@ -118,6 +118,8 @@ public class AuthService {
                 .name(user.getRealName())
                 .email(user.getEmail())
                 .insuranceStatus(user.isHasHealthInsurance())
+                .pushEnabled(user.isPushEnabled())
+                .language(user.getPreferredLanguage())
                 .build();
     }
 
