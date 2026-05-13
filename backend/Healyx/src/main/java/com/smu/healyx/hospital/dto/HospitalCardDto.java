@@ -18,7 +18,6 @@ import lombok.Getter;
  */
 @Getter
 @Builder
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class HospitalCardDto {
 
     // ── HospitalDto 동일 필드 ─────────────────────────────────────────
@@ -35,14 +34,17 @@ public class HospitalCardDto {
     private String sidoCdNm;
     private boolean foreignCertified;
 
-    // ── 의료비 예측 평면 필드 (게스트는 null) ─────────────────────────
+    // ── 의료비 예측 평면 필드 (게스트는 null → JSON 키 자체 제외) ─────
     /** 최저 예상 비용(원). 게스트 또는 예측 실패 시 null. */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Integer minCost;
 
     /** 최고 예상 비용(원). 게스트 또는 예측 실패 시 null. */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Integer maxCost;
 
     /** 방문 유형(outpatient/inpatient). 게스트 또는 예측 실패 시 null. */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String visitType;
 
     /**
@@ -50,6 +52,7 @@ public class HospitalCardDto {
      * 예: "GUEST_NOT_LOGGED_IN", "COST_REFERENCE_NOT_FOUND".
      * Flutter 안내 아이콘 분기 보조용. 정상 카드에는 노출 안 됨.
      */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String costUnavailableReason;
 
     /**
