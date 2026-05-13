@@ -68,6 +68,11 @@ public class CommunityPost {
         this.isBlinded = true;
     }
 
+    public void updateTitleAndContent(String title, String content) {
+        this.title = title;
+        this.content = content;
+    }
+
     @PrePersist
     public void prePersist() {
         this.createdAt = LocalDateTime.now();
