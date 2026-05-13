@@ -2,6 +2,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'app_language.dart';
 import 'main_screen.dart';
+import 'services/auth_service.dart';
 
 class ChooseLanguageScreen extends StatefulWidget {
   const ChooseLanguageScreen({super.key});
@@ -25,12 +26,11 @@ class _ChooseLanguageScreenState extends State<ChooseLanguageScreen> {
   Future<void> onSelectLanguage() async {
     final code = languages[selectedIndex]['code'] ?? 'ko';
 
-    // 선택한 언어 코드를 SharedPreferences에 저장
-    // final prefs = await SharedPreferences.getInstance(); // → app_language.dart의 AppLanguage.setLang()에서 공통 처리
-    // await prefs.setString('language_pref', code);       // → app_language.dart의 AppLanguage.setLang()에서 공통 처리
-    
-    // 언어 저장 + 전역 언어 상태 업데이트
-    await AppLanguage.setLang(code); // 추가 
+    // 로컬 저장 + 전역 언어 상태 업데이트
+    await AppLanguage.setLang(code);
+
+    // 로그인 상태일 때 서버 DB에도 반영
+    await AuthService.updateLanguage(code);
 
     if (!mounted) return;
     Navigator.pushReplacement(

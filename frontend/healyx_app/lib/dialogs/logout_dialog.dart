@@ -2,7 +2,8 @@
 // 로그아웃 하시겠습니까? 예/아니오 버튼
 import 'package:flutter/material.dart';
 import 'package:healyx_app/menu_screen/menu_main.dart';
-import '../app_language.dart'; 
+import '../app_language.dart';
+import '../services/auth_service.dart';
 
 class LogoutDialog extends StatelessWidget {
   const LogoutDialog({super.key});
@@ -41,8 +42,10 @@ class LogoutDialog extends StatelessWidget {
                   child: SizedBox(
                     height: 46,
                     child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
+                      onPressed: () async {
+                        // 서버 Refresh Token 삭제 + 로컬 토큰 정리
+                        await AuthService.logout();
+                        if (!context.mounted) return;
                         // 로그아웃 → menu_screen/menu_main.dart (비로그인 화면)
                         Navigator.pushAndRemoveUntil(
                           context,

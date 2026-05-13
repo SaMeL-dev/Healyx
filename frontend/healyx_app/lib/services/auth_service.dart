@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 // JSON 데이터를 Dart에서 사용할 수 있게 변환할 때 사용
 import 'package:flutter/foundation.dart';
@@ -176,10 +177,28 @@ class AuthService {
     return prefs.getString('accessToken');
   }
 
-  // 로그아웃할 때 저장된 로그인 정보를 삭제하는 함수
+  // 로그아웃 — 서버에 Refresh Token 삭제 요청 후 로컬 저장소 정리
   static Future<void> logout() async {
-    final prefs = await SharedPreferences.getInstance();
+    final token = await getAccessToken();
+    if (token != null && token.isNotEmpty) {
+      try {
+        final response = await http.post(
+          Uri.parse('$baseUrl/api/auth/logout'),
+          headers: {'Authorization': 'Bearer $token'},
+        ).timeout(const Duration(seconds: 5));
 
+        if (response.statusCode < 200 || response.statusCode >= 300) {
+          throw Exception('Logout failed on server: ${response.statusCode}');
+        }
+      } on TimeoutException {
+        // Network unreachable — clear locally anyway, token expires in 7 days
+      } catch (_) {
+        // Any other error — clear locally so the user is not stuck
+      }
+    }
+
+    // Clear local credentials (runs after 2xx, timeout, or any error)
+    final prefs = await SharedPreferences.getInstance();
     await prefs.remove('accessToken');
     await prefs.remove('refreshToken');
     await prefs.remove('userId');
@@ -188,6 +207,7 @@ class AuthService {
     await prefs.remove('name');
     await prefs.remove('email');
     await prefs.remove('insuranceStatus');
+    await prefs.remove('pushEnabled');
   }
 
   // 이메일 사용 가능 여부 확인 — true: 사용 가능, false: 이미 사용 중
@@ -357,6 +377,52 @@ class AuthService {
         success: false,
         message: AppLanguage.t('server_error'), // '서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.'
       );
+    }
+  }
+
+  // 알림 설정 변경 (JWT 필요) — 성공 여부 반환
+  static Future<bool> updatePushEnabled(bool enabled) async {
+    final token = await getAccessToken();
+    if (token == null || token.isEmpty) return false;
+
+    try {
+      final response = await http.patch(
+        Uri.parse('$baseUrl/api/users/me/push'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'pushEnabled': enabled}),
+      ).timeout(const Duration(seconds: 5));
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('UPDATE_PUSH ERROR: $e');
+      return false;
+    }
+  }
+
+  // 선호 언어 변경 (JWT 필요) — 비로그인 시 로컬 저장만 하므로 null 허용
+  static Future<void> updateLanguage(String languageCode) async {
+    final token = await getAccessToken();
+    if (token == null || token.isEmpty) return;
+
+    try {
+      final response = await http.patch(
+        Uri.parse('$baseUrl/api/users/me/language'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'languageCode': languageCode}),
+      ).timeout(const Duration(seconds: 5));
+
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw Exception(
+          'Language update failed: ${response.statusCode} ${response.body}',
+        );
+      }
+    } catch (e) {
+      debugPrint('UPDATE_LANGUAGE ERROR: $e');
     }
   }
 

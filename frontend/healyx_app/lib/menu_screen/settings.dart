@@ -6,7 +6,9 @@
 import 'package:flutter/material.dart';
 import 'package:healyx_app/choose_language_screen.dart';
 import 'package:healyx_app/dialogs/withdraw_dialog.dart';
-import '../app_language.dart'; 
+import 'package:shared_preferences/shared_preferences.dart';
+import '../app_language.dart';
+import '../services/auth_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   final bool isLoggedIn;
@@ -19,6 +21,40 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   bool _notificationEnabled = true;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.isLoggedIn) _loadPushEnabled();
+  }
+
+  // SharedPreferences에서 저장된 알림 설정값 로드
+  Future<void> _loadPushEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
+    setState(() {
+      _notificationEnabled = prefs.getBool('pushEnabled') ?? true;
+    });
+  }
+
+  // 토글 변경 — 서버 API 호출 후 SharedPreferences 동기화
+  Future<void> _onPushToggle(bool val) async {
+    setState(() => _notificationEnabled = val);
+
+    final success = await AuthService.updatePushEnabled(val);
+    if (!mounted) return;
+
+    if (success) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('pushEnabled', val);
+    } else {
+      // API 실패 시 원래값으로 되돌림
+      setState(() => _notificationEnabled = !val);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLanguage.t('error_retry'))),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +103,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 icon: Icons.notifications_none,
                 label: AppLanguage.t('settings_notification'), // '알림 설정'
                 value: _notificationEnabled,
-                onChanged: (val) => setState(() => _notificationEnabled = val),
+                onChanged: _onPushToggle,
               ),
 
               const Divider(height: 1, thickness: 1, color: Color(0xFFF2F2F2)),
