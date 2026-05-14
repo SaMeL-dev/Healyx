@@ -8,3 +8,6 @@ CLAUDE.md
 
 # === HEALYX 문서 (팀 합의: repo 외 보관) ===
 docs/
+
+# DB 스케마 백업
+schema.sql
