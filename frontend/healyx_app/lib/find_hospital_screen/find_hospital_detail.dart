@@ -192,6 +192,39 @@ class _FindHospitalDetailScreenState extends State<FindHospitalDetailScreen> {
                         ),
                       ),
                     )
+                  else if (_hasError)
+                    Positioned.fill(
+                      child: Align(
+                        alignment: Alignment.bottomCenter,
+                        child: SizedBox(
+                          height: 200,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                AppLanguage.t('hospital_detail_load_error'),
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  color: greyColor,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              TextButton(
+                                onPressed: _fetchDetail,
+                                child: Text(
+                                  AppLanguage.t('retry'),
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: mainBlue,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    )
                   else if (_hasReviews)
                     _buildReviewSheet()
                   else
