@@ -118,11 +118,19 @@ class _FindHospitalDetailScreenState extends State<FindHospitalDetailScreen> {
       return;
     }
 
+    final String? ykiho = widget.ykiho;
+    if (ykiho == null || ykiho.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLanguage.t('hospital_info_unavailable'))),
+      );
+      return;
+    }
+
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => ReviewReceiptUploadScreen(
-          ykiho: widget.ykiho ?? '',
+          ykiho: ykiho,
           hospitalName: widget.hospitalName,
           address: widget.address,
           rating: widget.rating,
