@@ -21,6 +21,7 @@ class FindHospitalDetailScreen extends StatefulWidget {
     required this.hospitalName,
     required this.address,
     required this.rating,
+    this.ykiho,
   });
 
   // true = 리뷰 목록이 있는 병원 상세 화면
@@ -39,6 +40,9 @@ class FindHospitalDetailScreen extends StatefulWidget {
   final String hospitalName;
   final String address;
   final double rating;
+
+  // HIRA 암호화 요양기호 — API 연동 시 병원 리뷰 조회에 사용
+  final String? ykiho;
 
   @override
   State<FindHospitalDetailScreen> createState() =>

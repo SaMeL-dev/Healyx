@@ -305,6 +305,11 @@ class AppLanguage {
       'pw_request_success': '요청이 성공했습니다.',
       'pw_request_fail': '요청에 실패했습니다.',
       'pw_response_parse_error': '서버 응답을 처리하는 중 오류가 발생했습니다.',
+
+      // 리뷰 병원 검색
+      'review_search_all': '전체 검색',
+      'review_search_no_result': '검색 결과가 없습니다.',
+      'review_search_error': '검색 중 오류가 발생했습니다.',
     },
 
     'en': {
@@ -578,6 +583,11 @@ class AppLanguage {
       'pw_request_success': 'Request successful.',
       'pw_request_fail': 'Request failed.',
       'pw_response_parse_error': 'An error occurred while processing the server response.',
+
+      // 리뷰 병원 검색
+      'review_search_all': 'Search All',
+      'review_search_no_result': 'No results found.',
+      'review_search_error': 'An error occurred while searching.',
     },
 
     'zh': {
@@ -852,6 +862,11 @@ class AppLanguage {
       'pw_request_success': '请求成功。',
       'pw_request_fail': '请求失败。',
       'pw_response_parse_error': '处理服务器响应时出现错误。',
+
+      // 리뷰 병원 검색
+      'review_search_all': '全部搜索',
+      'review_search_no_result': '未找到搜索结果。',
+      'review_search_error': '搜索过程中发生错误。',
     },
 
     'ja': {
@@ -1125,6 +1140,11 @@ class AppLanguage {
      'pw_request_success': 'リクエストが成功しました。',
      'pw_request_fail': 'リクエストに失敗しました。',
      'pw_response_parse_error': 'サーバーレスポンスの処理中にエラーが発生しました。',
+
+      // 리뷰 병원 검색
+      'review_search_all': '全体検索',
+      'review_search_no_result': '検索結果がありません。',
+      'review_search_error': '検索中にエラーが発生しました。',
     },
 
     'vi': {
@@ -1397,6 +1417,11 @@ class AppLanguage {
      'pw_request_success': 'Yêu cầu thành công.',
      'pw_request_fail': 'Yêu cầu thất bại.',
      'pw_response_parse_error': 'Đã xảy ra lỗi khi xử lý phản hồi máy chủ.',
+
+      // 리뷰 병원 검색
+      'review_search_all': 'Tìm kiếm tất cả',
+      'review_search_no_result': 'Không tìm thấy kết quả.',
+      'review_search_error': 'Đã xảy ra lỗi trong quá trình tìm kiếm.',
     },
 
     'th': {
@@ -1672,6 +1697,11 @@ class AppLanguage {
      'pw_request_success': 'คำขอสำเร็จ',
      'pw_request_fail': 'คำขอล้มเหลว',
      'pw_response_parse_error': 'เกิดข้อผิดพลาดขณะประมวลผลการตอบสนองของเซิร์ฟเวอร์',
+
+      // 리뷰 병원 검색
+      'review_search_all': 'ค้นหาทั้งหมด',
+      'review_search_no_result': 'ไม่พบผลลัพธ์',
+      'review_search_error': 'เกิดข้อผิดพลาดขณะค้นหา',
     },
   };
 }
