@@ -14,4 +14,6 @@ public class LoginResponse {
     private String name;
     private String email;
     private boolean insuranceStatus;
+    private boolean pushEnabled;
+    private String language;
 }

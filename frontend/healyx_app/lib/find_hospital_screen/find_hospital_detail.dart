@@ -1,8 +1,7 @@
 ﻿// 병원 찾기 상세 화면
-// 로그인에 따라 리뷰쓰기 버튼 클릭 시 로그인 팝업 또는 리뷰 작성 화면으로 분기 (테스트용)
 // 리뷰쓰기 버튼 클릭 시 accessToken 유무로 로그인 상태를 판단함
 import 'package:flutter/material.dart';
-import 'package:healyx_app/app_language.dart'; 
+import 'package:healyx_app/app_language.dart';
 
 import '../review_screen/review_receipt_upload.dart';
 import '../review_screen/widgets/review_card.dart';
@@ -11,6 +10,7 @@ import 'widgets/hospital_review_header.dart';
 import '../../dialogs/login_required_dialog.dart';
 import '../../dialogs/duplicate_review_dialog.dart';
 import '../services/auth_service.dart';
+import '../services/review_service.dart';
 
 class FindHospitalDetailScreen extends StatefulWidget {
   const FindHospitalDetailScreen({
@@ -21,6 +21,7 @@ class FindHospitalDetailScreen extends StatefulWidget {
     required this.hospitalName,
     required this.address,
     required this.rating,
+    this.ykiho,
   });
 
   // true = 리뷰 목록이 있는 병원 상세 화면
@@ -40,55 +41,56 @@ class FindHospitalDetailScreen extends StatefulWidget {
   final String address;
   final double rating;
 
+  // HIRA 암호화 요양기호 — API 연동 시 병원 리뷰 조회에 사용
+  final String? ykiho;
+
   @override
   State<FindHospitalDetailScreen> createState() =>
       _FindHospitalDetailScreenState();
 }
 
 class _FindHospitalDetailScreenState extends State<FindHospitalDetailScreen> {
-  final Color mainBlue = const Color(0xFF2260FF);
-  final Color lightBlue = const Color(0xFFCAD6FF);
-  final Color softBg = const Color(0xFFECF1FF);
-  final Color lineColor = const Color(0xFF4378FF);
-  final Color greyColor = const Color(0xFF7E7E7E);
+  static const Color mainBlue = Color(0xFF2260FF);
+  static const Color lightBlue = Color(0xFFCAD6FF);
+  static const Color softBg = Color(0xFFECF1FF);
+  static const Color lineColor = Color(0xFF4378FF);
+  static const Color greyColor = Color(0xFF7E7E7E);
 
-  // TODO: 현재는 UI 확인용 더미 데이터
-  // 추후 API 연동 시 서버 리뷰 목록으로 교체
-  final List<ReviewData> _reviewList = [
-    ReviewData(
-      nickname: '닉네임123',
-      content: '의사 선생님이 친절하고 시설이 깨끗해요',
-      rating: '5',
-      hasImages: false,
-    ),
-    ReviewData(
-      nickname: '닉네임456',
-      content:
-          '무엇보다 병원은 진료 자체는 매우 만족스러웠습니다. 제공받은 안내도 친절했고, 직원분들도 외국인 환자에게 설명을 잘해줬습니다.',
-      rating: '3',
-      hasImages: true,
-      imageCount: 4,
-    ),
-    ReviewData(
-      nickname: '닉네임789',
-      content: '대기 시간이 조금 있었지만 안내가 잘 되어 있어서 이용하기 편했습니다.',
-      rating: '4',
-      hasImages: false,
-    ),
-    ReviewData(
-      nickname: '닉네임101',
-      content: '접수부터 진료까지 전반적으로 깔끔했고, 필요한 설명을 차분하게 해주셔서 좋았습니다.',
-      rating: '5',
-      hasImages: true,
-      imageCount: 3,
-    ),
-    ReviewData(
-      nickname: '닉네임202',
-      content: '시설이 깨끗하고 위치도 찾기 쉬웠습니다. 다음에도 이용할 것 같아요.',
-      rating: '4',
-      hasImages: false,
-    ),
-  ];
+  HospitalDetailData? _detail;
+  bool _isLoading = false;
+  bool _hasError = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.ykiho != null && widget.ykiho!.isNotEmpty) {
+      _isLoading = true; // initState에서 직접 대입 → 첫 build 시 로딩 상태로 시작
+      _fetchDetail();
+    }
+  }
+
+  Future<void> _fetchDetail() async {
+    if (!mounted) return;
+    setState(() {
+      _isLoading = true;
+      _hasError = false;
+    });
+    try {
+      final detail = await ReviewService.getHospitalDetail(widget.ykiho!);
+      if (!mounted) return;
+      setState(() {
+        _detail = detail;
+        _isLoading = false;
+      });
+    } catch (e) {
+      debugPrint('FETCH_HOSPITAL_DETAIL ERROR: $e');
+      if (!mounted) return;
+      setState(() {
+        _hasError = true;
+        _isLoading = false;
+      });
+    }
+  }
 
   Future<void> _handleWriteReview() async {
     final loggedIn = await AuthService.isLoggedIn();
@@ -104,10 +106,8 @@ class _FindHospitalDetailScreenState extends State<FindHospitalDetailScreen> {
       return;
     }
 
-    // TODO: 추후 병원 리뷰 작성 여부 API 응답값으로 교체
-    // true = 해당 병원에 이미 리뷰 작성함 (중복 팝업)
-    // false = 리뷰 작성 가능
-    final bool hasAlreadyReviewed = false;
+    // API 응답의 myReviewExists로 중복 리뷰 여부 판단
+    final bool hasAlreadyReviewed = _detail?.myReviewExists ?? false;
 
     if (hasAlreadyReviewed) {
       showDialog(
@@ -118,10 +118,19 @@ class _FindHospitalDetailScreenState extends State<FindHospitalDetailScreen> {
       return;
     }
 
+    final String? ykiho = widget.ykiho;
+    if (ykiho == null || ykiho.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLanguage.t('hospital_info_unavailable'))),
+      );
+      return;
+    }
+
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => ReviewReceiptUploadScreen(
+          ykiho: ykiho,
           hospitalName: widget.hospitalName,
           address: widget.address,
           rating: widget.rating,
@@ -156,10 +165,8 @@ class _FindHospitalDetailScreenState extends State<FindHospitalDetailScreen> {
 
                           // 리뷰 갯수 + 리뷰쓰기 버튼 (고정)
                           HospitalReviewHeader(
-                            hasReview: widget.hasReview,
-                            reviewCount: widget.hasReview
-                                ? _reviewList.length
-                                : 0,
+                            hasReview: _hasReviews,
+                            reviewCount: _detail?.reviewCount ?? 0,
                             mainBlue: mainBlue,
                             onPressed: _handleWriteReview,
                           ),
@@ -170,14 +177,62 @@ class _FindHospitalDetailScreenState extends State<FindHospitalDetailScreen> {
                     ),
                   ),
 
-                  // 리뷰 영역만 스크롤
-                  widget.hasReview
-                      ? _buildReviewSheet()
-                      : HospitalEmptyReviewView(
-                          lightBlue: lightBlue,
-                          mainBlue: mainBlue,
-                          onWriteReview: _handleWriteReview,
+                  // 리뷰 영역 — 로딩/에러/빈 상태 처리
+                  if (_isLoading)
+                    const Positioned.fill(
+                      child: Align(
+                        alignment: Alignment.bottomCenter,
+                        child: SizedBox(
+                          height: 200,
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              color: mainBlue,
+                            ),
+                          ),
                         ),
+                      ),
+                    )
+                  else if (_hasError)
+                    Positioned.fill(
+                      child: Align(
+                        alignment: Alignment.bottomCenter,
+                        child: SizedBox(
+                          height: 200,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                AppLanguage.t('hospital_detail_load_error'),
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  color: greyColor,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              TextButton(
+                                onPressed: _fetchDetail,
+                                child: Text(
+                                  AppLanguage.t('retry'),
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: mainBlue,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    )
+                  else if (_hasReviews)
+                    _buildReviewSheet()
+                  else
+                    HospitalEmptyReviewView(
+                      lightBlue: lightBlue,
+                      mainBlue: mainBlue,
+                      onWriteReview: _handleWriteReview,
+                    ),
                 ],
               ),
             ),
@@ -251,7 +306,7 @@ class _FindHospitalDetailScreenState extends State<FindHospitalDetailScreen> {
                 style: const TextStyle(fontSize: 12, color: Colors.black87),
               ),
               const SizedBox(height: 10),
-              _buildRatingChip(widget.rating),
+              _buildRatingChip(_detail?.averageRating ?? widget.rating),
             ],
           ),
         ],
@@ -290,15 +345,21 @@ class _FindHospitalDetailScreenState extends State<FindHospitalDetailScreen> {
   }
 
   Widget _buildHospitalInfo() {
+    final type = _detail?.hospitalType ?? '';
+    final phone = _detail?.telephone ?? '';
     return Column(
       children: [
-        Divider(color: lineColor, thickness: 1),
+        const Divider(color: lineColor, thickness: 1),
         const SizedBox(height: 16),
-        _infoRow(AppLanguage.t('hospital_type_label'), widget.hasReview ? '대학병원' : '의원'), // '병원 타입'
-        const SizedBox(height: 16),
-        _infoRow(AppLanguage.t('hospital_phone_label'), '02-0000-0000'), // '전화번호'
-        const SizedBox(height: 18),
-        Divider(color: lineColor, thickness: 1),
+        if (type.isNotEmpty) ...[
+          _infoRow(AppLanguage.t('hospital_type_label'), type),
+          const SizedBox(height: 16),
+        ],
+        if (phone.isNotEmpty) ...[
+          _infoRow(AppLanguage.t('hospital_phone_label'), phone),
+          const SizedBox(height: 18),
+        ],
+        const Divider(color: lineColor, thickness: 1),
       ],
     );
   }
@@ -327,7 +388,20 @@ class _FindHospitalDetailScreenState extends State<FindHospitalDetailScreen> {
     );
   }
 
+  // API 리뷰 목록 → ReviewCard에 필요한 ReviewData로 변환
+  List<ReviewData> get _reviewDataList =>
+      (_detail?.reviews ?? []).map((item) => ReviewData(
+            nickname: item.nickname,
+            content: item.content,
+            rating: item.rating,
+            imageUrls: item.imageUrls,
+          )).toList();
+
+  bool get _hasReviews =>
+      _detail != null && _detail!.reviews.isNotEmpty;
+
   Widget _buildReviewSheet() {
+    final reviews = _reviewDataList;
     return DraggableScrollableSheet(
       initialChildSize: 0.48,
       minChildSize: 0.34,
@@ -336,15 +410,15 @@ class _FindHospitalDetailScreenState extends State<FindHospitalDetailScreen> {
         return Container(
           width: double.infinity,
           padding: const EdgeInsets.fromLTRB(12, 14, 12, 14),
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             color: lightBlue,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
           ),
           child: ListView.separated(
             controller: controller,
-            itemCount: _reviewList.length + 1,
-            separatorBuilder: (context, index) => const SizedBox(height: 12),
-            itemBuilder: (context, index) {
+            itemCount: reviews.length + 1,
+            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            itemBuilder: (_, index) {
               if (index == 0) {
                 return Center(
                   child: Container(
@@ -358,13 +432,7 @@ class _FindHospitalDetailScreenState extends State<FindHospitalDetailScreen> {
                   ),
                 );
               }
-
-              // 임시(더미) 리뷰 데이터 가져오기
-              final review = _reviewList[index - 1];
-
-              // review_card.dart에 만든 카드 UI 연결 부분
-              // 리뷰 1개마다 카드 형태로 반복 출력됨
-              return ReviewCard(review: review);
+              return ReviewCard(review: reviews[index - 1]);
             },
           ),
         );

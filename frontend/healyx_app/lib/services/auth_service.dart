@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 // JSON 데이터를 Dart에서 사용할 수 있게 변환할 때 사용
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -139,6 +140,17 @@ class AuthService {
 
         if (data['insuranceStatus'] != null) {
           await prefs.setBool('insuranceStatus', data['insuranceStatus']);
+        }
+
+        // 서버에 저장된 pushEnabled 값으로 덮어쓰기 (로그아웃 후 재로그인 시 설정 유지)
+        if (data['pushEnabled'] != null) {
+          await prefs.setBool('pushEnabled', data['pushEnabled']);
+        }
+
+        // 서버에 저장된 선호 언어로 앱 전체 언어 변경
+        final String? preferredLanguage = data['preferredLanguage'];
+        if (preferredLanguage != null && preferredLanguage.isNotEmpty) {
+          await AppLanguage.setLang(preferredLanguage);
         }
 
 
@@ -378,6 +390,63 @@ class AuthService {
         message: AppLanguage.t('server_error'), // '서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.'
       );
     }
+  }
+
+  // 로컬 인증 데이터 삭제 — 서버 호출 없이 SharedPreferences만 정리
+  static Future<void> clearLocalCredentials() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('accessToken');
+    await prefs.remove('refreshToken');
+    await prefs.remove('userId');
+    await prefs.remove('username');
+    await prefs.remove('nickname');
+    await prefs.remove('name');
+    await prefs.remove('email');
+    await prefs.remove('insuranceStatus');
+    await prefs.remove('pushEnabled');
+  }
+
+  // Access Token 갱신 — Refresh Token으로 새 Access Token 발급
+  // 성공 시 새 accessToken을 SharedPreferences에 저장 후 반환, 실패 시 null
+  // Refresh Token 서버 거부(4xx) 시 로컬 자격증명 즉시 삭제
+  static Future<String?> refreshAccessToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    final refreshToken = prefs.getString('refreshToken');
+    if (refreshToken == null || refreshToken.isEmpty) return null;
+
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/auth/refresh'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'refreshToken': refreshToken}),
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final decoded = utf8.decode(response.bodyBytes);
+        final data = jsonDecode(decoded);
+        final newAccessToken = data['data']?['accessToken'] as String?;
+        if (newAccessToken != null && newAccessToken.isNotEmpty) {
+          await prefs.setString('accessToken', newAccessToken);
+          return newAccessToken;
+        }
+      } else if (response.statusCode == 401 || response.statusCode == 400) {
+        // 서버가 Refresh Token을 거부 — 세션 완전 만료, 로컬 자격증명 삭제
+        debugPrint('REFRESH_TOKEN: session invalidated (${response.statusCode}), clearing local credentials');
+        await clearLocalCredentials();
+      }
+    } on SocketException catch (e) {
+      // 네트워크 연결 오류 — 일시적 장애이므로 호출자가 재시도/안내 처리
+      debugPrint('REFRESH_TOKEN NETWORK ERROR: $e');
+      throw Exception('network_error');
+    } on TimeoutException catch (e) {
+      // 요청 타임아웃 — 일시적 장애이므로 호출자가 재시도/안내 처리
+      debugPrint('REFRESH_TOKEN TIMEOUT: $e');
+      throw Exception('network_error');
+    } catch (e) {
+      // 그 외 예외(파싱 오류 등) — 인증 오류와 동일하게 null 반환
+      debugPrint('REFRESH_TOKEN ERROR: $e');
+    }
+    return null;
   }
 
   // 알림 설정 변경 (JWT 필요) — 성공 여부 반환
