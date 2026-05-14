@@ -23,4 +23,5 @@ public class PostDetailResponse {
     private List<String> imageUrls;
     private boolean myLikeExists;     // PR-3에서 채워짐, 현재는 항상 false
     private boolean myBookmarkExists; // PR-3에서 채워짐, 현재는 항상 false
+    private List<CommentResponse> comments;
 }

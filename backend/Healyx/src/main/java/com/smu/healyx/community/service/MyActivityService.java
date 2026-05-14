@@ -55,7 +55,7 @@ public class MyActivityService {
         communityPostRepository.delete(post);
     }
 
-    /** 내 댓글 삭제 — 대댓글 먼저 삭제 후 하드 삭제 */
+    /** 내 댓글 삭제 — 활성 대댓글 있으면 소프트 삭제, 없으면 하드 삭제 */
     @Transactional
     public void deleteMyComment(Long userId, Long commentId) {
         CommunityComment comment = communityCommentRepository.findById(commentId)
@@ -65,9 +65,14 @@ public class MyActivityService {
             throw new AuthException("ACCESS_DENIED", "해당 댓글을 삭제할 권한이 없습니다.", HttpStatus.FORBIDDEN);
         }
 
-        // FK 제약 오류 방지: 대댓글 먼저 삭제
-        communityCommentRepository.deleteByParentComment_CommentId(commentId);
-        communityCommentRepository.delete(comment);
+        boolean hasActiveReplies = !communityCommentRepository
+                .findByParentComment_CommentIdAndIsDeletedFalse(commentId).isEmpty();
+
+        if (hasActiveReplies) {
+            comment.softDelete();
+        } else {
+            communityCommentRepository.delete(comment);
+        }
     }
 
     /** 내가 쓴 댓글 목록 — 삭제 제외, 최신순 */
