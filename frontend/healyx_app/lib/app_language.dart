@@ -215,6 +215,8 @@ class AppLanguage {
       'review_receipt_preview': '영수증 미리보기',
       'review_receipt_check_image': '인증할 영수증 이미지를 확인해주세요.',
       'review_receipt_verifying': '영수증을 확인중입니다...',
+      'session_expired_title': '세션이 만료되었습니다',
+      'session_expired_message': '로그인 세션이 만료되었습니다. 다시 로그인해 주세요.',
       'review_receipt_select_method': '영수증 인증 방식을 선택해주세요.',
       'review_upload_camera_title': '카메라 촬영',
       'review_upload_camera_subtitle': '영수증을 촬영하세요',
@@ -229,6 +231,8 @@ class AppLanguage {
       'review_photo_label': '사진 첨부 (최대 5장)',
       'review_submit': '등록',
       'review_submitted': '리뷰가 등록되었습니다.',
+      'review_duplicate_error': '이미 이 병원에 리뷰를 작성하셨습니다.',
+      'review_submit_error': '리뷰 등록에 실패했습니다. 다시 시도해주세요.',
 
       // 커뮤니티
       'community_banner_text': '병원 / 약 / 번역 관련해서\n서로 소통해보세요!',
@@ -493,6 +497,8 @@ class AppLanguage {
       'review_receipt_preview': 'Receipt Preview',
       'review_receipt_check_image': 'Please check the receipt image to verify.',
       'review_receipt_verifying': 'Verifying receipt...',
+      'session_expired_title': 'Session Expired',
+      'session_expired_message': 'Your login session has expired. Please log in again.',
       'review_receipt_select_method': 'Please select a receipt verification method.',
       'review_upload_camera_title': 'Take Photo',
       'review_upload_camera_subtitle': 'Take a photo of the receipt',
@@ -507,6 +513,8 @@ class AppLanguage {
       'review_photo_label': 'Attach photos (max 5)',
       'review_submit': 'Submit',
       'review_submitted': 'Review has been submitted.',
+      'review_duplicate_error': 'You have already written a review for this hospital.',
+      'review_submit_error': 'Failed to submit review. Please try again.',
 
       // 커뮤니티
       'community_banner_text': 'Communicate with others\nabout hospitals, medicine, and translation!',
@@ -771,6 +779,8 @@ class AppLanguage {
       'review_receipt_preview': '收据预览',
       'review_receipt_check_image': '请确认要验证的收据图片。',
       'review_receipt_verifying': '正在确认收据...',
+      'session_expired_title': '会话已过期',
+      'session_expired_message': '登录会话已过期，请重新登录。',
       'review_receipt_select_method': '请选择收据验证方式。',
       'review_upload_camera_title': '拍照',
       'review_upload_camera_subtitle': '请拍摄收据',
@@ -785,6 +795,8 @@ class AppLanguage {
       'review_photo_label': '附上照片（最多5张）',
       'review_submit': '注册',
       'review_submitted': '评价已注册。',
+      'review_duplicate_error': '您已经为该医院写过评价了。',
+      'review_submit_error': '评价注册失败，请重试。',
 
       // 커뮤니티
       'community_banner_text': '关于医院、药物、翻译\n互相交流吧！',
@@ -1050,6 +1062,8 @@ class AppLanguage {
       'review_receipt_preview': '領収書プレビュー',
       'review_receipt_check_image': '認証する領収書の画像を確認してください。',
       'review_receipt_verifying': '領収書を確認中です...',
+      'session_expired_title': 'セッションが期限切れです',
+      'session_expired_message': 'ログインセッションが期限切れになりました。再度ログインしてください。',
       'review_receipt_select_method': '領収書の認証方法を選択してください。',
       'review_upload_camera_title': 'カメラ撮影',
       'review_upload_camera_subtitle': '領収書を撮影してください',
@@ -1064,6 +1078,8 @@ class AppLanguage {
       'review_photo_label': '写真添付（最大5枚）',
       'review_submit': '登録',
       'review_submitted': 'レビューが登録されました。',
+      'review_duplicate_error': 'この病院にはすでにレビューを書いています。',
+      'review_submit_error': 'レビューの登録に失敗しました。もう一度お試しください。',
 
       // 커뮤니티
       'community_banner_text': '病院・薬・翻訳について\nお互いに交流しましょう！',
@@ -1327,6 +1343,8 @@ class AppLanguage {
       'review_receipt_preview': 'Xem trước hóa đơn',
       'review_receipt_check_image': 'Vui lòng kiểm tra ảnh hóa đơn cần xác minh.',
       'review_receipt_verifying': 'Đang xác minh hóa đơn...',
+      'session_expired_title': 'Phiên đã hết hạn',
+      'session_expired_message': 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',
       'review_receipt_select_method': 'Vui lòng chọn phương thức xác minh hóa đơn.',
       'review_upload_camera_title': 'Chụp ảnh',
       'review_upload_camera_subtitle': 'Chụp ảnh hóa đơn',
@@ -1341,6 +1359,8 @@ class AppLanguage {
       'review_photo_label': 'Đính kèm ảnh (tối đa 5)',
       'review_submit': 'Đăng',
       'review_submitted': 'Đánh giá đã được đăng.',
+      'review_duplicate_error': 'Bạn đã viết đánh giá cho bệnh viện này rồi.',
+      'review_submit_error': 'Đăng đánh giá thất bại. Vui lòng thử lại.',
 
       // 커뮤니티
       'community_banner_text': 'Hãy giao lưu với nhau\nvề bệnh viện, thuốc và dịch thuật!',
@@ -1607,6 +1627,8 @@ class AppLanguage {
       'review_receipt_preview': 'ตัวอย่างใบเสร็จ',
       'review_receipt_check_image': 'กรุณาตรวจสอบภาพใบเสร็จที่ต้องการยืนยัน',
       'review_receipt_verifying': 'กำลังตรวจสอบใบเสร็จ...',
+      'session_expired_title': 'เซสชันหมดอายุ',
+      'session_expired_message': 'เซสชันการเข้าสู่ระบบหมดอายุแล้ว กรุณาเข้าสู่ระบบใหม่',
       'review_receipt_select_method': 'กรุณาเลือกวิธีการยืนยันใบเสร็จ',
       'review_upload_camera_title': 'ถ่ายภาพ',
       'review_upload_camera_subtitle': 'ถ่ายภาพใบเสร็จ',
@@ -1621,6 +1643,8 @@ class AppLanguage {
       'review_photo_label': 'แนบรูปภาพ (สูงสุด 5 รูป)',
       'review_submit': 'ลงทะเบียน',
       'review_submitted': 'รีวิวได้รับการลงทะเบียนแล้ว',
+      'review_duplicate_error': 'คุณได้เขียนรีวิวสำหรับโรงพยาบาลนี้แล้ว',
+      'review_submit_error': 'การลงทะเบียนรีวิวล้มเหลว กรุณาลองใหม่อีกครั้ง',
 
       // 커뮤니티
       'community_banner_text': 'มาพูดคุยกันเกี่ยวกับ\nโรงพยาบาล ยา และการแปล!',

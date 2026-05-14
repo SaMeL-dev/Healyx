@@ -391,6 +391,54 @@ class AuthService {
     }
   }
 
+  // 로컬 인증 데이터 삭제 — 서버 호출 없이 SharedPreferences만 정리
+  static Future<void> clearLocalCredentials() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('accessToken');
+    await prefs.remove('refreshToken');
+    await prefs.remove('userId');
+    await prefs.remove('username');
+    await prefs.remove('nickname');
+    await prefs.remove('name');
+    await prefs.remove('email');
+    await prefs.remove('insuranceStatus');
+    await prefs.remove('pushEnabled');
+  }
+
+  // Access Token 갱신 — Refresh Token으로 새 Access Token 발급
+  // 성공 시 새 accessToken을 SharedPreferences에 저장 후 반환, 실패 시 null
+  // Refresh Token 서버 거부(4xx) 시 로컬 자격증명 즉시 삭제
+  static Future<String?> refreshAccessToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    final refreshToken = prefs.getString('refreshToken');
+    if (refreshToken == null || refreshToken.isEmpty) return null;
+
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/auth/refresh'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'refreshToken': refreshToken}),
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final decoded = utf8.decode(response.bodyBytes);
+        final data = jsonDecode(decoded);
+        final newAccessToken = data['data']?['accessToken'] as String?;
+        if (newAccessToken != null && newAccessToken.isNotEmpty) {
+          await prefs.setString('accessToken', newAccessToken);
+          return newAccessToken;
+        }
+      } else if (response.statusCode == 401 || response.statusCode == 400) {
+        // 서버가 Refresh Token을 거부 — 세션 완전 만료, 로컬 자격증명 삭제
+        debugPrint('REFRESH_TOKEN: session invalidated (${response.statusCode}), clearing local credentials');
+        await clearLocalCredentials();
+      }
+    } catch (e) {
+      debugPrint('REFRESH_TOKEN ERROR: $e');
+    }
+    return null;
+  }
+
   // 알림 설정 변경 (JWT 필요) — 성공 여부 반환
   static Future<bool> updatePushEnabled(bool enabled) async {
     final token = await getAccessToken();

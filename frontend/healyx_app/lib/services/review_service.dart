@@ -215,6 +215,92 @@ class ReviewService {
     throw Exception('HTTP ${response.statusCode}');
   }
 
+  // 영수증 OCR 인증 — POST /api/reviews/ocr (multipart: receiptImage, ykiho)
+  // 성공 시 서버가 Redis에 10분간 인증 상태 저장
+  // 401 수신 시 토큰 갱신 후 1회 재시도
+  static Future<bool> verifyReceipt(String ykiho, String imagePath) async {
+    String? token = await AuthService.getAccessToken();
+    debugPrint('VERIFY_RECEIPT token=${token != null ? "exists(${token.length}chars)" : "NULL"}');
+    if (token == null || token.isEmpty) throw Exception('not_logged_in');
+
+    Future<http.Response> _doRequest(String t) async {
+      final uri = Uri.parse('$_baseUrl/api/reviews/ocr');
+      final request = http.MultipartRequest('POST', uri)
+        ..headers['Authorization'] = 'Bearer $t'
+        ..fields['ykiho'] = ykiho
+        ..files.add(await http.MultipartFile.fromPath('receiptImage', imagePath));
+      final streamed = await request.send().timeout(const Duration(seconds: 30));
+      return http.Response.fromStream(streamed);
+    }
+
+    var response = await _doRequest(token);
+    debugPrint('VERIFY_RECEIPT first attempt: ${response.statusCode}');
+
+    // Access Token 만료 시 갱신 후 재시도
+    if (response.statusCode == 401) {
+      debugPrint('VERIFY_RECEIPT 401 → attempting token refresh');
+      final newToken = await AuthService.refreshAccessToken();
+      debugPrint('VERIFY_RECEIPT refresh result: ${newToken != null ? "success" : "FAILED"}');
+      if (newToken == null) throw Exception('not_logged_in');
+      response = await _doRequest(newToken);
+      debugPrint('VERIFY_RECEIPT retry: ${response.statusCode}');
+    }
+
+    if (response.statusCode == 200) return true;
+    debugPrint('VERIFY_RECEIPT HTTP ${response.statusCode}: ${response.body}');
+    return false;
+  }
+
+  // 리뷰 등록 — POST /api/reviews (multipart: ykiho, rating, content?, images?)
+  // OCR 인증 완료(Redis) 후 호출해야 하며, 이미지 최대 5장
+  // 401 수신 시 토큰 갱신 후 1회 재시도
+  static Future<void> submitReview({
+    required String ykiho,
+    required int rating,
+    String? content,
+    List<String> imagePaths = const [],
+  }) async {
+    String? token = await AuthService.getAccessToken();
+    if (token == null || token.isEmpty) throw Exception('not_logged_in');
+
+    Future<http.Response> _doRequest(String t) async {
+      final uri = Uri.parse('$_baseUrl/api/reviews');
+      final request = http.MultipartRequest('POST', uri)
+        ..headers['Authorization'] = 'Bearer $t'
+        ..fields['ykiho'] = ykiho
+        ..fields['rating'] = rating.toString();
+
+      if (content != null && content.isNotEmpty) {
+        request.fields['content'] = content;
+      }
+
+      for (final path in imagePaths) {
+        request.files.add(await http.MultipartFile.fromPath('images', path));
+      }
+
+      final streamed = await request.send().timeout(const Duration(seconds: 30));
+      return http.Response.fromStream(streamed);
+    }
+
+    var response = await _doRequest(token);
+
+    // Access Token 만료 시 갱신 후 재시도
+    if (response.statusCode == 401) {
+      final newToken = await AuthService.refreshAccessToken();
+      if (newToken == null) throw Exception('not_logged_in');
+      response = await _doRequest(newToken);
+    }
+
+    if (response.statusCode == 200 || response.statusCode == 201) return;
+
+    final decoded = utf8.decode(response.bodyBytes);
+    debugPrint('SUBMIT_REVIEW HTTP ${response.statusCode}: $decoded');
+
+    // 중복 리뷰 등록 시도 (409)
+    if (response.statusCode == 409) throw Exception('duplicate_review');
+    throw Exception('HTTP ${response.statusCode}');
+  }
+
   // 내 리뷰 목록 조회
   static Future<List<MyReviewData>> getMyReviews() async {
     try {

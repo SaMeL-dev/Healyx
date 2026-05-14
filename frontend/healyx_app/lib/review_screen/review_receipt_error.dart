@@ -11,6 +11,7 @@ class ReviewReceiptErrorScreen extends StatefulWidget {
   final bool isCameraError;
 
   // 이전 화면에서 전달받은 선택 병원 정보
+  final String ykiho;
   final String hospitalName;
   final String address;
   final double rating;
@@ -20,6 +21,7 @@ class ReviewReceiptErrorScreen extends StatefulWidget {
   const ReviewReceiptErrorScreen({
     super.key,
     required this.isCameraError,
+    required this.ykiho,
     required this.hospitalName,
     required this.address,
     required this.rating,
@@ -51,8 +53,7 @@ class _ReviewReceiptErrorScreenState extends State<ReviewReceiptErrorScreen> {
         builder: (context) => ReviewReceiptLoadingScreen(
           isFromCamera: widget.isCameraError,
           imagePath: image.path,
-
-          // 병원 정보 유지
+          ykiho: widget.ykiho,
           hospitalName: widget.hospitalName,
           address: widget.address,
           rating: widget.rating,

@@ -122,6 +122,7 @@ class _FindHospitalDetailScreenState extends State<FindHospitalDetailScreen> {
       context,
       MaterialPageRoute(
         builder: (context) => ReviewReceiptUploadScreen(
+          ykiho: widget.ykiho ?? '',
           hospitalName: widget.hospitalName,
           address: widget.address,
           rating: widget.rating,
