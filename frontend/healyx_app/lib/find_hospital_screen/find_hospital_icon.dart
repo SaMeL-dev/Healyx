@@ -9,7 +9,9 @@ class FindHospitalIcon extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const PainScoreSlide(),
+        builder: (context) => const PainScoreSlide(
+          symptom: '두통',
+        ),
       ),
     );
   }

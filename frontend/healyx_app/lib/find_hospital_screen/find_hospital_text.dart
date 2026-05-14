@@ -1,5 +1,6 @@
 ﻿import 'package:flutter/material.dart';
-import 'package:healyx_app/app_language.dart'; 
+import 'package:healyx_app/app_language.dart';
+
 import 'pain_score_slide.dart';
 
 class FindHospitalText extends StatefulWidget {
@@ -15,6 +16,7 @@ class _FindHospitalTextState extends State<FindHospitalText> {
   @override
   void initState() {
     super.initState();
+
     _symptomController.addListener(() {
       setState(() {});
     });
@@ -26,10 +28,24 @@ class _FindHospitalTextState extends State<FindHospitalText> {
     super.dispose();
   }
 
+  void _goToPainScoreSlide() {
+    final symptom = _symptomController.text.trim();
+
+    if (symptom.isEmpty) return;
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PainScoreSlide(
+          symptom: symptom,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final bool isConfirmEnabled =
-        _symptomController.text.trim().isNotEmpty;
+    final bool isConfirmEnabled = _symptomController.text.trim().isNotEmpty;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF3F4F8),
@@ -50,10 +66,10 @@ class _FindHospitalTextState extends State<FindHospitalText> {
                       size: 22,
                     ),
                   ),
-                  Expanded( 
+                  Expanded(
                     child: Center(
                       child: Text(
-                        AppLanguage.t('find_hospital'), // '병원 찾기'
+                        AppLanguage.t('find_hospital'),
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w800,
@@ -66,16 +82,20 @@ class _FindHospitalTextState extends State<FindHospitalText> {
                 ],
               ),
             ),
+
             const SizedBox(height: 90),
-            Text( 
-              AppLanguage.t('symptom_text_prompt'), // '귀하의 증상을 글로 적어주세요'
+
+            Text(
+              AppLanguage.t('symptom_text_prompt'),
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
                 color: Color(0xFF2260FF),
               ),
             ),
+
             const SizedBox(height: 18),
+
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 30),
               child: Container(
@@ -90,8 +110,8 @@ class _FindHospitalTextState extends State<FindHospitalText> {
                   maxLines: null,
                   expands: true,
                   textAlignVertical: TextAlignVertical.top,
-                  decoration: InputDecoration( // 수정
-                    hintText: AppLanguage.t('symptom_text_hint'), // '증상을 입력해주세요.'
+                  decoration: InputDecoration(
+                    hintText: AppLanguage.t('symptom_text_hint'),
                     hintStyle: const TextStyle(
                       color: Colors.black38,
                       fontSize: 16,
@@ -107,23 +127,16 @@ class _FindHospitalTextState extends State<FindHospitalText> {
                 ),
               ),
             ),
+
             const Spacer(),
+
             Padding(
               padding: const EdgeInsets.only(bottom: 110),
               child: SizedBox(
                 width: 118,
                 height: 48,
                 child: ElevatedButton(
-                  onPressed: isConfirmEnabled
-                      ? () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const PainScoreSlide(),
-                      ),
-                    );
-                  }
-                      : null,
+                  onPressed: isConfirmEnabled ? _goToPainScoreSlide : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF2260FF),
                     foregroundColor: Colors.white,
@@ -134,8 +147,8 @@ class _FindHospitalTextState extends State<FindHospitalText> {
                       borderRadius: BorderRadius.circular(30),
                     ),
                   ),
-                  child: Text( 
-                    AppLanguage.t('confirm'), // '확인'
+                  child: Text(
+                    AppLanguage.t('confirm'),
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,

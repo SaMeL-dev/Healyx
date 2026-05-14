@@ -155,7 +155,9 @@ class _FindHospitalMicState extends State<FindHospitalMic> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const PainScoreSlide(),
+                      builder: (context) => const PainScoreSlide(
+                        symptom: '두통',
+                      ),
                     ),
                   );
                 }

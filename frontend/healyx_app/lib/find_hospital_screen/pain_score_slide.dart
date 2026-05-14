@@ -1,9 +1,15 @@
 ﻿import 'package:flutter/material.dart';
-import 'package:healyx_app/app_language.dart'; 
+import 'package:healyx_app/app_language.dart';
+
 import 'find_hospital_loading.dart';
 
 class PainScoreSlide extends StatefulWidget {
-  const PainScoreSlide({super.key});
+  final String symptom;
+
+  const PainScoreSlide({
+    super.key,
+    required this.symptom,
+  });
 
   @override
   State<PainScoreSlide> createState() => _PainScoreSlideState();
@@ -11,6 +17,19 @@ class PainScoreSlide extends StatefulWidget {
 
 class _PainScoreSlideState extends State<PainScoreSlide> {
   double _painLevel = 3;
+
+  void _goToLoading() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => FindHospitalLoading(
+          symptom: widget.symptom,
+          riskLevel: _painLevel.round(),
+          sortBy: 'recommend',
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,10 +52,10 @@ class _PainScoreSlideState extends State<PainScoreSlide> {
                       size: 22,
                     ),
                   ),
-                  Expanded( 
+                  Expanded(
                     child: Center(
                       child: Text(
-                        AppLanguage.t('find_hospital'), // '병원 찾기'
+                        AppLanguage.t('find_hospital'),
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w800,
@@ -49,11 +68,13 @@ class _PainScoreSlideState extends State<PainScoreSlide> {
                 ],
               ),
             ),
+
             const SizedBox(height: 120),
-            Padding( 
+
+            Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Text(
-                AppLanguage.t('pain_score_prompt'), // '아픈 부위의 통증의 세기를 선택해주세요'
+                AppLanguage.t('pain_score_prompt'),
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 18,
@@ -62,18 +83,20 @@ class _PainScoreSlideState extends State<PainScoreSlide> {
                 ),
               ),
             ),
+
             const SizedBox(height: 170),
+
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 22),
               child: Column(
                 children: [
-                  Padding( // 수정
+                  Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          AppLanguage.t('pain_none'), // '통증 없음'
+                          AppLanguage.t('pain_none'),
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
@@ -81,7 +104,7 @@ class _PainScoreSlideState extends State<PainScoreSlide> {
                           ),
                         ),
                         Text(
-                          AppLanguage.t('pain_severe'), // '심각한 통증'
+                          AppLanguage.t('pain_severe'),
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
@@ -91,7 +114,9 @@ class _PainScoreSlideState extends State<PainScoreSlide> {
                       ],
                     ),
                   ),
+
                   const SizedBox(height: 10),
+
                   SliderTheme(
                     data: SliderTheme.of(context).copyWith(
                       activeTrackColor: const Color(0xFFD7DCE3),
@@ -123,6 +148,7 @@ class _PainScoreSlideState extends State<PainScoreSlide> {
                       },
                     ),
                   ),
+
                   const Padding(
                     padding: EdgeInsets.only(left: 14, right: 14, top: 2),
                     child: Row(
@@ -139,21 +165,16 @@ class _PainScoreSlideState extends State<PainScoreSlide> {
                 ],
               ),
             ),
+
             const Spacer(),
+
             Padding(
               padding: const EdgeInsets.only(bottom: 110),
               child: SizedBox(
                 width: 120,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const FindHospitalLoading(),
-                      ),
-                    );
-                  },
+                  onPressed: _goToLoading,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF2260FF),
                     foregroundColor: Colors.white,
@@ -162,8 +183,8 @@ class _PainScoreSlideState extends State<PainScoreSlide> {
                       borderRadius: BorderRadius.circular(30),
                     ),
                   ),
-                  child: Text( 
-                    AppLanguage.t('confirm'), // '확인'
+                  child: Text(
+                    AppLanguage.t('confirm'),
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
