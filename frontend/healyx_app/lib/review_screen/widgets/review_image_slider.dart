@@ -4,11 +4,11 @@
 import 'package:flutter/material.dart';
 
 class ReviewImageSlider extends StatefulWidget {
-  final int imageCount;
+  final List<String> imageUrls;
 
   const ReviewImageSlider({
     super.key,
-    required this.imageCount,
+    required this.imageUrls,
   });
 
   @override
@@ -41,25 +41,32 @@ class _ReviewImageSliderState extends State<ReviewImageSlider> {
         physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.only(bottom: 12),
         child: Row(
-          children: List.generate(
-            widget.imageCount,
-            (index) => Container(
-              width: 140,
-              height: 95,
-              margin: const EdgeInsets.only(right: 8),
-              decoration: BoxDecoration(
-                color: softBg,
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: const Center(
-                child: Icon(
-                  Icons.image_outlined,
-                  size: 26,
-                  color: gray,
-                ),
-              ),
+          children: widget.imageUrls.map((url) => Container(
+            width: 140,
+            height: 95,
+            margin: const EdgeInsets.only(right: 8),
+            decoration: BoxDecoration(
+              color: softBg,
+              borderRadius: BorderRadius.circular(4),
             ),
-          ),
+            clipBehavior: Clip.hardEdge,
+            child: Image.network(
+              url,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => const Center(
+                child: Icon(Icons.image_outlined, size: 26, color: gray),
+              ),
+              loadingBuilder: (_, child, progress) => progress == null
+                  ? child
+                  : const Center(
+                      child: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    ),
+            ),
+          )).toList(),
         ),
       ),
     );

@@ -7,12 +7,16 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../dialogs/image_attach_dialog.dart';
 import '../find_hospital_screen/find_hospital_detail.dart';
+import '../login_signup_screen/login_screen.dart';
+import '../services/review_service.dart';
+import '../services/auth_service.dart';
 
 import '../common/common_toast.dart';
-import 'package:healyx_app/app_language.dart'; 
+import 'package:healyx_app/app_language.dart';
 
 class ReviewWriteScreen extends StatefulWidget {
   // 리뷰 결과 목록에서 선택한 병원 정보
+  final String ykiho;
   final String hospitalName;
   final String address;
   final double rating;
@@ -21,6 +25,7 @@ class ReviewWriteScreen extends StatefulWidget {
 
   const ReviewWriteScreen({
     super.key,
+    required this.ykiho,
     required this.hospitalName,
     required this.address,
     required this.rating,
@@ -35,6 +40,7 @@ class ReviewWriteScreen extends StatefulWidget {
 class _ReviewWriteScreenState extends State<ReviewWriteScreen> {
   int selectedRating = 0;
   bool showRatingError = false;
+  bool _isSubmitting = false;
 
   final TextEditingController _reviewController = TextEditingController();
   final ImagePicker _picker = ImagePicker();
@@ -92,28 +98,39 @@ class _ReviewWriteScreenState extends State<ReviewWriteScreen> {
     });
   }
 
-  void _submitReview() {
+  Future<void> _submitReview() async {
     if (selectedRating == 0) {
-      setState(() {
-        showRatingError = true;
-      });
+      setState(() => showRatingError = true);
       return;
     }
+    if (_isSubmitting) return;
 
     setState(() {
       showRatingError = false;
+      _isSubmitting = true;
     });
 
-    // TODO: 리뷰 등록 API 연결
-    CommonToast.show(context, message: AppLanguage.t('review_submitted')); // '리뷰가 등록되었습니다.'
+    try {
+      await ReviewService.submitReview(
+        ykiho: widget.ykiho,
+        rating: selectedRating,
+        content: _reviewController.text.trim().isEmpty
+            ? null
+            : _reviewController.text.trim(),
+        imagePaths: _selectedImages.map((f) => f.path).toList(),
+      );
 
-    Future.delayed(const Duration(milliseconds: 1500), () {
+      if (!mounted) return;
+      CommonToast.show(context, message: AppLanguage.t('review_submitted'));
+
+      await Future.delayed(const Duration(milliseconds: 1200));
       if (!mounted) return;
 
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (context) => FindHospitalDetailScreen(
+            ykiho: widget.ykiho,
             hospitalName: widget.hospitalName,
             address: widget.address,
             rating: widget.rating,
@@ -123,7 +140,60 @@ class _ReviewWriteScreenState extends State<ReviewWriteScreen> {
           ),
         ),
       );
-    });
+    } on Exception catch (e) {
+      if (!mounted) return;
+      final msg = e.toString();
+
+      if (msg.contains('not_logged_in')) {
+        // 세션 만료 — 로그인 화면으로 이동
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => AlertDialog(
+            title: Text(
+              AppLanguage.t('session_expired_title'),
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF2260FF),
+              ),
+            ),
+            content: Text(
+              AppLanguage.t('session_expired_message'),
+              style: const TextStyle(fontSize: 14),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(
+                  AppLanguage.t('confirm'),
+                  style: const TextStyle(color: Color(0xFF2260FF)),
+                ),
+              ),
+            ],
+          ),
+        );
+        if (!mounted) return;
+        await AuthService.clearLocalCredentials();
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+          (route) => route.isFirst,
+        );
+      } else if (msg.contains('duplicate_review')) {
+        CommonToast.show(
+          context,
+          message: AppLanguage.t('review_duplicate_error'),
+        );
+      } else {
+        CommonToast.show(
+          context,
+          message: AppLanguage.t('review_submit_error'),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
   }
 
   @override
@@ -377,22 +447,32 @@ class _ReviewWriteScreenState extends State<ReviewWriteScreen> {
                 width: 250,
                 height: 48,
                 child: ElevatedButton(
-                  onPressed: _submitReview,
+                  onPressed: _isSubmitting ? null : _submitReview,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: primaryBlue,
                     foregroundColor: Colors.white,
+                    disabledBackgroundColor: primaryBlue.withOpacity(0.5),
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(26),
                     ),
                   ),
-                  child: Text(
-                    AppLanguage.t('review_submit'), // '등록'
-                    style: const TextStyle(
-                      fontSize: 21,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  child: _isSubmitting
+                      ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2.5,
+                          ),
+                        )
+                      : Text(
+                          AppLanguage.t('review_submit'), // '등록'
+                          style: const TextStyle(
+                            fontSize: 21,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                 ),
               ),
 

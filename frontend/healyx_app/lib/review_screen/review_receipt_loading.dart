@@ -1,12 +1,13 @@
 ﻿// 리뷰 영수증 인증 로딩 화면
-// 영수증 인증이 진행되는 동안 로딩 애니메이션과 함께 영수증 미리보기를 보여주는 화면
-// 성공 시 리뷰 작성 화면으로 이동, 실패 시 영수증 인증 에러 화면으로 이동 (True/false로 분기)
-import 'dart:async';
+// POST /api/reviews/ocr 호출 → 성공 시 리뷰 작성, 실패 시 에러 화면으로 이동
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import '../app_language.dart'; 
+import '../app_language.dart';
 
+import '../login_signup_screen/login_screen.dart';
+import '../services/auth_service.dart';
+import '../services/review_service.dart';
 import 'review_receipt_upload.dart';
 import 'review_receipt_error.dart';
 import 'review_write.dart';
@@ -16,6 +17,7 @@ class ReviewReceiptLoadingScreen extends StatefulWidget {
   final String imagePath;
 
   // 리뷰 결과 목록에서 선택한 병원 정보
+  final String ykiho;
   final String hospitalName;
   final String address;
   final double rating;
@@ -26,6 +28,7 @@ class ReviewReceiptLoadingScreen extends StatefulWidget {
     super.key,
     required this.isFromCamera,
     required this.imagePath,
+    required this.ykiho,
     required this.hospitalName,
     required this.address,
     required this.rating,
@@ -40,60 +43,106 @@ class ReviewReceiptLoadingScreen extends StatefulWidget {
 
 class _ReviewReceiptLoadingScreenState
     extends State<ReviewReceiptLoadingScreen> {
-  Timer? _timer;
   final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
     super.initState();
+    _verifyReceipt();
+  }
 
-    // 퍼블리싱 테스트용 로딩
-    _timer = Timer(const Duration(seconds: 2), () {
-      if (!mounted) return;
+  Future<void> _verifyReceipt() async {
+    bool isSuccess = false;
+    bool isSessionExpired = false;
+    try {
+      isSuccess = await ReviewService.verifyReceipt(
+        widget.ykiho,
+        widget.imagePath,
+      );
+    } catch (e) {
+      debugPrint('VERIFY_RECEIPT ERROR: $e');
+      if (e.toString().contains('not_logged_in')) {
+        isSessionExpired = true;
+      }
+      isSuccess = false;
+    }
 
-      // TODO: 프론트 연동 시 토큰/API 응답값으로 교체
-      // true  = 인증 성공 → 리뷰 작성 화면
-      // false = 인증 실패 → 영수증 인증 에러 화면
-      final bool isSuccess = true;
+    if (!mounted) return;
 
-      if (isSuccess) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            // 성공 시 리뷰 작성 화면으로 이동
-            builder: (context) => ReviewWriteScreen(
-              hospitalName: widget.hospitalName,
-              address: widget.address,
-              rating: widget.rating,
-              hasBadge: widget.hasBadge,
-              hasReview: widget.hasReview,
+    // 세션 만료 — 로그인 유도 다이얼로그 표시 후 로그인 화면으로 이동
+    if (isSessionExpired) {
+      await showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => AlertDialog(
+          title: Text(
+            AppLanguage.t('session_expired_title'),
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF2260FF),
             ),
           ),
-        );
-      } else {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            // 실패 시 영수증 인증 에러 화면으로 이동
-           builder: (context) => ReviewReceiptErrorScreen(
-            isCameraError: widget.isFromCamera,
+          content: Text(
+            AppLanguage.t('session_expired_message'),
+            style: const TextStyle(fontSize: 14),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                AppLanguage.t('confirm'),
+                style: const TextStyle(color: Color(0xFF2260FF)),
+              ),
+            ),
+          ],
+        ),
+      );
+      if (!mounted) return;
+      await AuthService.clearLocalCredentials();
+      if (!mounted) return;
+      // 모든 리뷰 화면을 닫고 로그인 화면으로 이동
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        (route) => route.isFirst,
+      );
+      return;
+    }
 
-            // 선택 병원 정보 유지
+    if (isSuccess) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ReviewWriteScreen(
+            ykiho: widget.ykiho,
             hospitalName: widget.hospitalName,
             address: widget.address,
             rating: widget.rating,
             hasBadge: widget.hasBadge,
             hasReview: widget.hasReview,
-           ),
           ),
-        );
-      }
-    });
+        ),
+      );
+    } else {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ReviewReceiptErrorScreen(
+            isCameraError: widget.isFromCamera,
+            ykiho: widget.ykiho,
+            hospitalName: widget.hospitalName,
+            address: widget.address,
+            rating: widget.rating,
+            hasBadge: widget.hasBadge,
+            hasReview: widget.hasReview,
+          ),
+        ),
+      );
+    }
   }
 
   Future<void> _retryPickImage() async {
-    _timer?.cancel();
-
     final XFile? image = await _picker.pickImage(
       source: widget.isFromCamera ? ImageSource.camera : ImageSource.gallery,
       imageQuality: 85,
@@ -106,6 +155,7 @@ class _ReviewReceiptLoadingScreenState
         context,
         MaterialPageRoute(
           builder: (context) => ReviewReceiptUploadScreen(
+            ykiho: widget.ykiho,
             hospitalName: widget.hospitalName,
             address: widget.address,
             rating: widget.rating,
@@ -123,6 +173,7 @@ class _ReviewReceiptLoadingScreenState
         builder: (context) => ReviewReceiptLoadingScreen(
           isFromCamera: widget.isFromCamera,
           imagePath: image.path,
+          ykiho: widget.ykiho,
           hospitalName: widget.hospitalName,
           address: widget.address,
           rating: widget.rating,
@@ -131,12 +182,6 @@ class _ReviewReceiptLoadingScreenState
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
   }
 
   @override

@@ -1,11 +1,11 @@
-﻿// 리뷰 검색 결과 화면
-// 리뷰 검색 결과 목록을 보여주는 화면
+// 리뷰 검색 결과 화면
+// GET /api/reviews/hospitals/search 결과를 표시하고 병원 선택 시 상세 화면으로 이동
 import 'package:flutter/material.dart';
-import '../app_language.dart'; 
+import '../app_language.dart';
 import '../find_hospital_screen/find_hospital_detail.dart';
-import '../constants/hospital_constants.dart'; // 👈 더미 데이터 import
+import '../services/review_service.dart';
 
-class ReviewSearchResultScreen extends StatelessWidget {
+class ReviewSearchResultScreen extends StatefulWidget {
   final String selectedRegion;
   final String searchKeyword;
 
@@ -16,10 +16,74 @@ class ReviewSearchResultScreen extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    const Color primaryBlue = Color(0xFF2260FF);
-    const Color cardBlue = Color(0xFFCAD6FF);
+  State<ReviewSearchResultScreen> createState() =>
+      _ReviewSearchResultScreenState();
+}
 
+class _ReviewSearchResultScreenState extends State<ReviewSearchResultScreen> {
+  List<HospitalSearchResult> _hospitals = [];
+  bool _isLoading = true;
+  bool _hasError = false;
+
+  static const Color primaryBlue = Color(0xFF2260FF);
+  static const Color cardBlue = Color(0xFFCAD6FF);
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchHospitals();
+  }
+
+  Future<void> _fetchHospitals() async {
+    setState(() {
+      _isLoading = true;
+      _hasError = false;
+    });
+
+    try {
+      // '지역' 기본값이면 빈 문자열로 전달 (서버에서 전체 검색)
+      final region =
+          widget.selectedRegion == '지역' ? '' : widget.selectedRegion;
+
+      final results = await ReviewService.searchHospitals(
+        name: widget.searchKeyword.trim(),
+        region: region,
+      );
+
+      if (!mounted) return;
+      setState(() {
+        _hospitals = results;
+        _isLoading = false;
+      });
+    } catch (e, st) {
+      debugPrint('FETCH_HOSPITALS ERROR: $e\n$st');
+      if (!mounted) return;
+      setState(() {
+        _hasError = true;
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _goToDetail(HospitalSearchResult hospital) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => FindHospitalDetailScreen(
+          ykiho: hospital.ykiho,
+          hospitalName: hospital.hospitalName,
+          address: hospital.address,
+          rating: hospital.avgRating,
+          hasBadge: hospital.foreignCertified,
+          hasReview: hospital.reviewCount > 0,
+          isLoggedIn: true,
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -27,6 +91,7 @@ class ReviewSearchResultScreen extends StatelessWidget {
           children: [
             const SizedBox(height: 16),
 
+            // 상단 헤더
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Stack(
@@ -35,9 +100,7 @@ class ReviewSearchResultScreen extends StatelessWidget {
                   Align(
                     alignment: Alignment.centerLeft,
                     child: IconButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
+                      onPressed: () => Navigator.pop(context),
                       icon: const Icon(
                         Icons.arrow_back_ios_new,
                         color: primaryBlue,
@@ -46,7 +109,7 @@ class ReviewSearchResultScreen extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    AppLanguage.t('review'), // '리뷰'
+                    AppLanguage.t('review'),
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w700,
@@ -57,172 +120,236 @@ class ReviewSearchResultScreen extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
 
-            Expanded(
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 14),
-                // 👈 REVIEW_SEARCH_HOSPITALS = 저 constants 파일에서 가져온 더미 데이터
-                itemCount: REVIEW_SEARCH_HOSPITALS.length,
-                separatorBuilder: (context, index) =>
-                    const SizedBox(height: 18),
-                itemBuilder: (context, index) {
-                  final item = REVIEW_SEARCH_HOSPITALS[index];
+            // 검색 조건 표시
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  _buildSearchLabel(),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: Color(0xFF7C9CFF),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
 
-                  return Container(
-                    padding: const EdgeInsets.fromLTRB(24, 18, 14, 18),
-                    decoration: BoxDecoration(
-                      color: cardBlue,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Color(0x33000000),
-                          blurRadius: 5,
-                          offset: Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: Stack(
-                      children: [
-                        if (item['hasBadge'] == true)
-                          Positioned(
-                            right: 0,
-                            top: 0,
-                            child: Container(
-                              width: 30,
-                              height: 30,
-                              decoration: const BoxDecoration(
-                                color: primaryBlue,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.workspace_premium_outlined,
-                                color: Colors.white,
-                                size: 18,
-                              ),
-                            ),
-                          ),
+            const SizedBox(height: 12),
 
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              item['hospitalName'],
-                              style: const TextStyle(
-                                color: primaryBlue,
-                                fontSize: 20,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
+            // 결과 영역
+            Expanded(child: _buildBody()),
+          ],
+        ),
+      ),
+    );
+  }
 
-                            const SizedBox(height: 4),
+  String _buildSearchLabel() {
+    final region =
+        widget.selectedRegion == '지역' ? '' : widget.selectedRegion;
+    final keyword = widget.searchKeyword.trim();
+    if (region.isEmpty && keyword.isEmpty) return AppLanguage.t('review_search_all'); // '전체 검색'
+    if (region.isEmpty) return '"$keyword"';
+    if (keyword.isEmpty) return region;
+    return '$region · "$keyword"';
+  }
 
-                            Text(
-                              item['hospitalName'],
-                              style: const TextStyle(
-                                color: Colors.black87,
-                                fontSize: 15,
-                              ),
-                            ),
+  Widget _buildBody() {
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(color: primaryBlue),
+      );
+    }
 
-                            const SizedBox(height: 12),
-
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: SizedBox(
-                                    height: 31,
-                                    child: ElevatedButton(
-                                      onPressed: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                FindHospitalDetailScreen(
-                                                  hospitalName:
-                                                      item['hospitalName'],
-                                                  address: item['address'],
-                                                  rating:
-                                                      (item['rating'] as num)
-                                                          .toDouble(),
-                                                  hasBadge: item['hasBadge'],
-                                                  hasReview: item['hasReview'],
-                                                  isLoggedIn: true,
-                                                ),
-                                          ),
-                                        );
-                                      },
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: primaryBlue,
-                                        foregroundColor: Colors.white,
-                                        elevation: 4,
-                                        shadowColor: const Color(0x33000000),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            18,
-                                          ),
-                                        ),
-                                      ),
-                                      child: Text(
-                                        AppLanguage.t('hospital_detail_btn'), // '상세 정보'
-                                        style: const TextStyle(
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-
-                                const SizedBox(width: 10),
-
-                                Container(
-                                  width: 58,
-                                  height: 31,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(18),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      const Icon(
-                                        Icons.star_border,
-                                        color: primaryBlue,
-                                        size: 15,
-                                      ),
-                                      if (item['rating'].toString().isNotEmpty)
-                                        Padding(
-                                          padding: const EdgeInsets.only(
-                                            left: 3,
-                                          ),
-                                          child: Text(
-                                            item['rating'].toString(),
-                                            style: const TextStyle(
-                                              color: primaryBlue,
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w700,
-                                            ),
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  );
-                },
+    if (_hasError) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline, color: Color(0xFFAABBFF), size: 48),
+            const SizedBox(height: 12),
+            Text(
+              AppLanguage.t('review_search_error'), // '검색 중 오류가 발생했습니다.'
+              style: const TextStyle(color: Colors.black54, fontSize: 14),
+            ),
+            const SizedBox(height: 16),
+            TextButton(
+              onPressed: _fetchHospitals,
+              child: Text(
+                AppLanguage.t('error_retry'), // '다시 시도'
+                style: const TextStyle(color: primaryBlue),
               ),
             ),
           ],
         ),
+      );
+    }
+
+    if (_hospitals.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.search_off, color: Color(0xFFAABBFF), size: 48),
+            const SizedBox(height: 12),
+            Text(
+              AppLanguage.t('review_search_no_result'), // '검색 결과가 없습니다.'
+              style: const TextStyle(color: Colors.black54, fontSize: 14),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.separated(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+      itemCount: _hospitals.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 18),
+      itemBuilder: (_, index) => _buildHospitalCard(_hospitals[index]),
+    );
+  }
+
+  Widget _buildHospitalCard(HospitalSearchResult hospital) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(24, 18, 14, 18),
+      decoration: BoxDecoration(
+        color: cardBlue,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x33000000),
+            blurRadius: 5,
+            offset: Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          // 외국인 인증 배지
+          if (hospital.foreignCertified)
+            Positioned(
+              right: 0,
+              top: 0,
+              child: Container(
+                width: 30,
+                height: 30,
+                decoration: const BoxDecoration(
+                  color: primaryBlue,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.workspace_premium_outlined,
+                  color: Colors.white,
+                  size: 18,
+                ),
+              ),
+            ),
+
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 병원명
+              Text(
+                hospital.hospitalName,
+                style: const TextStyle(
+                  color: primaryBlue,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+
+              const SizedBox(height: 4),
+
+              // 주소
+              Text(
+                hospital.address,
+                style: const TextStyle(
+                  color: Colors.black87,
+                  fontSize: 13,
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              Row(
+                children: [
+                  // 상세 정보 버튼
+                  Expanded(
+                    child: SizedBox(
+                      height: 31,
+                      child: ElevatedButton(
+                        onPressed: () => _goToDetail(hospital),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: primaryBlue,
+                          foregroundColor: Colors.white,
+                          elevation: 4,
+                          shadowColor: const Color(0x33000000),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(18),
+                          ),
+                        ),
+                        child: Text(
+                          AppLanguage.t('hospital_detail_btn'), // '상세 정보'
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(width: 10),
+
+                  // 별점 + 리뷰 수
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    height: 31,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.star_border,
+                          color: primaryBlue,
+                          size: 15,
+                        ),
+                        const SizedBox(width: 3),
+                        Text(
+                          hospital.avgRating > 0
+                              ? hospital.avgRating.toStringAsFixed(1)
+                              : '-',
+                          style: const TextStyle(
+                            color: primaryBlue,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        if (hospital.reviewCount > 0) ...[
+                          const SizedBox(width: 4),
+                          Text(
+                            '(${hospital.reviewCount})',
+                            style: const TextStyle(
+                              color: primaryBlue,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

@@ -9,16 +9,14 @@ import 'review_rating_stars.dart';
 class ReviewData {
   final String nickname;
   final String content;
-  final String rating;
-  final bool hasImages;
-  final int imageCount;
+  final int rating;
+  final List<String> imageUrls;
 
   ReviewData({
     required this.nickname,
     required this.content,
     required this.rating,
-    this.hasImages = false,
-    this.imageCount = 0,
+    this.imageUrls = const [],
   });
 }
 
@@ -83,15 +81,15 @@ class ReviewCard extends StatelessWidget {
           const SizedBox(height: 8),
 
           ReviewRatingStars(
-            rating: int.tryParse(review.rating) ?? 0,
+            rating: review.rating,
             size: 14,
             showScore: true,
           ),
 
-          if (review.hasImages) ...[
+          if (review.imageUrls.isNotEmpty) ...[
             const SizedBox(height: 12),
             ReviewImageSlider(
-              imageCount: review.imageCount,
+              imageUrls: review.imageUrls,
             ),
           ],
         ],

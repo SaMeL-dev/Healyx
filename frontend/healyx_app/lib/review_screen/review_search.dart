@@ -1,7 +1,8 @@
 ﻿// 리뷰 검색 화면
 // 리뷰 검색 화면에서는 사용자가 지역과 검색어를 입력하여 리뷰 검색 결과 화면으로 이동할 수 있도록 구성
 import 'package:flutter/material.dart';
-import '../app_language.dart'; 
+import '../app_language.dart';
+import '../common/common_toast.dart';
 import 'review_search_result.dart';
 
 class ReviewSearchScreen extends StatefulWidget {
@@ -44,6 +45,11 @@ class _ReviewSearchScreenState extends State<ReviewSearchScreen> {
   }
 
   void _goToSearchResult() {
+    if (_searchController.text.trim().isEmpty) {
+      CommonToast.show(context, message: AppLanguage.t('review_search_empty_name'));
+      return;
+    }
+
     Navigator.push(
       context,
       MaterialPageRoute(

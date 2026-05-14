@@ -202,6 +202,9 @@ class AppLanguage {
       'hospital_detail_btn': '상세 정보',
       'hospital_type_label': '병원 타입',
       'hospital_phone_label': '전화번호',
+      'hospital_info_unavailable': '병원 정보를 불러올 수 없습니다.',
+      'hospital_detail_load_error': '리뷰 정보를 불러오지 못했습니다.',
+      'retry': '다시 시도',
       'hospital_write_review': '리뷰쓰기',
       'hospital_review_count': '{count}개의 리뷰',
       'hospital_first_review_prompt': '첫번째 리뷰를 써보세요.',
@@ -215,6 +218,8 @@ class AppLanguage {
       'review_receipt_preview': '영수증 미리보기',
       'review_receipt_check_image': '인증할 영수증 이미지를 확인해주세요.',
       'review_receipt_verifying': '영수증을 확인중입니다...',
+      'session_expired_title': '세션이 만료되었습니다',
+      'session_expired_message': '로그인 세션이 만료되었습니다. 다시 로그인해 주세요.',
       'review_receipt_select_method': '영수증 인증 방식을 선택해주세요.',
       'review_upload_camera_title': '카메라 촬영',
       'review_upload_camera_subtitle': '영수증을 촬영하세요',
@@ -222,6 +227,7 @@ class AppLanguage {
       'review_upload_gallery_subtitle': '영수증 사진을 선택하세요',
       'review_search_region_default': '지역',
       'review_search_hint': '검색어를 입력하세요.',
+      'review_search_empty_name': '병원명을 입력해주세요.',
       'review_rating_prompt': '이 병원 어떠셨나요? (필수)',
       'review_rating_error': '별점은 필수항목 입니다',
       'review_content_label': '내용을 작성해주세요',
@@ -229,6 +235,8 @@ class AppLanguage {
       'review_photo_label': '사진 첨부 (최대 5장)',
       'review_submit': '등록',
       'review_submitted': '리뷰가 등록되었습니다.',
+      'review_duplicate_error': '이미 이 병원에 리뷰를 작성하셨습니다.',
+      'review_submit_error': '리뷰 등록에 실패했습니다. 다시 시도해주세요.',
 
       // 커뮤니티
       'community_banner_text': '병원 / 약 / 번역 관련해서\n서로 소통해보세요!',
@@ -305,6 +313,11 @@ class AppLanguage {
       'pw_request_success': '요청이 성공했습니다.',
       'pw_request_fail': '요청에 실패했습니다.',
       'pw_response_parse_error': '서버 응답을 처리하는 중 오류가 발생했습니다.',
+
+      // 리뷰 병원 검색
+      'review_search_all': '전체 검색',
+      'review_search_no_result': '검색 결과가 없습니다.',
+      'review_search_error': '검색 중 오류가 발생했습니다.',
     },
 
     'en': {
@@ -475,6 +488,9 @@ class AppLanguage {
       'hospital_detail_btn': 'Details',
       'hospital_type_label': 'Hospital Type',
       'hospital_phone_label': 'Phone',
+      'hospital_info_unavailable': 'Unable to load hospital information.',
+      'hospital_detail_load_error': 'Failed to load review information.',
+      'retry': 'Retry',
       'hospital_write_review': 'Write Review',
       'hospital_review_count': '{count} reviews',
       'hospital_first_review_prompt': 'Be the first to write a review.',
@@ -488,6 +504,8 @@ class AppLanguage {
       'review_receipt_preview': 'Receipt Preview',
       'review_receipt_check_image': 'Please check the receipt image to verify.',
       'review_receipt_verifying': 'Verifying receipt...',
+      'session_expired_title': 'Session Expired',
+      'session_expired_message': 'Your login session has expired. Please log in again.',
       'review_receipt_select_method': 'Please select a receipt verification method.',
       'review_upload_camera_title': 'Take Photo',
       'review_upload_camera_subtitle': 'Take a photo of the receipt',
@@ -495,6 +513,7 @@ class AppLanguage {
       'review_upload_gallery_subtitle': 'Select a photo of the receipt',
       'review_search_region_default': 'Region',
       'review_search_hint': 'Enter search term.',
+      'review_search_empty_name': 'Please enter a hospital name.',
       'review_rating_prompt': 'How was this hospital? (Required)',
       'review_rating_error': 'Rating is required',
       'review_content_label': 'Write your review',
@@ -502,6 +521,8 @@ class AppLanguage {
       'review_photo_label': 'Attach photos (max 5)',
       'review_submit': 'Submit',
       'review_submitted': 'Review has been submitted.',
+      'review_duplicate_error': 'You have already written a review for this hospital.',
+      'review_submit_error': 'Failed to submit review. Please try again.',
 
       // 커뮤니티
       'community_banner_text': 'Communicate with others\nabout hospitals, medicine, and translation!',
@@ -578,6 +599,11 @@ class AppLanguage {
       'pw_request_success': 'Request successful.',
       'pw_request_fail': 'Request failed.',
       'pw_response_parse_error': 'An error occurred while processing the server response.',
+
+      // 리뷰 병원 검색
+      'review_search_all': 'Search All',
+      'review_search_no_result': 'No results found.',
+      'review_search_error': 'An error occurred while searching.',
     },
 
     'zh': {
@@ -748,6 +774,9 @@ class AppLanguage {
       'hospital_detail_btn': '详细信息',
       'hospital_type_label': '医院类型',
       'hospital_phone_label': '电话号码',
+      'hospital_info_unavailable': '无法加载医院信息。',
+      'hospital_detail_load_error': '无法加载评价信息。',
+      'retry': '重试',
       'hospital_write_review': '写评价',
       'hospital_review_count': '{count}条评价',
       'hospital_first_review_prompt': '来写第一条评价吧。',
@@ -761,6 +790,8 @@ class AppLanguage {
       'review_receipt_preview': '收据预览',
       'review_receipt_check_image': '请确认要验证的收据图片。',
       'review_receipt_verifying': '正在确认收据...',
+      'session_expired_title': '会话已过期',
+      'session_expired_message': '登录会话已过期，请重新登录。',
       'review_receipt_select_method': '请选择收据验证方式。',
       'review_upload_camera_title': '拍照',
       'review_upload_camera_subtitle': '请拍摄收据',
@@ -768,6 +799,7 @@ class AppLanguage {
       'review_upload_gallery_subtitle': '请选择收据照片',
       'review_search_region_default': '地区',
       'review_search_hint': '请输入搜索词。',
+      'review_search_empty_name': '请输入医院名称。',
       'review_rating_prompt': '这家医院怎么样？（必填）',
       'review_rating_error': '评分为必填项',
       'review_content_label': '请写下内容',
@@ -775,6 +807,8 @@ class AppLanguage {
       'review_photo_label': '附上照片（最多5张）',
       'review_submit': '注册',
       'review_submitted': '评价已注册。',
+      'review_duplicate_error': '您已经为该医院写过评价了。',
+      'review_submit_error': '评价注册失败，请重试。',
 
       // 커뮤니티
       'community_banner_text': '关于医院、药物、翻译\n互相交流吧！',
@@ -852,6 +886,11 @@ class AppLanguage {
       'pw_request_success': '请求成功。',
       'pw_request_fail': '请求失败。',
       'pw_response_parse_error': '处理服务器响应时出现错误。',
+
+      // 리뷰 병원 검색
+      'review_search_all': '全部搜索',
+      'review_search_no_result': '未找到搜索结果。',
+      'review_search_error': '搜索过程中发生错误。',
     },
 
     'ja': {
@@ -1022,6 +1061,9 @@ class AppLanguage {
       'hospital_detail_btn': '詳細情報',
       'hospital_type_label': '病院タイプ',
       'hospital_phone_label': '電話番号',
+      'hospital_info_unavailable': '病院情報を読み込めません。',
+      'hospital_detail_load_error': 'レビュー情報を読み込めませんでした。',
+      'retry': '再試行',
       'hospital_write_review': 'レビューを書く',
       'hospital_review_count': '{count}件のレビュー',
       'hospital_first_review_prompt': '最初のレビューを書いてみましょう。',
@@ -1035,6 +1077,8 @@ class AppLanguage {
       'review_receipt_preview': '領収書プレビュー',
       'review_receipt_check_image': '認証する領収書の画像を確認してください。',
       'review_receipt_verifying': '領収書を確認中です...',
+      'session_expired_title': 'セッションが期限切れです',
+      'session_expired_message': 'ログインセッションが期限切れになりました。再度ログインしてください。',
       'review_receipt_select_method': '領収書の認証方法を選択してください。',
       'review_upload_camera_title': 'カメラ撮影',
       'review_upload_camera_subtitle': '領収書を撮影してください',
@@ -1042,6 +1086,7 @@ class AppLanguage {
       'review_upload_gallery_subtitle': '領収書の写真を選択してください',
       'review_search_region_default': '地域',
       'review_search_hint': '検索ワードを入力してください。',
+      'review_search_empty_name': '病院名を入力してください。',
       'review_rating_prompt': 'この病院はいかがでしたか？（必須）',
       'review_rating_error': '星評価は必須項目です',
       'review_content_label': '内容を入力してください',
@@ -1049,6 +1094,8 @@ class AppLanguage {
       'review_photo_label': '写真添付（最大5枚）',
       'review_submit': '登録',
       'review_submitted': 'レビューが登録されました。',
+      'review_duplicate_error': 'この病院にはすでにレビューを書いています。',
+      'review_submit_error': 'レビューの登録に失敗しました。もう一度お試しください。',
 
       // 커뮤니티
       'community_banner_text': '病院・薬・翻訳について\nお互いに交流しましょう！',
@@ -1125,6 +1172,11 @@ class AppLanguage {
      'pw_request_success': 'リクエストが成功しました。',
      'pw_request_fail': 'リクエストに失敗しました。',
      'pw_response_parse_error': 'サーバーレスポンスの処理中にエラーが発生しました。',
+
+      // 리뷰 병원 검색
+      'review_search_all': '全体検索',
+      'review_search_no_result': '検索結果がありません。',
+      'review_search_error': '検索中にエラーが発生しました。',
     },
 
     'vi': {
@@ -1294,6 +1346,9 @@ class AppLanguage {
       'hospital_detail_btn': 'Chi tiết',
       'hospital_type_label': 'Loại bệnh viện',
       'hospital_phone_label': 'Số điện thoại',
+      'hospital_info_unavailable': 'Không thể tải thông tin bệnh viện.',
+      'hospital_detail_load_error': 'Không thể tải thông tin đánh giá.',
+      'retry': 'Thử lại',
       'hospital_write_review': 'Viết đánh giá',
       'hospital_review_count': '{count} đánh giá',
       'hospital_first_review_prompt': 'Hãy viết đánh giá đầu tiên.',
@@ -1307,6 +1362,8 @@ class AppLanguage {
       'review_receipt_preview': 'Xem trước hóa đơn',
       'review_receipt_check_image': 'Vui lòng kiểm tra ảnh hóa đơn cần xác minh.',
       'review_receipt_verifying': 'Đang xác minh hóa đơn...',
+      'session_expired_title': 'Phiên đã hết hạn',
+      'session_expired_message': 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',
       'review_receipt_select_method': 'Vui lòng chọn phương thức xác minh hóa đơn.',
       'review_upload_camera_title': 'Chụp ảnh',
       'review_upload_camera_subtitle': 'Chụp ảnh hóa đơn',
@@ -1314,6 +1371,7 @@ class AppLanguage {
       'review_upload_gallery_subtitle': 'Chọn ảnh hóa đơn',
       'review_search_region_default': 'Khu vực',
       'review_search_hint': 'Nhập từ khóa tìm kiếm.',
+      'review_search_empty_name': 'Vui lòng nhập tên bệnh viện.',
       'review_rating_prompt': 'Bệnh viện này thế nào? (Bắt buộc)',
       'review_rating_error': 'Đánh giá sao là bắt buộc',
       'review_content_label': 'Viết nội dung',
@@ -1321,6 +1379,8 @@ class AppLanguage {
       'review_photo_label': 'Đính kèm ảnh (tối đa 5)',
       'review_submit': 'Đăng',
       'review_submitted': 'Đánh giá đã được đăng.',
+      'review_duplicate_error': 'Bạn đã viết đánh giá cho bệnh viện này rồi.',
+      'review_submit_error': 'Đăng đánh giá thất bại. Vui lòng thử lại.',
 
       // 커뮤니티
       'community_banner_text': 'Hãy giao lưu với nhau\nvề bệnh viện, thuốc và dịch thuật!',
@@ -1397,6 +1457,11 @@ class AppLanguage {
      'pw_request_success': 'Yêu cầu thành công.',
      'pw_request_fail': 'Yêu cầu thất bại.',
      'pw_response_parse_error': 'Đã xảy ra lỗi khi xử lý phản hồi máy chủ.',
+
+      // 리뷰 병원 검색
+      'review_search_all': 'Tìm kiếm tất cả',
+      'review_search_no_result': 'Không tìm thấy kết quả.',
+      'review_search_error': 'Đã xảy ra lỗi trong quá trình tìm kiếm.',
     },
 
     'th': {
@@ -1569,6 +1634,9 @@ class AppLanguage {
       'hospital_detail_btn': 'รายละเอียด',
       'hospital_type_label': 'ประเภทโรงพยาบาล',
       'hospital_phone_label': 'หมายเลขโทรศัพท์',
+      'hospital_info_unavailable': 'ไม่สามารถโหลดข้อมูลโรงพยาบาลได้',
+      'hospital_detail_load_error': 'ไม่สามารถโหลดข้อมูลรีวิวได้',
+      'retry': 'ลองอีกครั้ง',
       'hospital_write_review': 'เขียนรีวิว',
       'hospital_review_count': '{count} รีวิว',
       'hospital_first_review_prompt': 'เป็นคนแรกที่เขียนรีวิว',
@@ -1582,6 +1650,8 @@ class AppLanguage {
       'review_receipt_preview': 'ตัวอย่างใบเสร็จ',
       'review_receipt_check_image': 'กรุณาตรวจสอบภาพใบเสร็จที่ต้องการยืนยัน',
       'review_receipt_verifying': 'กำลังตรวจสอบใบเสร็จ...',
+      'session_expired_title': 'เซสชันหมดอายุ',
+      'session_expired_message': 'เซสชันการเข้าสู่ระบบหมดอายุแล้ว กรุณาเข้าสู่ระบบใหม่',
       'review_receipt_select_method': 'กรุณาเลือกวิธีการยืนยันใบเสร็จ',
       'review_upload_camera_title': 'ถ่ายภาพ',
       'review_upload_camera_subtitle': 'ถ่ายภาพใบเสร็จ',
@@ -1589,6 +1659,7 @@ class AppLanguage {
       'review_upload_gallery_subtitle': 'เลือกภาพใบเสร็จ',
       'review_search_region_default': 'ภูมิภาค',
       'review_search_hint': 'กรุณาใส่คำค้นหา',
+      'review_search_empty_name': 'กรุณาใส่ชื่อโรงพยาบาล',
       'review_rating_prompt': 'โรงพยาบาลนี้เป็นอย่างไร? (จำเป็น)',
       'review_rating_error': 'คะแนนดาวเป็นข้อมูลที่จำเป็น',
       'review_content_label': 'เขียนเนื้อหา',
@@ -1596,6 +1667,8 @@ class AppLanguage {
       'review_photo_label': 'แนบรูปภาพ (สูงสุด 5 รูป)',
       'review_submit': 'ลงทะเบียน',
       'review_submitted': 'รีวิวได้รับการลงทะเบียนแล้ว',
+      'review_duplicate_error': 'คุณได้เขียนรีวิวสำหรับโรงพยาบาลนี้แล้ว',
+      'review_submit_error': 'การลงทะเบียนรีวิวล้มเหลว กรุณาลองใหม่อีกครั้ง',
 
       // 커뮤니티
       'community_banner_text': 'มาพูดคุยกันเกี่ยวกับ\nโรงพยาบาล ยา และการแปล!',
@@ -1672,6 +1745,11 @@ class AppLanguage {
      'pw_request_success': 'คำขอสำเร็จ',
      'pw_request_fail': 'คำขอล้มเหลว',
      'pw_response_parse_error': 'เกิดข้อผิดพลาดขณะประมวลผลการตอบสนองของเซิร์ฟเวอร์',
+
+      // 리뷰 병원 검색
+      'review_search_all': 'ค้นหาทั้งหมด',
+      'review_search_no_result': 'ไม่พบผลลัพธ์',
+      'review_search_error': 'เกิดข้อผิดพลาดขณะค้นหา',
     },
   };
 }

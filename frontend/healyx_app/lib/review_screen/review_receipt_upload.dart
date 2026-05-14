@@ -9,6 +9,7 @@ import 'review_receipt_error.dart';
 
 class ReviewReceiptUploadScreen extends StatefulWidget {
   // 리뷰 결과 목록에서 받아온 선택 병원 정보
+  final String ykiho;
   final String hospitalName;
   final String address;
   final double rating;
@@ -17,6 +18,7 @@ class ReviewReceiptUploadScreen extends StatefulWidget {
 
   const ReviewReceiptUploadScreen({
     super.key,
+    required this.ykiho,
     required this.hospitalName,
     required this.address,
     required this.rating,
@@ -48,7 +50,7 @@ class _ReviewReceiptUploadScreenState extends State<ReviewReceiptUploadScreen> {
           builder: (context) => ReviewReceiptLoadingScreen(
             isFromCamera: true,
             imagePath: image.path,
-            // 영수증 인증 이후에도 선택 병원 정보를 유지하기 위해 전달(더미 데이터)
+            ykiho: widget.ykiho,
             hospitalName: widget.hospitalName,
             address: widget.address,
             rating: widget.rating,
@@ -65,6 +67,7 @@ class _ReviewReceiptUploadScreenState extends State<ReviewReceiptUploadScreen> {
         MaterialPageRoute(
           builder: (context) => ReviewReceiptErrorScreen(
             isCameraError: true,
+            ykiho: widget.ykiho,
             hospitalName: widget.hospitalName,
             address: widget.address,
             rating: widget.rating,
@@ -92,7 +95,7 @@ class _ReviewReceiptUploadScreenState extends State<ReviewReceiptUploadScreen> {
           builder: (context) => ReviewReceiptLoadingScreen(
             isFromCamera: false,
             imagePath: image.path,
-            // 영수증 인증 이후에도 선택 병원 정보를 유지하기 위해 전달(더미 데이터)
+            ykiho: widget.ykiho,
             hospitalName: widget.hospitalName,
             address: widget.address,
             rating: widget.rating,
@@ -109,6 +112,7 @@ class _ReviewReceiptUploadScreenState extends State<ReviewReceiptUploadScreen> {
         MaterialPageRoute(
           builder: (context) => ReviewReceiptErrorScreen(
             isCameraError: false,
+            ykiho: widget.ykiho,
             hospitalName: widget.hospitalName,
             address: widget.address,
             rating: widget.rating,
