@@ -398,7 +398,7 @@ class _FindHospitalDetailScreenState extends State<FindHospitalDetailScreen> {
           )).toList();
 
   bool get _hasReviews =>
-      _detail != null ? _detail!.reviews.isNotEmpty : widget.hasReview;
+      _detail != null && _detail!.reviews.isNotEmpty;
 
   Widget _buildReviewSheet() {
     final reviews = _reviewDataList;
