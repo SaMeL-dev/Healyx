@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import '../app_language.dart';
 
 import '../login_signup_screen/login_screen.dart';
+import '../services/auth_service.dart';
 import '../services/review_service.dart';
 import 'review_receipt_upload.dart';
 import 'review_receipt_error.dart';
@@ -97,6 +98,8 @@ class _ReviewReceiptLoadingScreenState
           ],
         ),
       );
+      if (!mounted) return;
+      await AuthService.clearLocalCredentials();
       if (!mounted) return;
       // 모든 리뷰 화면을 닫고 로그인 화면으로 이동
       Navigator.pushAndRemoveUntil(
