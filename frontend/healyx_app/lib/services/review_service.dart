@@ -64,7 +64,7 @@ class ReviewItem {
       nickname: json['nickname'] ?? '',
       content: json['content'] ?? '',
       rating: rawRating is double ? rawRating.round() : rawRating as int,
-      imageUrls: List<String>.from(json['imageUrls'] ?? []),
+      imageUrls: List<String>.from(json['images'] ?? []),
       createdAt: json['createdAt'] ?? '',
     );
   }
