@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 // JSON 데이터를 Dart에서 사용할 수 있게 변환할 때 사용
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -433,7 +434,16 @@ class AuthService {
         debugPrint('REFRESH_TOKEN: session invalidated (${response.statusCode}), clearing local credentials');
         await clearLocalCredentials();
       }
+    } on SocketException catch (e) {
+      // 네트워크 연결 오류 — 일시적 장애이므로 호출자가 재시도/안내 처리
+      debugPrint('REFRESH_TOKEN NETWORK ERROR: $e');
+      throw Exception('network_error');
+    } on TimeoutException catch (e) {
+      // 요청 타임아웃 — 일시적 장애이므로 호출자가 재시도/안내 처리
+      debugPrint('REFRESH_TOKEN TIMEOUT: $e');
+      throw Exception('network_error');
     } catch (e) {
+      // 그 외 예외(파싱 오류 등) — 인증 오류와 동일하게 null 반환
       debugPrint('REFRESH_TOKEN ERROR: $e');
     }
     return null;
