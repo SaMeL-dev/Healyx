@@ -3,10 +3,12 @@ package com.smu.healyx.hospital.service;
 import com.smu.healyx.agent.dto.HospitalAssistantRequest;
 import com.smu.healyx.agent.dto.HospitalAssistantResponse;
 import com.smu.healyx.agent.service.HospitalAgentService;
+import com.smu.healyx.cost.service.CostPredictionService;
 import com.smu.healyx.hira.dto.HospitalDto;
 import com.smu.healyx.hira.dto.HospitalSearchResponse;
 import com.smu.healyx.hospital.dto.HospitalRecommendRequest;
 import com.smu.healyx.hospital.dto.HospitalRecommendResponse;
+import com.smu.healyx.hospital.repository.HospitalRepository;
 import com.smu.healyx.user.dto.UserProfileDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -21,6 +23,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -31,13 +34,23 @@ class HospitalRecommendServiceTest {
     @Mock
     private HospitalAgentService hospitalAgentService;
 
+    @Mock
+    private HospitalRepository hospitalRepository;
+
+    @Mock
+    private BodyIconService bodyIconService;
+
+    @Mock
+    private CostPredictionService costPredictionService;
+
     private HospitalRecommendService hospitalRecommendService;
 
     private UserProfileDto guestProfile;
 
     @BeforeEach
     void setUp() {
-        hospitalRecommendService = new HospitalRecommendService(hospitalAgentService);
+        hospitalRecommendService = new HospitalRecommendService(
+                hospitalAgentService, hospitalRepository, bodyIconService, costPredictionService);
         guestProfile = UserProfileDto.guestDefault();
     }
 
@@ -50,7 +63,7 @@ class HospitalRecommendServiceTest {
                 .thenReturn(agentResponse("이비인후과", hospital("A병원", 500), hospital("B병원", 1000)));
 
         HospitalRecommendResponse response =
-                hospitalRecommendService.recommend(request, guestProfile);
+                hospitalRecommendService.recommend(request, guestProfile, null);
 
         assertThat(response.getDepartmentName()).isEqualTo("이비인후과");
         assertThat(response.getDepartmentCode()).isEqualTo("01");
@@ -69,7 +82,7 @@ class HospitalRecommendServiceTest {
         when(hospitalAgentService.run(any(HospitalAssistantRequest.class), any(UserProfileDto.class)))
                 .thenReturn(agentResponse("내과", hospital("C병원", 300)));
 
-        hospitalRecommendService.recommend(request, guestProfile);
+        hospitalRecommendService.recommend(request, guestProfile, null);
 
         ArgumentCaptor<HospitalAssistantRequest> captor =
                 ArgumentCaptor.forClass(HospitalAssistantRequest.class);
@@ -90,7 +103,7 @@ class HospitalRecommendServiceTest {
                 .thenReturn(agentResponse("이비인후과"));
 
         HospitalRecommendResponse response =
-                hospitalRecommendService.recommend(request, guestProfile);
+                hospitalRecommendService.recommend(request, guestProfile, null);
 
         assertThat(response.isHasResult()).isFalse();
         assertThat(response.getHospitals()).isEmpty();

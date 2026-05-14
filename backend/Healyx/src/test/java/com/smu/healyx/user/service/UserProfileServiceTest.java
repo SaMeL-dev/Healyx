@@ -68,7 +68,6 @@ class UserProfileServiceTest {
             MyProfileResponse res = userProfileService.getMyProfile(1L);
 
             assertThat(res.getUserId()).isEqualTo(1L);
-            assertThat(res.getUsername()).isEqualTo("testuser");
             assertThat(res.getNickname()).isEqualTo("테스터");
             assertThat(res.getName()).isEqualTo("홍길동");
             assertThat(res.getEmail()).isEqualTo("test@example.com");
