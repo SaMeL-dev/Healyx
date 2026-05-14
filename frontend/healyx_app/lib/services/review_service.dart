@@ -206,7 +206,6 @@ class ReviewService {
 
     if (response.statusCode == 200) {
       final decoded = utf8.decode(response.bodyBytes);
-      debugPrint('HOSPITAL_DETAIL RESPONSE: $decoded'); // TODO: 확인 후 제거
       final json = jsonDecode(decoded);
       return HospitalDetailData.fromJson(
           json['data'] as Map<String, dynamic>);
