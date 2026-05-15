@@ -219,10 +219,8 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 userAgentPackageName: 'com.example.healyx_app',
               ),
-
               MarkerLayer(
                 markers: [
-                  // 사용자 현재 위치 마커
                   Marker(
                     point: LatLng(widget.latitude, widget.longitude),
                     width: 44,
@@ -246,8 +244,6 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
                       ),
                     ),
                   ),
-
-                  // 병원 위치 마커
                   ...mapHospitals.map(
                         (hospital) => Marker(
                       point: LatLng(hospital.latitude, hospital.longitude),
@@ -269,7 +265,6 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
                   ),
                 ],
               ),
-
               RichAttributionWidget(
                 attributions: [
                   TextSourceAttribution(
@@ -279,7 +274,6 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
               ),
             ],
           ),
-
           if (mapHospitals.isEmpty)
             Center(
               child: Container(
@@ -342,9 +336,7 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
                     ),
                   ),
                   const SizedBox(height: 22),
-
                   _buildSortRow(),
-
                   if (isRefreshingSort) ...[
                     const SizedBox(height: 12),
                     const Center(
@@ -358,9 +350,7 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
                       ),
                     ),
                   ],
-
                   const SizedBox(height: 10),
-
                   if (!isLoggedIn)
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -383,9 +373,7 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
                         ),
                       ],
                     ),
-
                   const SizedBox(height: 10),
-
                   Text(
                     AppLanguage.t('cost_disclaimer'),
                     textAlign: TextAlign.center,
@@ -395,16 +383,13 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
                       height: 1.4,
                     ),
                   ),
-
                   const SizedBox(height: 12),
-
                   if (hospitals.isEmpty)
                     _buildEmptyResult()
                   else
                     ...hospitals.map((hospital) => _buildHospitalCard(hospital)),
                 ],
               ),
-
               if (!isLoggedIn && showLoginGuide)
                 Positioned(
                   right: 6,
@@ -650,6 +635,9 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
                               hasBadge: hospital.foreignCertified,
                               hasReview: false,
                               isLoggedIn: isLoggedIn,
+                              ykiho: hospital.ykiho,
+                              hospitalType: hospital.hospitalType ?? '',
+                              telephone: hospital.telephone ?? '',
                             ),
                           ),
                         );
