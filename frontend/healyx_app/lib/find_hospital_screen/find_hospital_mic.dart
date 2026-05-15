@@ -314,7 +314,7 @@ class _FindHospitalMicState extends State<FindHospitalMic> {
                 child: Text(
                   _recognizedText.isNotEmpty
                       ? _recognizedText
-                      : '인식된 음성이 여기에 표시됩니다.',
+                      : '', // '인식된 음성이 여기에 표시됩니다.'
                   style: TextStyle(
                     fontSize: 16,
                     color: _recognizedText.isNotEmpty
