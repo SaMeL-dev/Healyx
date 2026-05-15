@@ -1,110 +1,12 @@
 ﻿import 'package:flutter/material.dart';
-import 'package:healyx_app/app_language.dart'; 
+import 'package:healyx_app/app_language.dart';
+
 import 'find_hospital_mic.dart';
 import 'find_hospital_text.dart';
 import 'find_hospital_icon.dart';
 
 class FindHospitalMain extends StatelessWidget {
   const FindHospitalMain({super.key});
-
-  void _showMicPermissionDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      barrierColor: const Color(0x804E7CFF),
-      builder: (context) {
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          insetPadding: const EdgeInsets.symmetric(horizontal: 36),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(28),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Padding( 
-                  padding: const EdgeInsets.fromLTRB(24, 48, 24, 28),
-                  child: Text(
-                    AppLanguage.t('mic_permission_request'), // 'HEALYX에서 마이크에\n접근할 수 있도록\n허용하시겠습니까?'
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 22,
-                      height: 1.45,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF2260FF),
-                    ),
-                  ),
-                ),
-                Container(
-                  height: 1,
-                  color: const Color(0xFF2260FF),
-                ),
-                SizedBox(
-                  height: 84,
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: InkWell(
-                          borderRadius: const BorderRadius.only(
-                            bottomLeft: Radius.circular(28),
-                          ),
-                          onTap: () {
-                            Navigator.pop(context);
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const FindHospitalMic(),
-                              ),
-                            );
-                          },
-                          child: Center( 
-                            child: Text(
-                              AppLanguage.t('allow'), // '허용'
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w700,
-                                color: Color(0xFF2260FF),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Container(
-                        width: 1,
-                        color: const Color(0xFF2260FF),
-                      ),
-                      Expanded(
-                        child: InkWell(
-                          borderRadius: const BorderRadius.only(
-                            bottomRight: Radius.circular(28),
-                          ),
-                          onTap: () {
-                            Navigator.pop(context);
-                          },
-                          child: Center( 
-                            child: Text(
-                              AppLanguage.t('deny'), // '거부'
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w700,
-                                color: Color(0xFF2260FF),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
 
   Widget _buildHospitalOptionCard({
     required IconData icon,
@@ -194,10 +96,10 @@ class FindHospitalMain extends StatelessWidget {
                       size: 22,
                     ),
                   ),
-                  Expanded( 
+                  Expanded(
                     child: Center(
                       child: Text(
-                        AppLanguage.t('find_hospital'), // '병원 찾기'
+                        AppLanguage.t('find_hospital'),
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w800,
@@ -210,20 +112,29 @@ class FindHospitalMain extends StatelessWidget {
                 ],
               ),
             ),
+
             const SizedBox(height: 80),
+
             _buildHospitalOptionCard(
               icon: Icons.mic,
-              title: AppLanguage.t('symptom_input_by_voice'), // '음성으로 증상 입력하기'
-              subtitle: AppLanguage.t('symptom_input_by_voice_desc'), // '자국어로 편하게 말씀하세요'
+              title: AppLanguage.t('symptom_input_by_voice'),
+              subtitle: AppLanguage.t('symptom_input_by_voice_desc'),
               onTap: () {
-                _showMicPermissionDialog(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const FindHospitalMic(),
+                  ),
+                );
               },
             ),
+
             const SizedBox(height: 24),
+
             _buildHospitalOptionCard(
               icon: Icons.keyboard_alt_outlined,
-              title: AppLanguage.t('symptom_input_by_text'), // '텍스트로 증상 입력하기'
-              subtitle: AppLanguage.t('symptom_input_by_text_desc'), // '자국어로 편하게 쓰세요'
+              title: AppLanguage.t('symptom_input_by_text'),
+              subtitle: AppLanguage.t('symptom_input_by_text_desc'),
               onTap: () {
                 Navigator.push(
                   context,
@@ -233,11 +144,13 @@ class FindHospitalMain extends StatelessWidget {
                 );
               },
             ),
+
             const SizedBox(height: 24),
+
             _buildHospitalOptionCard(
               icon: Icons.check,
-              title: AppLanguage.t('symptom_input_by_icon'), // '증상 아이콘 선택하기'
-              subtitle: AppLanguage.t('symptom_input_by_icon_desc'), // '간편하게 아이콘을 선택하세요'
+              title: AppLanguage.t('symptom_input_by_icon'),
+              subtitle: AppLanguage.t('symptom_input_by_icon_desc'),
               onTap: () {
                 Navigator.push(
                   context,
