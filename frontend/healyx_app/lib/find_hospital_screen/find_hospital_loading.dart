@@ -1,6 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:healyx_app/app_language.dart';
 
+import '../services/auth_service.dart';
 import 'find_hospital_result.dart';
 import 'service/hospital_recommend_service.dart';
 import 'service/location_service.dart';
@@ -46,20 +47,30 @@ class _FindHospitalLoadingState extends State<FindHospitalLoading>
       final position = await LocationService.getCurrentPosition();
       debugPrint('3. 위치 조회 완료: ${position.latitude}, ${position.longitude}');
 
-      // 2. 실제 병원 추천 API 호출
-      debugPrint('4. 병원 추천 API 호출 시작');
+      // 2. 로그인 토큰 가져오기
+      // 로그인 상태면 accessToken이 들어오고, 비로그인 상태면 null이 들어옴
+      final accessToken = await AuthService.getAccessToken();
+      debugPrint(
+        accessToken != null && accessToken.isNotEmpty
+            ? '4. 로그인 토큰 확인 완료'
+            : '4. 비로그인 상태로 병원 추천 요청',
+      );
+
+      // 3. 실제 병원 추천 API 호출
+      debugPrint('5. 병원 추천 API 호출 시작');
       final response = await HospitalRecommendService.recommendHospitals(
         symptom: widget.symptom,
         latitude: position.latitude,
         longitude: position.longitude,
         riskLevel: widget.riskLevel,
         sortBy: widget.sortBy,
+        accessToken: accessToken,
       );
-      debugPrint('5. 병원 추천 API 호출 완료');
+      debugPrint('6. 병원 추천 API 호출 완료');
 
       if (!mounted) return;
 
-      // 3. 결과 화면으로 이동
+      // 4. 결과 화면으로 이동
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(

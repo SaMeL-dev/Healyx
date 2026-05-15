@@ -40,7 +40,9 @@ class HospitalRecommendService {
 
     debugPrint('===== 병원 추천 API 요청 시작 =====');
     debugPrint('URL: $uri');
-    debugPrint('Headers: $headers');
+    debugPrint(
+      'Authorization Header: ${accessToken != null && accessToken.isNotEmpty ? 'included' : 'not included'}',
+    );
     debugPrint('Body: ${jsonEncode(body)}');
 
     try {
@@ -50,7 +52,7 @@ class HospitalRecommendService {
         headers: headers,
         body: jsonEncode(body),
       )
-          .timeout(const Duration(seconds: 30));
+          .timeout(const Duration(seconds: 60));
 
       final decodedBody = utf8.decode(response.bodyBytes);
 
