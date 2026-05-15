@@ -44,6 +44,12 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
   late HospitalRecommendResponse recommendResponse;
   late String selectedSortBy;
 
+  final DraggableScrollableController _sheetController =
+  DraggableScrollableController();
+
+  final Map<String, GlobalKey> _hospitalCardKeys = {};
+  String? selectedHospitalCardKey;
+
   final Color mainBlue = const Color(0xFF2260FF);
   final Color cardColor = const Color(0xFFCAD6FF);
   final Color mapBgColor = const Color(0xFFECF1FF);
@@ -63,6 +69,12 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
     recommendResponse = widget.recommendResponse;
     selectedSortBy = widget.sortBy;
     _checkLoginStatus();
+  }
+
+  @override
+  void dispose() {
+    _sheetController.dispose();
+    super.dispose();
   }
 
   Future<void> _checkLoginStatus() async {
@@ -85,15 +97,25 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
       selectedSortBy = sortBy;
       isRefreshingSort = true;
       showLoginGuide = false;
+      selectedHospitalCardKey = null;
     });
 
     try {
+      final accessToken = await AuthService.getAccessToken();
+
+      debugPrint(
+        accessToken != null && accessToken.isNotEmpty
+            ? '정렬 재호출: 로그인 토큰 포함'
+            : '정렬 재호출: 비로그인 상태',
+      );
+
       final response = await HospitalRecommendService.recommendHospitals(
         symptom: widget.symptom,
         latitude: widget.latitude,
         longitude: widget.longitude,
         riskLevel: widget.riskLevel,
         sortBy: sortBy,
+        accessToken: accessToken,
       );
 
       if (!mounted) return;
@@ -119,6 +141,57 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
       setState(() {
         isRefreshingSort = false;
       });
+    }
+  }
+
+  String _hospitalKey(RecommendedHospital hospital) {
+    final ykiho = hospital.ykiho.toString().trim();
+
+    if (ykiho.isNotEmpty && ykiho != 'null') {
+      return ykiho;
+    }
+
+    return '${hospital.hospitalName}_${hospital.latitude}_${hospital.longitude}';
+  }
+
+  GlobalKey _cardKeyFor(RecommendedHospital hospital) {
+    final key = _hospitalKey(hospital);
+
+    return _hospitalCardKeys.putIfAbsent(
+      key,
+          () => GlobalKey(),
+    );
+  }
+
+  Future<void> _focusHospitalCard(RecommendedHospital hospital) async {
+    final key = _hospitalKey(hospital);
+
+    setState(() {
+      selectedHospitalCardKey = key;
+      showLoginGuide = false;
+    });
+
+    if (_sheetController.isAttached) {
+      await _sheetController.animateTo(
+        0.66,
+        duration: const Duration(milliseconds: 280),
+        curve: Curves.easeOut,
+      );
+    }
+
+    await Future.delayed(const Duration(milliseconds: 120));
+
+    if (!mounted) return;
+
+    final cardContext = _hospitalCardKeys[key]?.currentContext;
+
+    if (cardContext != null && cardContext.mounted) {
+      await Scrollable.ensureVisible(
+        cardContext,
+        duration: const Duration(milliseconds: 360),
+        curve: Curves.easeOutCubic,
+        alignment: 0.08,
+      );
     }
   }
 
@@ -251,7 +324,7 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
                       height: 48,
                       child: GestureDetector(
                         onTap: () {
-                          _showHospitalBrief(hospital);
+                          _focusHospitalCard(hospital);
                         },
                         child: Icon(
                           Icons.location_on,
@@ -310,6 +383,7 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
 
   Widget _buildBottomSheet() {
     return DraggableScrollableSheet(
+      controller: _sheetController,
       initialChildSize: 0.40,
       minChildSize: 0.25,
       maxChildSize: 0.86,
@@ -528,12 +602,30 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
   }
 
   Widget _buildHospitalCard(RecommendedHospital hospital) {
-    return Container(
+    final cardKey = _hospitalKey(hospital);
+    final bool isSelected = selectedHospitalCardKey == cardKey;
+
+    return AnimatedContainer(
+      key: _cardKeyFor(hospital),
+      duration: const Duration(milliseconds: 180),
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: isSelected ? mainBlue : Colors.transparent,
+          width: isSelected ? 2.2 : 0,
+        ),
+        boxShadow: isSelected
+            ? [
+          BoxShadow(
+            color: mainBlue.withAlpha(45),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ]
+            : [],
       ),
       child: Stack(
         children: [
@@ -570,7 +662,7 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
               if (hospital.distance > 0) ...[
                 const SizedBox(height: 4),
                 Text(
-                  '거리 ${_formatDistance(hospital.distance)}',
+                  _buildLocalizedDistanceText(hospital.distance),
                   style: TextStyle(
                     color: grayText,
                     fontSize: 11.5,
@@ -725,12 +817,34 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
     );
   }
 
-  String _formatDistance(double distance) {
-    if (distance >= 1000) {
-      return '${(distance / 1000).toStringAsFixed(1)}km';
-    }
+  String _buildLocalizedDistanceText(double distance) {
+    final String langCode = AppLanguage.currentLang.value;
+    final bool isKm = distance >= 1000;
 
-    return '${distance.toStringAsFixed(0)}m';
+    final String value = isKm
+        ? (distance / 1000).toStringAsFixed(1)
+        : distance.toStringAsFixed(0);
+
+    switch (langCode) {
+      case 'en':
+        return 'Distance $value ${isKm ? 'km' : 'm'}';
+
+      case 'zh':
+        return '距离 $value${isKm ? '公里' : '米'}';
+
+      case 'ja':
+        return '距離 $value${isKm ? 'km' : 'm'}';
+
+      case 'vi':
+        return 'Khoảng cách $value ${isKm ? 'km' : 'm'}';
+
+      case 'th':
+        return 'ระยะทาง $value ${isKm ? 'กม.' : 'ม.'}';
+
+      case 'ko':
+      default:
+        return '거리 $value${isKm ? 'km' : 'm'}';
+    }
   }
 
   bool _hasValidCoordinate(RecommendedHospital hospital) {
@@ -753,14 +867,5 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
     }
 
     return LatLng(widget.latitude, widget.longitude);
-  }
-
-  void _showHospitalBrief(RecommendedHospital hospital) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(hospital.hospitalName),
-        duration: const Duration(seconds: 1),
-      ),
-    );
   }
 }
