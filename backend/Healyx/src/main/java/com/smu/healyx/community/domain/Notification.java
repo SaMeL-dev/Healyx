@@ -39,4 +39,8 @@ public class Notification {
     public void prePersist() {
         this.createdAt = LocalDateTime.now();
     }
+
+    public void markAsRead() {
+        this.isRead = true;
+    }
 }

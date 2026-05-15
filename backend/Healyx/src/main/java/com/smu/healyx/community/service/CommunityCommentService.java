@@ -25,6 +25,8 @@ public class CommunityCommentService {
     private final CommunityCommentRepository commentRepository;
     private final CommunityPostRepository postRepository;
     private final UserRepository userRepository;
+    private final ContentFilterService contentFilterService;
+    private final NotificationService notificationService;
 
     /** HX_COM_006 — 댓글·대댓글 등록 */
     @Transactional
@@ -32,6 +34,8 @@ public class CommunityCommentService {
         if (req.getContent().length() > 500) {
             throw new AuthException("CONTENT_TOO_LONG", "댓글은 최대 500자까지 작성할 수 있습니다.", HttpStatus.BAD_REQUEST);
         }
+
+        contentFilterService.filterWithLLM(null, req.getContent());
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AuthException("USER_NOT_FOUND", "사용자 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
@@ -65,7 +69,22 @@ public class CommunityCommentService {
                 .content(req.getContent())
                 .build();
 
-        return commentRepository.save(comment).getCommentId();
+        Long commentId = commentRepository.save(comment).getCommentId();
+
+        // FCM 알림 (본인 활동 제외)
+        if (depth == 0) {
+            Long postAuthorId = post.getUser().getUserId();
+            if (!postAuthorId.equals(userId)) {
+                notificationService.sendPushNotification(postAuthorId, "COMMENT", commentId);
+            }
+        } else {
+            Long parentAuthorId = parentComment.getUser().getUserId();
+            if (!parentAuthorId.equals(userId)) {
+                notificationService.sendPushNotification(parentAuthorId, "REPLY", commentId);
+            }
+        }
+
+        return commentId;
     }
 
     /** HX_COM_007 — 댓글 삭제 (soft/hard 조건 분기) */
