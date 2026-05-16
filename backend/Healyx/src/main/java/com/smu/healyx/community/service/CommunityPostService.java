@@ -41,6 +41,7 @@ public class CommunityPostService {
     private final UserRepository userRepository;
     private final S3UploadService s3UploadService;
     private final CommunityCommentService communityCommentService;
+    private final ContentFilterService contentFilterService;
 
     /** HX_COM_002 — 게시글 등록 */
     @Transactional
@@ -51,6 +52,8 @@ public class CommunityPostService {
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AuthException("USER_NOT_FOUND", "사용자 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
+
+        contentFilterService.filterWithLLM(title, content);
 
         CommunityPost post = CommunityPost.builder()
                 .user(user)
@@ -165,6 +168,7 @@ public class CommunityPostService {
             postImageRepository.saveAll(newImages);
         }
 
+        contentFilterService.filterWithLLM(title, content);
         post.updateTitleAndContent(title, content);
     }
 

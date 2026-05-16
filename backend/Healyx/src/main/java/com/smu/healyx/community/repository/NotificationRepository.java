@@ -1,10 +1,14 @@
 package com.smu.healyx.community.repository;
 
 import com.smu.healyx.community.domain.Notification;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+
 import java.util.List;
 
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
     List<Notification> findByUser_UserIdAndIsReadFalse(Long userId);
     List<Notification> findByUser_UserId(Long userId);
+    Page<Notification> findByUser_UserIdOrderByCreatedAtDesc(Long userId, Pageable pageable);
 }

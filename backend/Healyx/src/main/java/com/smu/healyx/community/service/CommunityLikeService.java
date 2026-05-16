@@ -20,6 +20,7 @@ public class CommunityLikeService {
     private final CommunityLikeRepository likeRepository;
     private final CommunityPostRepository postRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     /** HX_COM_012 — 좋아요 토글 */
     @Transactional
@@ -38,6 +39,10 @@ public class CommunityLikeService {
             likeRepository.save(CommunityLike.builder().post(post).user(user).build());
             post.increaseLikeCount();
             liked = true;
+            Long postAuthorId = post.getUser().getUserId();
+            if (!postAuthorId.equals(userId)) {
+                notificationService.sendPushNotification(postAuthorId, "LIKE", postId);
+            }
         }
 
         return new ToggleLikeResponse(liked, post.getLikeCount());
