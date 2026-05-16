@@ -1,0 +1,10 @@
+{
+  "type": "service_account",
+  "project_id": "dummy-project",
+  "private_key_id": "dummy-key-id",
+  "private_key": "-----BEGIN RSA PRIVATE KEY-----\nMIIEowIBAAKCAQEA0Z3VS5JJcds3xHn/ygWep4kDGBzAOBFDp03g4yoFtm5wEqoS\ncAqGW5mDNWkAkSTX0v3U0oi1u6oOOPQ3lRVJj7CPAB/AXYOP8fMuvmhXpS3HNqJM\n/KvNLvSNLb7Y/KXGmFdkGlDk0K5e4dCQfwDHqxbfHpzjU/ynIjYNvY/VQXdOVBzN\nZBM1nM5gOHnQqGzFNMOVpjKvXmVpHOcJECLhslIHqceTfkNxJfSdWGFnEO3GCNPN\n98r+ZlXw2b2mSXiXLkGCr7YS1Bh1dIiDFLd+JiFVtIFoVWJaZgU0d7JSTfmTuCGQ\nOH/DV3NpKHDuA2LuFMdY+Bq3gZqFJCKvBwIDAQABAoIBAHFQVPQlz4m0VFbWAjS6\ny3sHSOQZzBOqgP3VxFkCU5YSyMXuT5sWYP3MlJQqkxcKlHr4HJMYC4hfCk5CQFQB\n-----END RSA PRIVATE KEY-----\n",
+  "client_email": "dummy@dummy-project.iam.gserviceaccount.com",
+  "client_id": "123456789",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token"
+}

@@ -23,4 +23,7 @@ public interface CommunityCommentRepository extends JpaRepository<CommunityComme
     @Modifying
     @Query("UPDATE CommunityComment c SET c.mentionUser = null WHERE c.mentionUser.userId = :userId")
     void clearMentionUser(@Param("userId") Long userId);
+
+    // 게시글 댓글 수 (삭제 제외)
+    long countByPost_PostIdAndIsDeletedFalse(Long postId);
 }
