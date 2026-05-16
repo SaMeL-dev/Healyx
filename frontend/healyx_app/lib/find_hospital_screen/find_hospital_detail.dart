@@ -1,5 +1,6 @@
 ﻿// 병원 찾기 상세 화면
 // 리뷰쓰기 버튼 클릭 시 accessToken 유무로 로그인 상태를 판단함
+
 import 'package:flutter/material.dart';
 import 'package:healyx_app/app_language.dart';
 
@@ -22,6 +23,8 @@ class FindHospitalDetailScreen extends StatefulWidget {
     required this.address,
     required this.rating,
     this.ykiho,
+    this.hospitalType = '',
+    this.telephone = '',
   });
 
   // true = 리뷰 목록이 있는 병원 상세 화면
@@ -44,6 +47,11 @@ class FindHospitalDetailScreen extends StatefulWidget {
   // HIRA 암호화 요양기호 — API 연동 시 병원 리뷰 조회에 사용
   final String? ykiho;
 
+  // 병원 추천 API 응답에서 받은 병원 타입 / 전화번호
+  // 상세 API 응답이 없거나 비어 있을 때 fallback 값으로 사용
+  final String hospitalType;
+  final String telephone;
+
   @override
   State<FindHospitalDetailScreen> createState() =>
       _FindHospitalDetailScreenState();
@@ -63,28 +71,35 @@ class _FindHospitalDetailScreenState extends State<FindHospitalDetailScreen> {
   @override
   void initState() {
     super.initState();
+
     if (widget.ykiho != null && widget.ykiho!.isNotEmpty) {
-      _isLoading = true; // initState에서 직접 대입 → 첫 build 시 로딩 상태로 시작
+      _isLoading = true;
       _fetchDetail();
     }
   }
 
   Future<void> _fetchDetail() async {
     if (!mounted) return;
+
     setState(() {
       _isLoading = true;
       _hasError = false;
     });
+
     try {
       final detail = await ReviewService.getHospitalDetail(widget.ykiho!);
+
       if (!mounted) return;
+
       setState(() {
         _detail = detail;
         _isLoading = false;
       });
     } catch (e) {
       debugPrint('FETCH_HOSPITAL_DETAIL ERROR: $e');
+
       if (!mounted) return;
+
       setState(() {
         _hasError = true;
         _isLoading = false;
@@ -119,6 +134,7 @@ class _FindHospitalDetailScreenState extends State<FindHospitalDetailScreen> {
     }
 
     final String? ykiho = widget.ykiho;
+
     if (ykiho == null || ykiho.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(AppLanguage.t('hospital_info_unavailable'))),
@@ -139,6 +155,36 @@ class _FindHospitalDetailScreenState extends State<FindHospitalDetailScreen> {
         ),
       ),
     );
+  }
+
+  String _displayValue(String? value) {
+    final trimmed = value?.trim() ?? '';
+
+    if (trimmed.isEmpty || trimmed == 'null') {
+      return '정보 없음';
+    }
+
+    return trimmed;
+  }
+
+  String get _displayHospitalType {
+    final detailType = _detail?.hospitalType;
+
+    if (detailType != null && detailType.trim().isNotEmpty) {
+      return _displayValue(detailType);
+    }
+
+    return _displayValue(widget.hospitalType);
+  }
+
+  String get _displayTelephone {
+    final detailPhone = _detail?.telephone;
+
+    if (detailPhone != null && detailPhone.trim().isNotEmpty) {
+      return _displayValue(detailPhone);
+    }
+
+    return _displayValue(widget.telephone);
   }
 
   @override
@@ -163,7 +209,7 @@ class _FindHospitalDetailScreenState extends State<FindHospitalDetailScreen> {
                           _buildHospitalInfo(),
                           const SizedBox(height: 18),
 
-                          // 리뷰 갯수 + 리뷰쓰기 버튼 (고정)
+                          // 리뷰 갯수 + 리뷰쓰기 버튼
                           HospitalReviewHeader(
                             hasReview: _hasReviews,
                             reviewCount: _detail?.reviewCount ?? 0,
@@ -226,13 +272,13 @@ class _FindHospitalDetailScreenState extends State<FindHospitalDetailScreen> {
                       ),
                     )
                   else if (_hasReviews)
-                    _buildReviewSheet()
-                  else
-                    HospitalEmptyReviewView(
-                      lightBlue: lightBlue,
-                      mainBlue: mainBlue,
-                      onWriteReview: _handleWriteReview,
-                    ),
+                      _buildReviewSheet()
+                    else
+                      HospitalEmptyReviewView(
+                        lightBlue: lightBlue,
+                        mainBlue: mainBlue,
+                        onWriteReview: _handleWriteReview,
+                      ),
                 ],
               ),
             ),
@@ -257,7 +303,7 @@ class _FindHospitalDetailScreenState extends State<FindHospitalDetailScreen> {
           ),
           Center(
             child: Text(
-              AppLanguage.t('find_hospital'), // '병원 찾기'
+              AppLanguage.t('find_hospital'),
               style: TextStyle(
                 color: mainBlue,
                 fontSize: 24,
@@ -315,7 +361,7 @@ class _FindHospitalDetailScreenState extends State<FindHospitalDetailScreen> {
   }
 
   Widget _buildRatingChip(double rating) {
-    final String ratingText = rating.toStringAsFixed(1);
+    final String ratingText = rating <= 0 ? '-' : rating.toStringAsFixed(1);
 
     return Container(
       width: 62,
@@ -345,20 +391,24 @@ class _FindHospitalDetailScreenState extends State<FindHospitalDetailScreen> {
   }
 
   Widget _buildHospitalInfo() {
-    final type = _detail?.hospitalType ?? '';
-    final phone = _detail?.telephone ?? '';
     return Column(
       children: [
         const Divider(color: lineColor, thickness: 1),
         const SizedBox(height: 16),
-        if (type.isNotEmpty) ...[
-          _infoRow(AppLanguage.t('hospital_type_label'), type),
-          const SizedBox(height: 16),
-        ],
-        if (phone.isNotEmpty) ...[
-          _infoRow(AppLanguage.t('hospital_phone_label'), phone),
-          const SizedBox(height: 18),
-        ],
+
+        _infoRow(
+          AppLanguage.t('hospital_type_label'),
+          _displayHospitalType,
+        ),
+
+        const SizedBox(height: 16),
+
+        _infoRow(
+          AppLanguage.t('hospital_phone_label'),
+          _displayTelephone,
+        ),
+
+        const SizedBox(height: 18),
         const Divider(color: lineColor, thickness: 1),
       ],
     );
@@ -376,12 +426,15 @@ class _FindHospitalDetailScreenState extends State<FindHospitalDetailScreen> {
           ),
         ),
         const Spacer(),
-        Text(
-          value,
-          style: const TextStyle(
-            color: Colors.black,
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
+        Flexible(
+          child: Text(
+            value,
+            textAlign: TextAlign.right,
+            style: const TextStyle(
+              color: Colors.black,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
       ],
@@ -390,18 +443,22 @@ class _FindHospitalDetailScreenState extends State<FindHospitalDetailScreen> {
 
   // API 리뷰 목록 → ReviewCard에 필요한 ReviewData로 변환
   List<ReviewData> get _reviewDataList =>
-      (_detail?.reviews ?? []).map((item) => ReviewData(
-            nickname: item.nickname,
-            content: item.content,
-            rating: item.rating,
-            imageUrls: item.imageUrls,
-          )).toList();
+      (_detail?.reviews ?? [])
+          .map(
+            (item) => ReviewData(
+          nickname: item.nickname,
+          content: item.content,
+          rating: item.rating,
+          imageUrls: item.imageUrls,
+        ),
+      )
+          .toList();
 
-  bool get _hasReviews =>
-      _detail != null && _detail!.reviews.isNotEmpty;
+  bool get _hasReviews => _detail != null && _detail!.reviews.isNotEmpty;
 
   Widget _buildReviewSheet() {
     final reviews = _reviewDataList;
+
     return DraggableScrollableSheet(
       initialChildSize: 0.48,
       minChildSize: 0.34,
@@ -432,6 +489,7 @@ class _FindHospitalDetailScreenState extends State<FindHospitalDetailScreen> {
                   ),
                 );
               }
+
               return ReviewCard(review: reviews[index - 1]);
             },
           ),

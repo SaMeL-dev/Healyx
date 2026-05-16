@@ -1,10 +1,22 @@
-﻿import 'dart:async';
-import 'package:flutter/material.dart';
-import 'package:healyx_app/app_language.dart'; 
+﻿import 'package:flutter/material.dart';
+import 'package:healyx_app/app_language.dart';
+
+import '../services/auth_service.dart';
 import 'find_hospital_result.dart';
+import 'service/hospital_recommend_service.dart';
+import 'service/location_service.dart';
 
 class FindHospitalLoading extends StatefulWidget {
-  const FindHospitalLoading({super.key});
+  final String symptom;
+  final int riskLevel;
+  final String sortBy;
+
+  const FindHospitalLoading({
+    super.key,
+    required this.symptom,
+    required this.riskLevel,
+    this.sortBy = 'recommend',
+  });
 
   @override
   State<FindHospitalLoading> createState() => _FindHospitalLoadingState();
@@ -13,7 +25,6 @@ class FindHospitalLoading extends StatefulWidget {
 class _FindHospitalLoadingState extends State<FindHospitalLoading>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
-  Timer? _moveTimer;
 
   @override
   void initState() {
@@ -24,22 +35,72 @@ class _FindHospitalLoadingState extends State<FindHospitalLoading>
       duration: const Duration(milliseconds: 900),
     )..repeat();
 
-    // 임시 처리: 3초 후 병원 찾기 결과 화면으로 이동
-    _moveTimer = Timer(const Duration(seconds: 3), () {
+    _requestHospitalRecommend();
+  }
+
+  Future<void> _requestHospitalRecommend() async {
+    try {
+      debugPrint('1. 병원 추천 시작');
+
+      // 1. 현재 위치 가져오기
+      debugPrint('2. 위치 조회 시작');
+      final position = await LocationService.getCurrentPosition();
+      debugPrint('3. 위치 조회 완료: ${position.latitude}, ${position.longitude}');
+
+      // 2. 로그인 토큰 가져오기
+      // 로그인 상태면 accessToken이 들어오고, 비로그인 상태면 null이 들어옴
+      final accessToken = await AuthService.getAccessToken();
+      debugPrint(
+        accessToken != null && accessToken.isNotEmpty
+            ? '4. 로그인 토큰 확인 완료'
+            : '4. 비로그인 상태로 병원 추천 요청',
+      );
+
+      // 3. 실제 병원 추천 API 호출
+      debugPrint('5. 병원 추천 API 호출 시작');
+      final response = await HospitalRecommendService.recommendHospitals(
+        symptom: widget.symptom,
+        latitude: position.latitude,
+        longitude: position.longitude,
+        riskLevel: widget.riskLevel,
+        sortBy: widget.sortBy,
+        accessToken: accessToken,
+      );
+      debugPrint('6. 병원 추천 API 호출 완료');
+
       if (!mounted) return;
 
+      // 4. 결과 화면으로 이동
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => const FindHospitalResultScreen(),
+          builder: (context) => FindHospitalResultScreen(
+            recommendResponse: response,
+            symptom: widget.symptom,
+            riskLevel: widget.riskLevel,
+            latitude: position.latitude,
+            longitude: position.longitude,
+            sortBy: widget.sortBy,
+          ),
         ),
       );
-    });
+    } catch (e) {
+      debugPrint('병원 추천 오류: $e');
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString()),
+        ),
+      );
+
+      Navigator.pop(context);
+    }
   }
 
   @override
   void dispose() {
-    _moveTimer?.cancel();
     _controller.dispose();
     super.dispose();
   }
@@ -86,10 +147,10 @@ class _FindHospitalLoadingState extends State<FindHospitalLoading>
                       size: 22,
                     ),
                   ),
-                  Expanded( // 수정
+                  Expanded(
                     child: Center(
                       child: Text(
-                        AppLanguage.t('find_hospital'), // '병원 찾기'
+                        AppLanguage.t('find_hospital'),
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w800,
@@ -102,25 +163,31 @@ class _FindHospitalLoadingState extends State<FindHospitalLoading>
                 ],
               ),
             ),
+
             const Spacer(),
-            Text( // 수정
-              AppLanguage.t('hospital_searching'), // '병원을 찾고있습니다'
+
+            Text(
+              AppLanguage.t('hospital_searching'),
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
                 color: Color(0xFF2260FF),
               ),
             ),
+
             const SizedBox(height: 6),
-            Text( // 수정
-              AppLanguage.t('please_wait'), // '잠시만 기다려주세요'
+
+            Text(
+              AppLanguage.t('please_wait'),
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
                 color: Color(0xFF2260FF),
               ),
             ),
+
             const SizedBox(height: 28),
+
             SizedBox(
               width: 40,
               height: 40,
@@ -144,6 +211,7 @@ class _FindHospitalLoadingState extends State<FindHospitalLoading>
                 ],
               ),
             ),
+
             const Spacer(),
           ],
         ),

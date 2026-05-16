@@ -1,16 +1,34 @@
 ﻿// 병원 찾기 결과 화면
-// 로그인/비로그인 상태에 따라 화면이 조금 다름
-// accessToken 유무를 기준으로 로그인 상태를 판단함
+// API 응답으로 받은 병원 목록을 카드와 지도에 표시함
+// 로그인/비로그인 상태에 따라 의료비 표시가 달라질 수 있음
 
 import 'package:flutter/material.dart';
-import 'package:healyx_app/app_language.dart'; 
-import 'find_hospital_detail.dart';
-import 'pain_score_slide.dart';
-import '../constants/hospital_constants.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:healyx_app/app_language.dart';
+import 'package:latlong2/latlong.dart';
+
 import '../services/auth_service.dart';
+import 'find_hospital_detail.dart';
+import 'model/hospital_recommend_response.dart';
+import 'service/hospital_recommend_service.dart';
 
 class FindHospitalResultScreen extends StatefulWidget {
-  const FindHospitalResultScreen({super.key});
+  final HospitalRecommendResponse recommendResponse;
+  final String symptom;
+  final int riskLevel;
+  final double latitude;
+  final double longitude;
+  final String sortBy;
+
+  const FindHospitalResultScreen({
+    super.key,
+    required this.recommendResponse,
+    required this.symptom,
+    required this.riskLevel,
+    required this.latitude,
+    required this.longitude,
+    required this.sortBy,
+  });
 
   @override
   State<FindHospitalResultScreen> createState() =>
@@ -18,26 +36,45 @@ class FindHospitalResultScreen extends StatefulWidget {
 }
 
 class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
-  // accessToken 확인 전 기본값은 비로그인
   bool isLoggedIn = false;
-
-  // 로그인 상태 확인 중 여부
   bool isCheckingLogin = true;
-
-  // 비로그인 상태에서 물음표 클릭 시 로그인 안내 팝업 표시 여부
   bool showLoginGuide = false;
+  bool isRefreshingSort = false;
 
-  String selectedSort = AppLanguage.t('sort_recommended'); // '추천순'
+  late HospitalRecommendResponse recommendResponse;
+  late String selectedSortBy;
+
+  final DraggableScrollableController _sheetController =
+  DraggableScrollableController();
+
+  final Map<String, GlobalKey> _hospitalCardKeys = {};
+  String? selectedHospitalCardKey;
 
   final Color mainBlue = const Color(0xFF2260FF);
   final Color cardColor = const Color(0xFFCAD6FF);
   final Color mapBgColor = const Color(0xFFECF1FF);
   final Color grayText = const Color(0xFF5B5B5B);
 
+  List<RecommendedHospital> get hospitals {
+    return recommendResponse.data?.hospitals ?? [];
+  }
+
+  List<RecommendedHospital> get validMapHospitals {
+    return hospitals.where(_hasValidCoordinate).toList();
+  }
+
   @override
   void initState() {
     super.initState();
+    recommendResponse = widget.recommendResponse;
+    selectedSortBy = widget.sortBy;
     _checkLoginStatus();
+  }
+
+  @override
+  void dispose() {
+    _sheetController.dispose();
+    super.dispose();
   }
 
   Future<void> _checkLoginStatus() async {
@@ -49,6 +86,113 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
       isLoggedIn = loggedIn;
       isCheckingLogin = false;
     });
+  }
+
+  Future<void> _changeSort(String sortBy) async {
+    if (selectedSortBy == sortBy || isRefreshingSort) return;
+
+    final previousSortBy = selectedSortBy;
+
+    setState(() {
+      selectedSortBy = sortBy;
+      isRefreshingSort = true;
+      showLoginGuide = false;
+      selectedHospitalCardKey = null;
+    });
+
+    try {
+      final accessToken = await AuthService.getAccessToken();
+
+      debugPrint(
+        accessToken != null && accessToken.isNotEmpty
+            ? '정렬 재호출: 로그인 토큰 포함'
+            : '정렬 재호출: 비로그인 상태',
+      );
+
+      final response = await HospitalRecommendService.recommendHospitals(
+        symptom: widget.symptom,
+        latitude: widget.latitude,
+        longitude: widget.longitude,
+        riskLevel: widget.riskLevel,
+        sortBy: sortBy,
+        accessToken: accessToken,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        recommendResponse = response;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        selectedSortBy = previousSortBy;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString()),
+        ),
+      );
+    } finally {
+      if (!mounted) return;
+
+      setState(() {
+        isRefreshingSort = false;
+      });
+    }
+  }
+
+  String _hospitalKey(RecommendedHospital hospital) {
+    final ykiho = hospital.ykiho.toString().trim();
+
+    if (ykiho.isNotEmpty && ykiho != 'null') {
+      return ykiho;
+    }
+
+    return '${hospital.hospitalName}_${hospital.latitude}_${hospital.longitude}';
+  }
+
+  GlobalKey _cardKeyFor(RecommendedHospital hospital) {
+    final key = _hospitalKey(hospital);
+
+    return _hospitalCardKeys.putIfAbsent(
+      key,
+          () => GlobalKey(),
+    );
+  }
+
+  Future<void> _focusHospitalCard(RecommendedHospital hospital) async {
+    final key = _hospitalKey(hospital);
+
+    setState(() {
+      selectedHospitalCardKey = key;
+      showLoginGuide = false;
+    });
+
+    if (_sheetController.isAttached) {
+      await _sheetController.animateTo(
+        0.66,
+        duration: const Duration(milliseconds: 280),
+        curve: Curves.easeOut,
+      );
+    }
+
+    await Future.delayed(const Duration(milliseconds: 120));
+
+    if (!mounted) return;
+
+    final cardContext = _hospitalCardKeys[key]?.currentContext;
+
+    if (cardContext != null && cardContext.mounted) {
+      await Scrollable.ensureVisible(
+        cardContext,
+        duration: const Duration(milliseconds: 360),
+        curve: Curves.easeOutCubic,
+        alignment: 0.08,
+      );
+    }
   }
 
   @override
@@ -108,19 +252,14 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
             top: 16,
             child: IconButton(
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const PainScoreSlide(),
-                  ),
-                );
+                Navigator.pop(context);
               },
               icon: Icon(Icons.arrow_back_ios_new, color: mainBlue, size: 21),
             ),
           ),
           Center(
             child: Text(
-              AppLanguage.t('find_hospital'), // '병원 찾기'
+              AppLanguage.t('find_hospital'),
               style: TextStyle(
                 color: mainBlue,
                 fontSize: 24,
@@ -134,25 +273,117 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
   }
 
   Widget _buildMapArea() {
+    final mapHospitals = validMapHospitals;
+    final center = _getMapCenter(mapHospitals);
+
     return Container(
       height: 430,
       width: double.infinity,
       color: mapBgColor,
-      child: Center(
-        child: Text(
-          '지도 영역',
-          style: TextStyle(
-            color: grayText,
-            fontSize: 15,
-            fontWeight: FontWeight.w500,
+      child: Stack(
+        children: [
+          FlutterMap(
+            options: MapOptions(
+              initialCenter: center,
+              initialZoom: mapHospitals.isEmpty ? 14 : 13,
+            ),
+            children: [
+              TileLayer(
+                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                userAgentPackageName: 'com.example.healyx_app',
+              ),
+              MarkerLayer(
+                markers: [
+                  Marker(
+                    point: LatLng(widget.latitude, widget.longitude),
+                    width: 44,
+                    height: 44,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withAlpha(35),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        Icons.my_location,
+                        color: mainBlue,
+                        size: 27,
+                      ),
+                    ),
+                  ),
+                  ...mapHospitals.map(
+                        (hospital) => Marker(
+                      point: LatLng(hospital.latitude, hospital.longitude),
+                      width: 48,
+                      height: 48,
+                      child: GestureDetector(
+                        onTap: () {
+                          _focusHospitalCard(hospital);
+                        },
+                        child: Icon(
+                          Icons.location_on,
+                          color: hospital.foreignCertified
+                              ? mainBlue
+                              : Colors.redAccent,
+                          size: 43,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              RichAttributionWidget(
+                attributions: [
+                  TextSourceAttribution(
+                    'OpenStreetMap contributors',
+                  ),
+                ],
+              ),
+            ],
           ),
-        ),
+          if (mapHospitals.isEmpty)
+            Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white.withAlpha(235),
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withAlpha(20),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Text(
+                  '지도에 표시할 병원 위치 정보가 없습니다.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: grayText,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
 
   Widget _buildBottomSheet() {
     return DraggableScrollableSheet(
+      controller: _sheetController,
       initialChildSize: 0.40,
       minChildSize: 0.25,
       maxChildSize: 0.86,
@@ -180,15 +411,30 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
                   ),
                   const SizedBox(height: 22),
                   _buildSortRow(),
+                  if (isRefreshingSort) ...[
+                    const SizedBox(height: 12),
+                    const Center(
+                      child: SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          color: Color(0xFF2260FF),
+                        ),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 10),
-
                   if (!isLoggedIn)
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
-                          AppLanguage.t('cost_uninsured_notice'), // '예측된 의료비는 건강보험 미적용 기준으로 계산되었습니다.'
-                          style: TextStyle(color: mainBlue, fontSize: 10.5),
+                        Flexible(
+                          child: Text(
+                            AppLanguage.t('cost_uninsured_notice'),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: mainBlue, fontSize: 10.5),
+                          ),
                         ),
                         const SizedBox(width: 4),
                         GestureDetector(
@@ -201,11 +447,9 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
                         ),
                       ],
                     ),
-
                   const SizedBox(height: 10),
-
                   Text(
-                    AppLanguage.t('cost_disclaimer'), // '본 예측 비용은 통계 데이터에 기반한 참고용 수치입니다.\n정확한 의료비 산출을 위해 반드시 병원 관계자와 상담하시기 바랍니다.'
+                    AppLanguage.t('cost_disclaimer'),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: mainBlue,
@@ -213,12 +457,13 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
                       height: 1.4,
                     ),
                   ),
-
                   const SizedBox(height: 12),
-                  ...HOSPITAL_LIST.map((item) => _buildHospitalCard(item)),
+                  if (hospitals.isEmpty)
+                    _buildEmptyResult()
+                  else
+                    ...hospitals.map((hospital) => _buildHospitalCard(hospital)),
                 ],
               ),
-
               if (!isLoggedIn && showLoginGuide)
                 Positioned(
                   right: 6,
@@ -254,12 +499,12 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
                             ),
                           ),
                         ),
-                        Padding( // 수정
+                        Padding(
                           padding: const EdgeInsets.only(top: 2),
                           child: SizedBox(
                             width: 150,
                             child: Text(
-                              AppLanguage.t('cost_login_for_insured'), // '건강보험이 적용된 의료비를\n확인하려면 로그인을 해주세요'
+                              AppLanguage.t('cost_login_for_insured'),
                               textAlign: TextAlign.center,
                               style: const TextStyle(
                                 fontSize: 11,
@@ -285,21 +530,28 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        _sortButton(AppLanguage.t('sort_recommended')), // '추천순'
+        _sortButton(
+          title: AppLanguage.t('sort_recommended'),
+          sortBy: 'recommend',
+        ),
         const SizedBox(width: 18),
-        _sortButton(AppLanguage.t('sort_by_distance')), // '거리순'
+        _sortButton(
+          title: AppLanguage.t('sort_by_distance'),
+          sortBy: 'distance',
+        ),
       ],
     );
   }
 
-  Widget _sortButton(String title) {
-    final bool isSelected = selectedSort == title;
+  Widget _sortButton({
+    required String title,
+    required String sortBy,
+  }) {
+    final bool isSelected = selectedSortBy == sortBy;
 
     return GestureDetector(
       onTap: () {
-        setState(() {
-          selectedSort = title;
-        });
+        _changeSort(sortBy);
       },
       child: Row(
         children: [
@@ -322,17 +574,62 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
     );
   }
 
-  Widget _buildHospitalCard(Map<String, dynamic> item) {
+  Widget _buildEmptyResult() {
+    final emptyReason = recommendResponse.data?.emptyReason;
+
     return Container(
+      margin: const EdgeInsets.only(top: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 24),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Center(
+        child: Text(
+          emptyReason != null && emptyReason.isNotEmpty
+              ? emptyReason
+              : '조건에 맞는 병원을 찾지 못했습니다.',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: mainBlue,
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            height: 1.4,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHospitalCard(RecommendedHospital hospital) {
+    final cardKey = _hospitalKey(hospital);
+    final bool isSelected = selectedHospitalCardKey == cardKey;
+
+    return AnimatedContainer(
+      key: _cardKeyFor(hospital),
+      duration: const Duration(milliseconds: 180),
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: isSelected ? mainBlue : Colors.transparent,
+          width: isSelected ? 2.2 : 0,
+        ),
+        boxShadow: isSelected
+            ? [
+          BoxShadow(
+            color: mainBlue.withAlpha(45),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ]
+            : [],
       ),
       child: Stack(
         children: [
-          if (item['foreign'] == true)
+          if (hospital.foreignCertified)
             Positioned(
               right: 0,
               top: 0,
@@ -350,7 +647,7 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                item['hospitalName'],
+                hospital.hospitalName,
                 style: TextStyle(
                   color: mainBlue,
                   fontSize: 16,
@@ -359,9 +656,20 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
               ),
               const SizedBox(height: 5),
               Text(
-                item['address'],
+                hospital.address,
                 style: const TextStyle(fontSize: 13, color: Colors.black),
               ),
+              if (hospital.distance > 0) ...[
+                const SizedBox(height: 4),
+                Text(
+                  _buildLocalizedDistanceText(hospital.distance),
+                  style: TextStyle(
+                    color: grayText,
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
               const SizedBox(height: 8),
               Row(
                 children: [
@@ -379,9 +687,7 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
                               borderRadius: BorderRadius.circular(16),
                             ),
                             child: Text(
-                              isLoggedIn
-                                  ? '예측 의료비  최소 4000원 ~ 최대15000원'
-                                  : '예측 의료비  최소 12000원 ~ 최대30000원',
+                              _buildCostText(hospital),
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 color: mainBlue,
@@ -393,7 +699,7 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
                         ),
                         const SizedBox(width: 3),
                         Text(
-                          AppLanguage.t('cost_reference_note'), // '*참고용입니다'
+                          AppLanguage.t('cost_reference_note'),
                           style: TextStyle(
                             color: mainBlue,
                             fontSize: 10,
@@ -415,12 +721,15 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
                           context,
                           MaterialPageRoute(
                             builder: (context) => FindHospitalDetailScreen(
-                              hospitalName: item['hospitalName'],
-                              address: item['address'],
-                              rating: (item['rating'] as num).toDouble(),
-                              hasBadge: item['hasBadge'] == true,
-                              hasReview: item['hasReview'] == true,
+                              hospitalName: hospital.hospitalName,
+                              address: hospital.address,
+                              rating: 0.0,
+                              hasBadge: hospital.foreignCertified,
+                              hasReview: false,
                               isLoggedIn: isLoggedIn,
+                              ykiho: hospital.ykiho,
+                              hospitalType: hospital.hospitalType ?? '',
+                              telephone: hospital.telephone ?? '',
                             ),
                           ),
                         );
@@ -434,7 +743,7 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
                         ),
                       ),
                       child: Text(
-                        AppLanguage.t('hospital_detail_btn'), // '상세 정보'
+                        AppLanguage.t('hospital_detail_btn'),
                         style: const TextStyle(
                           fontSize: 13,
                           color: Colors.white,
@@ -459,7 +768,7 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
                         Icon(Icons.star_border, color: mainBlue, size: 14),
                         const SizedBox(width: 2),
                         Text(
-                          item['rating'].toString(),
+                          '-',
                           style: TextStyle(
                             color: mainBlue,
                             fontSize: 11.5,
@@ -476,5 +785,87 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
         ],
       ),
     );
+  }
+
+  String _buildCostText(RecommendedHospital hospital) {
+    if (hospital.hasCost) {
+      final min = _formatNumber(hospital.minCost!);
+      final max = _formatNumber(hospital.maxCost!);
+
+      final template = AppLanguage.t('cost_range');
+
+      if (template == 'cost_range') {
+        return '예측 의료비  최소 ${min}원 ~ 최대 ${max}원';
+      }
+
+      return template.replaceAll('{min}', min).replaceAll('{max}', max);
+    }
+
+    final reason = hospital.costUnavailableReason;
+
+    if (reason != null && reason.trim().isNotEmpty) {
+      return reason;
+    }
+
+    return AppLanguage.t('cost_login_for_insured').replaceAll('\n', ' ');
+  }
+
+  String _formatNumber(int value) {
+    return value.toString().replaceAllMapped(
+      RegExp(r'\B(?=(\d{3})+(?!\d))'),
+          (match) => ',',
+    );
+  }
+
+  String _buildLocalizedDistanceText(double distance) {
+    final String langCode = AppLanguage.currentLang.value;
+    final bool isKm = distance >= 1000;
+
+    final String value = isKm
+        ? (distance / 1000).toStringAsFixed(1)
+        : distance.toStringAsFixed(0);
+
+    switch (langCode) {
+      case 'en':
+        return 'Distance $value ${isKm ? 'km' : 'm'}';
+
+      case 'zh':
+        return '距离 $value${isKm ? '公里' : '米'}';
+
+      case 'ja':
+        return '距離 $value${isKm ? 'km' : 'm'}';
+
+      case 'vi':
+        return 'Khoảng cách $value ${isKm ? 'km' : 'm'}';
+
+      case 'th':
+        return 'ระยะทาง $value ${isKm ? 'กม.' : 'ม.'}';
+
+      case 'ko':
+      default:
+        return '거리 $value${isKm ? 'km' : 'm'}';
+    }
+  }
+
+  bool _hasValidCoordinate(RecommendedHospital hospital) {
+    final lat = hospital.latitude;
+    final lng = hospital.longitude;
+
+    if (lat == 0.0 && lng == 0.0) return false;
+    if (lat < -90 || lat > 90) return false;
+    if (lng < -180 || lng > 180) return false;
+
+    return true;
+  }
+
+  LatLng _getMapCenter(List<RecommendedHospital> mapHospitals) {
+    if (mapHospitals.isNotEmpty) {
+      return LatLng(
+        mapHospitals.first.latitude,
+        mapHospitals.first.longitude,
+      );
+    }
+
+    return LatLng(widget.latitude, widget.longitude);
   }
 }
