@@ -6,7 +6,9 @@ import com.smu.healyx.community.domain.CommunityPost;
 import com.smu.healyx.community.domain.PostImage;
 import com.smu.healyx.community.dto.PostDetailResponse;
 import com.smu.healyx.community.dto.PostListItemResponse;
+import com.smu.healyx.community.repository.CommunityBookmarkRepository;
 import com.smu.healyx.community.repository.CommunityCommentRepository;
+import com.smu.healyx.community.repository.CommunityLikeRepository;
 import com.smu.healyx.community.repository.CommunityPostRepository;
 import com.smu.healyx.community.repository.PostImageRepository;
 import com.smu.healyx.user.domain.User;
@@ -34,6 +36,8 @@ public class CommunityPostService {
     private final CommunityPostRepository postRepository;
     private final PostImageRepository postImageRepository;
     private final CommunityCommentRepository commentRepository;
+    private final CommunityLikeRepository likeRepository;
+    private final CommunityBookmarkRepository bookmarkRepository;
     private final UserRepository userRepository;
     private final S3UploadService s3UploadService;
     private final CommunityCommentService communityCommentService;
@@ -120,8 +124,8 @@ public class CommunityPostService {
                 .createdAt(post.getCreatedAt())
                 .updatedAt(post.getUpdatedAt())
                 .imageUrls(imageUrls)
-                .myLikeExists(false)
-                .myBookmarkExists(false)
+                .myLikeExists(userId != null && likeRepository.existsByPost_PostIdAndUser_UserId(postId, userId))
+                .myBookmarkExists(userId != null && bookmarkRepository.existsByPost_PostIdAndUser_UserId(postId, userId))
                 .comments(communityCommentService.getCommentsByPost(postId))
                 .build();
     }

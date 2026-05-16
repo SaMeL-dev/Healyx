@@ -2,6 +2,7 @@ package com.smu.healyx.community.controller;
 
 import com.smu.healyx.common.dto.ApiResponse;
 import com.smu.healyx.common.security.SecurityUtils;
+import com.smu.healyx.community.dto.BookmarkedPostResponse;
 import com.smu.healyx.community.dto.MyCommentResponse;
 import com.smu.healyx.community.dto.MyPostResponse;
 import com.smu.healyx.community.service.MyActivityService;
@@ -33,6 +34,15 @@ public class MyActivityController {
             Authentication authentication) {
         Long userId = SecurityUtils.extractUserId(authentication);
         return ResponseEntity.ok(ApiResponse.success(myActivityService.getMyPosts(userId)));
+    }
+
+    /** HX_M_005 — 내 북마크 목록 — JWT 필요 */
+    @Operation(summary = "내 북마크 목록 조회", description = "본인이 북마크한 게시글을 등록 최신순으로 반환합니다.")
+    @GetMapping("/bookmarks")
+    public ResponseEntity<ApiResponse<List<BookmarkedPostResponse>>> getMyBookmarks(
+            Authentication authentication) {
+        Long userId = SecurityUtils.extractUserId(authentication);
+        return ResponseEntity.ok(ApiResponse.success(myActivityService.getMyBookmarks(userId)));
     }
 
     /** 내가 쓴 댓글 목록 — JWT 필요 */

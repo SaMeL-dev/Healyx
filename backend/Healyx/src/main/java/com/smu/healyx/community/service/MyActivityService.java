@@ -7,6 +7,8 @@ import com.smu.healyx.community.domain.CommunityPost;
 import com.smu.healyx.community.domain.PostImage;
 import com.smu.healyx.community.dto.MyCommentResponse;
 import com.smu.healyx.community.dto.MyPostResponse;
+import com.smu.healyx.community.dto.BookmarkedPostResponse;
+import com.smu.healyx.community.repository.CommunityBookmarkRepository;
 import com.smu.healyx.community.repository.CommunityCommentRepository;
 import com.smu.healyx.community.repository.CommunityPostRepository;
 import com.smu.healyx.community.repository.PostImageRepository;
@@ -25,6 +27,7 @@ public class MyActivityService {
 
     private final CommunityPostRepository communityPostRepository;
     private final CommunityCommentRepository communityCommentRepository;
+    private final CommunityBookmarkRepository communityBookmarkRepository;
     private final PostImageRepository postImageRepository;
     private final S3UploadService s3UploadService;
 
@@ -73,6 +76,15 @@ public class MyActivityService {
         } else {
             communityCommentRepository.delete(comment);
         }
+    }
+
+    /** HX_M_005 — 내가 북마크한 게시글 목록 — 북마크 등록 최신순 */
+    @Transactional(readOnly = true)
+    public List<BookmarkedPostResponse> getMyBookmarks(Long userId) {
+        return communityBookmarkRepository.findBookmarkedPostsByUserId(userId)
+                .stream()
+                .map(BookmarkedPostResponse::from)
+                .toList();
     }
 
     /** 내가 쓴 댓글 목록 — 삭제 제외, 최신순 */
