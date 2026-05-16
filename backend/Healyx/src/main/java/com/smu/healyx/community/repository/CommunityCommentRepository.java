@@ -26,4 +26,8 @@ public interface CommunityCommentRepository extends JpaRepository<CommunityComme
 
     // 게시글 댓글 수 (삭제 제외)
     long countByPost_PostIdAndIsDeletedFalse(Long postId);
+
+    // depth=0 댓글 + childComments JOIN FETCH (N+1 방지)
+    @Query("SELECT DISTINCT c FROM CommunityComment c LEFT JOIN FETCH c.childComments WHERE c.post.postId = :postId AND c.depth = 0 AND c.isDeleted = false ORDER BY c.createdAt ASC")
+    List<CommunityComment> findTopLevelCommentsByPostId(@Param("postId") Long postId);
 }

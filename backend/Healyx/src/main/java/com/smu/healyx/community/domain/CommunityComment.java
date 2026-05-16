@@ -68,4 +68,11 @@ public class CommunityComment {
         this.updatedAt = LocalDateTime.now();
     }
 
+    /** 활성 대댓글이 있을 때 내용을 가리는 소프트 삭제 */
+    public void softDelete() {
+        this.isDeleted = true;
+        this.content = "삭제된 댓글입니다.";
+        this.updatedAt = LocalDateTime.now();
+    }
+
 }

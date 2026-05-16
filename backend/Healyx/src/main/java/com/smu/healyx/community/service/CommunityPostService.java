@@ -36,6 +36,7 @@ public class CommunityPostService {
     private final CommunityCommentRepository commentRepository;
     private final UserRepository userRepository;
     private final S3UploadService s3UploadService;
+    private final CommunityCommentService communityCommentService;
 
     /** HX_COM_002 — 게시글 등록 */
     @Transactional
@@ -121,6 +122,7 @@ public class CommunityPostService {
                 .imageUrls(imageUrls)
                 .myLikeExists(false)
                 .myBookmarkExists(false)
+                .comments(communityCommentService.getCommentsByPost(postId))
                 .build();
     }
 
