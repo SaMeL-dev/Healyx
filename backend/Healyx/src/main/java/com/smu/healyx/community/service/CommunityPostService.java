@@ -1,20 +1,25 @@
 package com.smu.healyx.community.service;
 
 import com.smu.healyx.common.exception.AuthException;
+import com.smu.healyx.common.exception.ExternalApiException;
 import com.smu.healyx.common.service.S3UploadService;
 import com.smu.healyx.community.domain.CommunityPost;
 import com.smu.healyx.community.domain.PostImage;
 import com.smu.healyx.community.dto.PostDetailResponse;
 import com.smu.healyx.community.dto.PostListItemResponse;
+import com.smu.healyx.community.dto.PostTranslationResponse;
 import com.smu.healyx.community.repository.CommunityBookmarkRepository;
 import com.smu.healyx.community.repository.CommunityCommentRepository;
 import com.smu.healyx.community.repository.CommunityLikeRepository;
 import com.smu.healyx.community.repository.CommunityPostRepository;
 import com.smu.healyx.community.repository.PostImageRepository;
+import com.smu.healyx.deepl.service.TranslationService;
 import com.smu.healyx.user.domain.User;
 import com.smu.healyx.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -42,6 +47,8 @@ public class CommunityPostService {
     private final S3UploadService s3UploadService;
     private final CommunityCommentService communityCommentService;
     private final ContentFilterService contentFilterService;
+    private final TranslationService translationService;
+    private final MessageSource messageSource;
 
     /** HX_COM_002 — 게시글 등록 */
     @Transactional
@@ -81,11 +88,25 @@ public class CommunityPostService {
         return post.getPostId();
     }
 
-    /** HX_COM_008 — 게시글 목록·검색 (keyword=null 이면 전체 목록) */
+    /** HX_COM_008 — 게시글 목록·검색 (keyword=null 이면 전체 목록) + COM-008 다국어 검색 */
     @Transactional(readOnly = true)
     public Page<PostListItemResponse> searchPosts(String keyword, String searchField, String sort, int page, int size) {
         String kw = (keyword == null || keyword.isBlank()) ? "" : keyword.trim();
         String sf = (searchField == null || searchField.isBlank()) ? "all" : searchField;
+
+        // COM-008: 검색 키워드가 있고 locale이 한국어가 아니면 한국어로 번역 후 검색
+        if (!kw.isEmpty()) {
+            String lang = LocaleContextHolder.getLocale().getLanguage(); // "en", "zh", "ko" 등
+            if (!"ko".equals(lang)) {
+                try {
+                    kw = translationService.translate(kw, "ko").getTranslatedText();
+                    log.debug("검색 키워드 번역 완료: lang={}, 번역 결과={}", lang, kw);
+                } catch (ExternalApiException e) {
+                    // fail-open: 번역 실패 시 원본 keyword로 검색
+                    log.warn("검색 키워드 번역 실패, 원본 키워드로 검색 진행: {}", e.getMessage());
+                }
+            }
+        }
 
         Sort sortOrder = "popular".equals(sort)
                 ? Sort.by(Sort.Direction.DESC, "likeCount")
@@ -112,7 +133,7 @@ public class CommunityPostService {
                 .stream().map(PostImage::getImageUrl).toList();
 
         String displayContent = post.isBlinded()
-                ? "신고로 가려진 게시물입니다."
+                ? messageSource.getMessage("post.blinded", null, LocaleContextHolder.getLocale())
                 : post.getContent();
 
         return PostDetailResponse.builder()
@@ -186,6 +207,36 @@ public class CommunityPostService {
         images.forEach(img -> deleteS3Quietly(img.getImageUrl()));
 
         postRepository.delete(post);
+    }
+
+    /** COM-011 — 게시글 번역 (게스트 허용) */
+    @Transactional(readOnly = true)
+    public PostTranslationResponse translatePost(Long postId, String lang) {
+        CommunityPost post = postRepository.findById(postId)
+                .orElseThrow(() -> new AuthException("POST_NOT_FOUND", "게시글을 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
+
+        String translatedTitle;
+        String translatedContent;
+
+        if (post.isBlinded()) {
+            String blindedMsg = messageSource.getMessage("post.blinded", null, LocaleContextHolder.getLocale());
+            translatedTitle = blindedMsg;
+            translatedContent = blindedMsg;
+        } else {
+            List<String> translated = translationService.translateBatch(
+                    List.of(post.getTitle(), post.getContent()), lang);
+            translatedTitle = translated.get(0);
+            translatedContent = translated.get(1);
+        }
+
+        return PostTranslationResponse.builder()
+                .postId(post.getPostId())
+                .lang(lang)
+                .translatedTitle(translatedTitle)
+                .translatedContent(translatedContent)
+                .originalTitle(post.getTitle())
+                .originalContent(post.isBlinded() ? null : post.getContent())
+                .build();
     }
 
     private void deleteS3Quietly(String imageUrl) {

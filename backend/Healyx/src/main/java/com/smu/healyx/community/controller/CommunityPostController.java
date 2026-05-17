@@ -4,15 +4,18 @@ import com.smu.healyx.common.dto.ApiResponse;
 import com.smu.healyx.common.security.SecurityUtils;
 import com.smu.healyx.community.dto.PostDetailResponse;
 import com.smu.healyx.community.dto.PostListItemResponse;
+import com.smu.healyx.community.dto.PostTranslationResponse;
 import com.smu.healyx.community.service.CommunityPostService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -23,6 +26,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/community/posts")
 @RequiredArgsConstructor
+@Validated
 public class CommunityPostController {
 
     private final CommunityPostService communityPostService;
@@ -88,5 +92,16 @@ public class CommunityPostController {
         Long userId = SecurityUtils.extractUserId(authentication);
         communityPostService.deletePost(userId, postId);
         return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    /** COM-011 — 게시글 번역 (게스트 허용) */
+    @Operation(summary = "게시글 번역", description = "게시글 제목·본문을 지정 언어로 번역합니다. lang: ko|en|zh|vi|th|ja. 인증 불필요.")
+    @GetMapping("/{postId}/translate")
+    public ResponseEntity<ApiResponse<PostTranslationResponse>> translatePost(
+            @PathVariable Long postId,
+            @RequestParam
+            @Pattern(regexp = "^(ko|en|zh|vi|th|ja)$", message = "지원하지 않는 언어 코드입니다.")
+            String lang) {
+        return ResponseEntity.ok(ApiResponse.success(communityPostService.translatePost(postId, lang)));
     }
 }
