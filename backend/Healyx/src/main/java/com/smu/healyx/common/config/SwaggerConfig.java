@@ -42,7 +42,8 @@ public class SwaggerConfig {
                         op.addParametersItem(new Parameter()
                                 .in("header")
                                 .name("Accept-Language")
-                                .description("응답 언어 (ko·en·zh·vi·th·ja). 기본값: ko")
+                                .description("[테스트 전용] 응답 언어를 지정합니다 (ko·en·zh·vi·th·ja). " +
+                                        "프로덕션에서는 Flutter 앱이 사용자 언어 설정에 따라 자동으로 전송하므로 별도 입력 불필요.")
                                 .required(false)
                                 .schema(new StringSchema()
                                         ._enum(List.of("ko", "en", "zh", "vi", "th", "ja"))
