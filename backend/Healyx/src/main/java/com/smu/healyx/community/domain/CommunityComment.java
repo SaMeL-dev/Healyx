@@ -68,11 +68,16 @@ public class CommunityComment {
         this.updatedAt = LocalDateTime.now();
     }
 
-    /** 활성 대댓글이 있을 때 내용을 가리는 소프트 삭제 */
-    public void softDelete() {
+    /** 활성 대댓글이 있을 때 내용을 가리는 소프트 삭제. deletedMessage는 서비스 레이어에서 locale에 맞게 주입. */
+    public void softDelete(String deletedMessage) {
         this.isDeleted = true;
-        this.content = "삭제된 댓글입니다.";
+        this.content = deletedMessage;
         this.updatedAt = LocalDateTime.now();
+    }
+
+    /** softDelete 기본값 오버로드 — MessageSource 없이 호출하는 기존 코드와의 하위 호환성 유지. */
+    public void softDelete() {
+        softDelete("삭제된 댓글입니다.");
     }
 
 }

@@ -5,12 +5,16 @@ import com.smu.healyx.community.domain.CommunityComment;
 import com.smu.healyx.community.domain.CommunityPost;
 import com.smu.healyx.community.dto.CommentCreateRequest;
 import com.smu.healyx.community.dto.CommentResponse;
+import com.smu.healyx.community.dto.CommentTranslationResponse;
 import com.smu.healyx.community.repository.CommunityCommentRepository;
 import com.smu.healyx.community.repository.CommunityPostRepository;
+import com.smu.healyx.deepl.service.TranslationService;
 import com.smu.healyx.user.domain.User;
 import com.smu.healyx.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +31,8 @@ public class CommunityCommentService {
     private final UserRepository userRepository;
     private final ContentFilterService contentFilterService;
     private final NotificationService notificationService;
+    private final TranslationService translationService;
+    private final MessageSource messageSource;
 
     /** HX_COM_006 — 댓글·대댓글 등록 */
     @Transactional
@@ -101,10 +107,33 @@ public class CommunityCommentService {
                 .findByParentComment_CommentIdAndIsDeletedFalse(commentId).isEmpty();
 
         if (hasActiveReplies) {
-            comment.softDelete();
+            String deletedMsg = messageSource.getMessage("comment.deleted", null, LocaleContextHolder.getLocale());
+            comment.softDelete(deletedMsg);
         } else {
             commentRepository.delete(comment);
         }
+    }
+
+    /** COM-011 — 댓글 번역 (게스트 허용) */
+    @Transactional(readOnly = true)
+    public CommentTranslationResponse translateComment(Long commentId, String lang) {
+        CommunityComment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new AuthException("COMMENT_NOT_FOUND", "댓글을 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
+
+        String translatedContent;
+
+        if (comment.isDeleted()) {
+            translatedContent = messageSource.getMessage("comment.deleted", null, LocaleContextHolder.getLocale());
+        } else {
+            translatedContent = translationService.translate(comment.getContent(), lang).getTranslatedText();
+        }
+
+        return CommentTranslationResponse.builder()
+                .commentId(comment.getCommentId())
+                .lang(lang)
+                .translatedContent(translatedContent)
+                .originalContent(comment.isDeleted() ? null : comment.getContent())
+                .build();
     }
 
     /** getCommentsByPost — PostDetailResponse 댓글 목록 조회용 (N+1 방지 JOIN FETCH) */
