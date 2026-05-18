@@ -118,14 +118,20 @@ class CommunityService {
     required Uri uri,
     required String token,
     required Map<String, dynamic> body,
+    Map<String, String>? extraHeaders,
   }) async {
-    http.Response response = await http.post(
-      uri,
-      headers: {
-        'Authorization': _bearerToken(token),
+    Map<String, String> buildHeaders(String accessToken) {
+      return {
+        'Authorization': _bearerToken(accessToken),
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-      },
+        ...?extraHeaders,
+      };
+    }
+
+    http.Response response = await http.post(
+      uri,
+      headers: buildHeaders(token),
       body: jsonEncode(body),
     );
 
@@ -140,11 +146,7 @@ class CommunityService {
 
       response = await http.post(
         uri,
-        headers: {
-          'Authorization': _bearerToken(newToken),
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
+        headers: buildHeaders(newToken),
         body: jsonEncode(body),
       );
     }
@@ -911,6 +913,64 @@ class CommunityService {
     final errorMessage = _parseErrorMessage(
       responseBody: responseBody,
       defaultMessage: '내 댓글 삭제에 실패했습니다.',
+    );
+
+    throw Exception('$errorMessage (${response.statusCode})');
+  }
+
+  // =========================
+  // 신고 API
+  // POST /api/community/reports
+  // 게시글 또는 댓글 신고
+  // 현재 앱에서는 게시글 신고만 사용
+  // =========================
+  Future<void> reportContent({
+    required String targetType,
+    required int targetId,
+    required String reason,
+    String acceptLanguage = 'ko',
+  }) async {
+    final token = await _getValidAccessToken();
+
+    final uri = Uri.parse('$baseUrl/api/community/reports');
+
+    final response = await _retryJsonPostWithRefresh(
+      uri: uri,
+      token: token,
+      body: {
+        'targetType': targetType,
+        'targetId': targetId,
+        'reason': reason,
+      },
+      extraHeaders: {
+        'Accept-Language': acceptLanguage,
+      },
+    );
+
+    final responseBody = utf8.decode(response.bodyBytes);
+
+    debugPrint('[Community] reportContent status: ${response.statusCode}');
+    debugPrint('[Community] reportContent body: $responseBody');
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      if (responseBody.isEmpty) return;
+
+      try {
+        final decoded = jsonDecode(responseBody);
+
+        if (decoded is Map<String, dynamic> && decoded['success'] == false) {
+          throw Exception(decoded['message'] ?? '신고 접수에 실패했습니다.');
+        }
+      } on FormatException {
+        return;
+      }
+
+      return;
+    }
+
+    final errorMessage = _parseErrorMessage(
+      responseBody: responseBody,
+      defaultMessage: '신고 접수에 실패했습니다.',
     );
 
     throw Exception('$errorMessage (${response.statusCode})');

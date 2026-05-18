@@ -34,6 +34,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
   bool _isLikeProcessing = false;
   bool _isBookmarkProcessing = false;
   bool _isDeleteProcessing = false;
+  bool _isReportProcessing = false;
   bool _isCommentSubmitting = false;
 
   int? _deletingCommentId;
@@ -203,6 +204,52 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
       if (mounted) {
         setState(() {
           _isBookmarkProcessing = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _confirmReportPost() async {
+    final post = _post;
+
+    if (post == null || _isMyPost || _isReportProcessing) {
+      return;
+    }
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierColor: mainBlue.withOpacity(0.5),
+      builder: (_) => const ReportDialog(),
+    );
+
+    if (confirmed != true || !mounted) {
+      return;
+    }
+
+    try {
+      setState(() {
+        _isReportProcessing = true;
+      });
+
+      await CommunityService().reportContent(
+        targetType: 'POST',
+        targetId: post.postId,
+        reason: '부적절한 콘텐츠',
+      );
+
+      if (!mounted) return;
+
+      _showSnackBar('신고가 접수되었습니다.');
+    } catch (e) {
+      if (!mounted) return;
+
+      _showSnackBar(
+        e.toString().replaceFirst('Exception: ', ''),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isReportProcessing = false;
         });
       }
     }
@@ -417,6 +464,10 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
     return post.authorId == _myUserId;
   }
 
+  bool get _isMenuProcessing {
+    return _isDeleteProcessing || _isReportProcessing;
+  }
+
   String _formatDate(String value) {
     final dateTime = DateTime.tryParse(value);
 
@@ -482,11 +533,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
 
   void _handleMenuSelected(String value) {
     if (value == 'report') {
-      showDialog(
-        context: context,
-        barrierColor: mainBlue.withOpacity(0.5),
-        builder: (_) => const ReportDialog(),
-      );
+      _confirmReportPost();
     } else if (value == 'delete') {
       _confirmDeletePost();
     } else if (value == 'edit') {
@@ -863,9 +910,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildCommentInput(),
-
           const SizedBox(height: 20),
-
           Padding(
             padding: const EdgeInsets.only(left: 4, bottom: 14),
             child: Text(
@@ -880,7 +925,6 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
               ),
             ),
           ),
-
           if (comments.isEmpty)
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 16),
@@ -1014,7 +1058,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
                         ),
                         PopupMenuButton<String>(
                           color: Colors.white,
-                          icon: _isDeleteProcessing
+                          icon: _isMenuProcessing
                               ? const SizedBox(
                             width: 22,
                             height: 22,
@@ -1028,7 +1072,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
                             color: mainBlue,
                           ),
                           onSelected:
-                          _isDeleteProcessing ? null : _handleMenuSelected,
+                          _isMenuProcessing ? null : _handleMenuSelected,
                           itemBuilder: (context) {
                             if (_isMyPost) {
                               return [
@@ -1065,9 +1109,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
                         ),
                       ],
                     ),
-
                     const SizedBox(height: 6),
-
                     Row(
                       children: [
                         Text(
@@ -1087,15 +1129,12 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
                         ),
                       ],
                     ),
-
                     const SizedBox(height: 12),
                     Container(height: 1, color: mainBlue),
                   ],
                 ),
               ),
-
               const SizedBox(height: 34),
-
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Align(
@@ -1113,22 +1152,15 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
                   ),
                 ),
               ),
-
               _buildImageList(post.imageUrls),
-
               const SizedBox(height: 34),
-
               _buildReactionButtons(post),
-
               const SizedBox(height: 20),
-
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Container(height: 1, color: mainBlue),
               ),
-
               const SizedBox(height: 20),
-
               _buildCommentSection(post),
             ],
           ),
@@ -1196,8 +1228,10 @@ class _CommentCard extends StatelessWidget {
   static const Color softBg = Color(0xFFECF1FF);
 
   Widget _buildContentText() {
-    final bool shouldShowMention =
-        isReply && !isDeleted && mentionNickname != null && mentionNickname!.isNotEmpty;
+    final bool shouldShowMention = isReply &&
+        !isDeleted &&
+        mentionNickname != null &&
+        mentionNickname!.isNotEmpty;
 
     final double fontSize = isReply ? 13 : 14;
 
@@ -1313,11 +1347,8 @@ class _CommentCard extends StatelessWidget {
                     ),
                 ],
               ),
-
             _buildContentText(),
-
             const SizedBox(height: 10),
-
             Row(
               children: [
                 Text(
@@ -1352,7 +1383,6 @@ class _CommentCard extends StatelessWidget {
                   ),
               ],
             ),
-
             if (replies.isNotEmpty) ...[
               const SizedBox(height: 14),
               Column(
