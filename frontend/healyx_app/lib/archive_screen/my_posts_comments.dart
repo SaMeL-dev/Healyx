@@ -1,7 +1,7 @@
 // 내 게시글 / 댓글 보관함 화면
 // GET    /api/community/my/posts                — 내가 쓴 게시글 목록
-// DELETE /api/community/my/posts/{postId}       — 내 게시글 삭제
 // GET    /api/community/my/comments             — 내가 쓴 댓글 목록
+// DELETE /api/community/posts/{postId}          — 내 게시글 삭제
 // DELETE /api/community/my/comments/{commentId} — 내 댓글 삭제
 
 import 'package:flutter/material.dart';
@@ -9,7 +9,7 @@ import 'package:healyx_app/community_screen/community_detail.dart';
 import 'package:healyx_app/dialogs/archive_delete_dialog.dart';
 
 import '../app_language.dart';
-import '../services/community_service.dart';
+import '../community_screen/services/community_service.dart';
 
 class MyPostsCommentsScreen extends StatefulWidget {
   const MyPostsCommentsScreen({super.key});
@@ -19,12 +19,18 @@ class MyPostsCommentsScreen extends StatefulWidget {
 }
 
 class _MyPostsCommentsScreenState extends State<MyPostsCommentsScreen> {
+  static const Color mainBlue = Color(0xFF2260FF);
+
   bool _isPostTab = true;
   bool _isLoading = true;
+
   String? _errorMessage;
 
-  List<MyPostData> _posts = [];
-  List<MyCommentData> _comments = [];
+  int? _deletingPostId;
+  int? _deletingCommentId;
+
+  List<MyCommunityPost> _posts = [];
+  List<MyCommunityComment> _comments = [];
 
   @override
   void initState() {
@@ -32,7 +38,22 @@ class _MyPostsCommentsScreenState extends State<MyPostsCommentsScreen> {
     _loadData();
   }
 
-  // 게시글·댓글 목록 동시 로드
+  String _formatDate(String value) {
+    final dateTime = DateTime.tryParse(value);
+
+    if (dateTime == null) {
+      return '';
+    }
+
+    final local = dateTime.toLocal();
+
+    final year = local.year.toString();
+    final month = local.month.toString().padLeft(2, '0');
+    final day = local.day.toString().padLeft(2, '0');
+
+    return '$year. $month. $day';
+  }
+
   Future<void> _loadData() async {
     try {
       setState(() {
@@ -40,16 +61,18 @@ class _MyPostsCommentsScreenState extends State<MyPostsCommentsScreen> {
         _errorMessage = null;
       });
 
+      final service = CommunityService();
+
       final results = await Future.wait([
-        CommunityService.getMyPosts(),
-        CommunityService.getMyComments(),
+        service.getMyPosts(),
+        service.getMyComments(),
       ]);
 
       if (!mounted) return;
 
       setState(() {
-        _posts = results[0] as List<MyPostData>;
-        _comments = results[1] as List<MyCommentData>;
+        _posts = results[0] as List<MyCommunityPost>;
+        _comments = results[1] as List<MyCommunityComment>;
         _isLoading = false;
       });
     } catch (e) {
@@ -62,58 +85,110 @@ class _MyPostsCommentsScreenState extends State<MyPostsCommentsScreen> {
     }
   }
 
-  // 게시글 삭제 — 다이얼로그 확인 후 API 호출
-  Future<void> _deletePost(MyPostData post) async {
+  Future<void> _deletePost(MyCommunityPost post) async {
+    if (_deletingPostId != null) return;
+
     final confirmed = await showDialog<bool>(
       context: context,
-      barrierColor: const Color(0xFF2260FF).withOpacity(0.4),
+      barrierColor: mainBlue.withOpacity(0.4),
       builder: (_) => const ArchiveDeleteDialog(),
     );
 
     if (confirmed != true || !mounted) return;
 
-    final success = await CommunityService.deleteMyPost(post.postId);
-
-    if (!mounted) return;
-
-    if (success) {
+    try {
       setState(() {
-        _posts.removeWhere((e) => e.postId == post.postId);
+        _deletingPostId = post.postId;
       });
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLanguage.t('error_retry'))),
+
+      await CommunityService().deletePost(
+        postId: post.postId,
       );
+
+      if (!mounted) return;
+
+      setState(() {
+        _posts.removeWhere((item) => item.postId == post.postId);
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('게시글이 삭제되었습니다.'),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            e.toString().replaceFirst('Exception: ', ''),
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _deletingPostId = null;
+        });
+      }
     }
   }
 
-  // 댓글 삭제 — 다이얼로그 확인 후 API 호출
-  Future<void> _deleteComment(MyCommentData comment) async {
+  Future<void> _deleteComment(MyCommunityComment comment) async {
+    if (_deletingCommentId != null) return;
+
     final confirmed = await showDialog<bool>(
       context: context,
-      barrierColor: const Color(0xFF2260FF).withOpacity(0.4),
+      barrierColor: mainBlue.withOpacity(0.4),
       builder: (_) => const ArchiveDeleteDialog(),
     );
 
     if (confirmed != true || !mounted) return;
 
-    final success = await CommunityService.deleteMyComment(comment.commentId);
-
-    if (!mounted) return;
-
-    if (success) {
+    try {
       setState(() {
-        _comments.removeWhere((e) => e.commentId == comment.commentId);
+        _deletingCommentId = comment.commentId;
       });
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLanguage.t('error_retry'))),
+
+      await CommunityService().deleteMyComment(
+        commentId: comment.commentId,
       );
+
+      if (!mounted) return;
+
+      setState(() {
+        _comments.removeWhere(
+              (item) => item.commentId == comment.commentId,
+        );
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('댓글이 삭제되었습니다.'),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            e.toString().replaceFirst('Exception: ', ''),
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _deletingCommentId = null;
+        });
+      }
     }
   }
 
-  void _goToPostDetail(int postId) {
-    Navigator.push(
+  Future<void> _goToPostDetail(int postId) async {
+    final result = await Navigator.push<bool>(
       context,
       MaterialPageRoute(
         builder: (_) => CommunityDetailScreen(
@@ -121,6 +196,10 @@ class _MyPostsCommentsScreenState extends State<MyPostsCommentsScreen> {
         ),
       ),
     );
+
+    if (result == true) {
+      await _loadData();
+    }
   }
 
   @override
@@ -140,9 +219,9 @@ class _MyPostsCommentsScreenState extends State<MyPostsCommentsScreen> {
         ),
         centerTitle: true,
         title: Text(
-          AppLanguage.t('archive_menu_posts'), // '내 게시글 / 댓글'
+          AppLanguage.t('archive_menu_posts'),
           style: const TextStyle(
-            color: Color(0xFF2260FF),
+            color: mainBlue,
             fontSize: 20,
             fontWeight: FontWeight.w600,
           ),
@@ -151,21 +230,18 @@ class _MyPostsCommentsScreenState extends State<MyPostsCommentsScreen> {
       body: Column(
         children: [
           const SizedBox(height: 16),
-
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: _TabToggle(
               isPostTab: _isPostTab,
-              onChanged: (val) {
+              onChanged: (value) {
                 setState(() {
-                  _isPostTab = val;
+                  _isPostTab = value;
                 });
               },
             ),
           ),
-
           const SizedBox(height: 8),
-
           Expanded(
             child: _buildBody(),
           ),
@@ -178,7 +254,7 @@ class _MyPostsCommentsScreenState extends State<MyPostsCommentsScreen> {
     if (_isLoading) {
       return const Center(
         child: CircularProgressIndicator(
-          color: Color(0xFF2260FF),
+          color: mainBlue,
         ),
       );
     }
@@ -192,7 +268,7 @@ class _MyPostsCommentsScreenState extends State<MyPostsCommentsScreen> {
             children: [
               const Icon(
                 Icons.error_outline,
-                color: Color(0xFF2260FF),
+                color: mainBlue,
                 size: 42,
               ),
               const SizedBox(height: 12),
@@ -211,7 +287,7 @@ class _MyPostsCommentsScreenState extends State<MyPostsCommentsScreen> {
                 child: ElevatedButton(
                   onPressed: _loadData,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2260FF),
+                    backgroundColor: mainBlue,
                     foregroundColor: Colors.white,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
@@ -237,21 +313,33 @@ class _MyPostsCommentsScreenState extends State<MyPostsCommentsScreen> {
 
   Widget _buildPostList() {
     if (_posts.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+      return RefreshIndicator(
+        color: mainBlue,
+        onRefresh: _loadData,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
           children: [
-            const Icon(
-              Icons.article_outlined,
-              size: 56,
-              color: Color(0xFFBBBBBB),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              AppLanguage.t('archive_empty_posts'), // '작성한 게시글이 없습니다.'
-              style: const TextStyle(
-                fontSize: 15,
-                color: Color(0xFF9E9E9E),
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.55,
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.article_outlined,
+                      size: 56,
+                      color: Color(0xFFBBBBBB),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      AppLanguage.t('archive_empty_posts'),
+                      style: const TextStyle(
+                        fontSize: 15,
+                        color: Color(0xFF9E9E9E),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -260,7 +348,7 @@ class _MyPostsCommentsScreenState extends State<MyPostsCommentsScreen> {
     }
 
     return RefreshIndicator(
-      color: const Color(0xFF2260FF),
+      color: mainBlue,
       onRefresh: _loadData,
       child: ListView.separated(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -274,6 +362,8 @@ class _MyPostsCommentsScreenState extends State<MyPostsCommentsScreen> {
 
           return _PostCard(
             item: post,
+            dateText: _formatDate(post.createdAt),
+            isDeleting: _deletingPostId == post.postId,
             onTap: () => _goToPostDetail(post.postId),
             onDelete: () => _deletePost(post),
           );
@@ -284,21 +374,33 @@ class _MyPostsCommentsScreenState extends State<MyPostsCommentsScreen> {
 
   Widget _buildCommentList() {
     if (_comments.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+      return RefreshIndicator(
+        color: mainBlue,
+        onRefresh: _loadData,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
           children: [
-            const Icon(
-              Icons.chat_bubble_outline,
-              size: 56,
-              color: Color(0xFFBBBBBB),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              AppLanguage.t('archive_empty_comments'), // '작성한 댓글이 없습니다.'
-              style: const TextStyle(
-                fontSize: 15,
-                color: Color(0xFF9E9E9E),
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.55,
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.chat_bubble_outline,
+                      size: 56,
+                      color: Color(0xFFBBBBBB),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      AppLanguage.t('archive_empty_comments'),
+                      style: const TextStyle(
+                        fontSize: 15,
+                        color: Color(0xFF9E9E9E),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -307,7 +409,7 @@ class _MyPostsCommentsScreenState extends State<MyPostsCommentsScreen> {
     }
 
     return RefreshIndicator(
-      color: const Color(0xFF2260FF),
+      color: mainBlue,
       onRefresh: _loadData,
       child: ListView.separated(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -321,6 +423,8 @@ class _MyPostsCommentsScreenState extends State<MyPostsCommentsScreen> {
 
           return _CommentCard(
             item: comment,
+            dateText: _formatDate(comment.createdAt),
+            isDeleting: _deletingCommentId == comment.commentId,
             onTap: () => _goToPostDetail(comment.postId),
             onDelete: () => _deleteComment(comment),
           );
@@ -352,14 +456,14 @@ class _TabToggle extends StatelessWidget {
         children: [
           Expanded(
             child: _TabButton(
-              label: AppLanguage.t('archive_tab_posts'), // '게시글'
+              label: AppLanguage.t('archive_tab_posts'),
               isSelected: isPostTab,
               onTap: () => onChanged(true),
             ),
           ),
           Expanded(
             child: _TabButton(
-              label: AppLanguage.t('archive_tab_comments'), // '댓글'
+              label: AppLanguage.t('archive_tab_comments'),
               isSelected: !isPostTab,
               onTap: () => onChanged(false),
             ),
@@ -408,20 +512,27 @@ class _TabButton extends StatelessWidget {
 
 // ─── 게시글 카드 ────────────────────────────────────────────────
 class _PostCard extends StatelessWidget {
-  final MyPostData item;
+  final MyCommunityPost item;
+  final String dateText;
+  final bool isDeleting;
   final VoidCallback onTap;
   final VoidCallback onDelete;
 
   const _PostCard({
     required this.item,
+    required this.dateText,
+    required this.isDeleting,
     required this.onTap,
     required this.onDelete,
   });
 
   @override
   Widget build(BuildContext context) {
+    final title = item.title.isEmpty ? '제목 없음' : item.title;
+    final preview = item.contentPreview.isEmpty ? '내용 없음' : item.contentPreview;
+
     return GestureDetector(
-      onTap: onTap,
+      onTap: isDeleting ? null : onTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 14),
         child: Row(
@@ -432,7 +543,9 @@ class _PostCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    item.title,
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
@@ -441,7 +554,7 @@ class _PostCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    item.contentPreview,
+                    preview,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -459,24 +572,43 @@ class _PostCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 3),
                       Text(
-                        item.likeCount == 0 ? '0' : '${item.likeCount}',
+                        item.likeCount.toString(),
                         style: const TextStyle(
                           fontSize: 12,
                           color: Color(0xFF2260FF),
                         ),
                       ),
+                      if (dateText.isNotEmpty) ...[
+                        const SizedBox(width: 10),
+                        Text(
+                          dateText,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.black38,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ],
               ),
             ),
             IconButton(
-              icon: const Icon(
+              icon: isDeleting
+                  ? const SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Color(0xFF2260FF),
+                ),
+              )
+                  : const Icon(
                 Icons.close,
                 color: Colors.black38,
                 size: 18,
               ),
-              onPressed: onDelete,
+              onPressed: isDeleting ? null : onDelete,
             ),
           ],
         ),
@@ -487,20 +619,27 @@ class _PostCard extends StatelessWidget {
 
 // ─── 댓글 카드 ─────────────────────────────────────────────────
 class _CommentCard extends StatelessWidget {
-  final MyCommentData item;
+  final MyCommunityComment item;
+  final String dateText;
+  final bool isDeleting;
   final VoidCallback onTap;
   final VoidCallback onDelete;
 
   const _CommentCard({
     required this.item,
+    required this.dateText,
+    required this.isDeleting,
     required this.onTap,
     required this.onDelete,
   });
 
   @override
   Widget build(BuildContext context) {
+    final postTitle = item.postTitle.isEmpty ? '제목 없음' : item.postTitle;
+    final content = item.content.isEmpty ? '내용 없음' : item.content;
+
     return GestureDetector(
-      onTap: onTap,
+      onTap: isDeleting ? null : onTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 14),
         child: Row(
@@ -511,7 +650,9 @@ class _CommentCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    item.postTitle,
+                    postTitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
@@ -520,7 +661,7 @@ class _CommentCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    item.commentPreview,
+                    content,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -528,16 +669,35 @@ class _CommentCard extends StatelessWidget {
                       color: Colors.black54,
                     ),
                   ),
+                  if (dateText.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      dateText,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.black38,
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
             IconButton(
-              icon: const Icon(
+              icon: isDeleting
+                  ? const SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Color(0xFF2260FF),
+                ),
+              )
+                  : const Icon(
                 Icons.close,
                 color: Colors.black38,
                 size: 18,
               ),
-              onPressed: onDelete,
+              onPressed: isDeleting ? null : onDelete,
             ),
           ],
         ),

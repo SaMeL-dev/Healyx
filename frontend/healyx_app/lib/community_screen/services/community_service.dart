@@ -45,6 +45,42 @@ class CommunityService {
     return token;
   }
 
+  Future<http.Response> _retryGetWithRefresh({
+    required Uri uri,
+    required String token,
+    Map<String, String>? extraHeaders,
+  }) async {
+    Map<String, String> buildHeaders(String accessToken) {
+      return {
+        'Authorization': _bearerToken(accessToken),
+        'Accept': 'application/json',
+        ...?extraHeaders,
+      };
+    }
+
+    http.Response response = await http.get(
+      uri,
+      headers: buildHeaders(token),
+    );
+
+    if (response.statusCode == 401) {
+      debugPrint('[Community] get accessToken expired. Trying refresh.');
+
+      final String? newToken = await AuthService.refreshAccessToken();
+
+      if (newToken == null || newToken.isEmpty) {
+        throw Exception('로그인이 만료되었습니다. 다시 로그인해주세요.');
+      }
+
+      response = await http.get(
+        uri,
+        headers: buildHeaders(newToken),
+      );
+    }
+
+    return response;
+  }
+
   Future<http.Response> _retryPostWithRefresh({
     required Uri uri,
     required String token,
@@ -723,6 +759,162 @@ class CommunityService {
 
     throw Exception('$errorMessage (${response.statusCode})');
   }
+
+  // =========================
+  // 내 게시글 목록 조회 API
+  // GET /api/community/my/posts
+  // =========================
+  Future<List<MyCommunityPost>> getMyPosts({
+    String acceptLanguage = 'ko',
+  }) async {
+    final token = await _getValidAccessToken();
+
+    final uri = Uri.parse('$baseUrl/api/community/my/posts');
+
+    final response = await _retryGetWithRefresh(
+      uri: uri,
+      token: token,
+      extraHeaders: {
+        'Accept-Language': acceptLanguage,
+      },
+    );
+
+    final responseBody = utf8.decode(response.bodyBytes);
+
+    debugPrint('[Community] getMyPosts status: ${response.statusCode}');
+    debugPrint('[Community] getMyPosts body: $responseBody');
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      final decoded = jsonDecode(responseBody);
+
+      if (decoded is Map<String, dynamic> && decoded['success'] == true) {
+        final data = decoded['data'];
+
+        if (data is List) {
+          return data
+              .whereType<Map<String, dynamic>>()
+              .map((item) => MyCommunityPost.fromJson(item))
+              .toList();
+        }
+
+        return [];
+      }
+
+      throw Exception(
+        decoded is Map<String, dynamic>
+            ? decoded['message'] ?? '내 게시글 목록 조회에 실패했습니다.'
+            : '내 게시글 목록 조회에 실패했습니다.',
+      );
+    }
+
+    final errorMessage = _parseErrorMessage(
+      responseBody: responseBody,
+      defaultMessage: '내 게시글 목록 조회에 실패했습니다.',
+    );
+
+    throw Exception('$errorMessage (${response.statusCode})');
+  }
+
+  // =========================
+  // 내 댓글 목록 조회 API
+  // GET /api/community/my/comments
+  // =========================
+  Future<List<MyCommunityComment>> getMyComments({
+    String acceptLanguage = 'ko',
+  }) async {
+    final token = await _getValidAccessToken();
+
+    final uri = Uri.parse('$baseUrl/api/community/my/comments');
+
+    final response = await _retryGetWithRefresh(
+      uri: uri,
+      token: token,
+      extraHeaders: {
+        'Accept-Language': acceptLanguage,
+      },
+    );
+
+    final responseBody = utf8.decode(response.bodyBytes);
+
+    debugPrint('[Community] getMyComments status: ${response.statusCode}');
+    debugPrint('[Community] getMyComments body: $responseBody');
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      final decoded = jsonDecode(responseBody);
+
+      if (decoded is Map<String, dynamic> && decoded['success'] == true) {
+        final data = decoded['data'];
+
+        if (data is List) {
+          return data
+              .whereType<Map<String, dynamic>>()
+              .map((item) => MyCommunityComment.fromJson(item))
+              .toList();
+        }
+
+        return [];
+      }
+
+      throw Exception(
+        decoded is Map<String, dynamic>
+            ? decoded['message'] ?? '내 댓글 목록 조회에 실패했습니다.'
+            : '내 댓글 목록 조회에 실패했습니다.',
+      );
+    }
+
+    final errorMessage = _parseErrorMessage(
+      responseBody: responseBody,
+      defaultMessage: '내 댓글 목록 조회에 실패했습니다.',
+    );
+
+    throw Exception('$errorMessage (${response.statusCode})');
+  }
+
+  // =========================
+  // 내 댓글 삭제 API
+  // DELETE /api/community/my/comments/{commentId}
+  // 보관함 > 내 댓글 목록에서 삭제 시 사용
+  // =========================
+  Future<void> deleteMyComment({
+    required int commentId,
+  }) async {
+    final token = await _getValidAccessToken();
+
+    final uri = Uri.parse('$baseUrl/api/community/my/comments/$commentId');
+
+    final response = await _retryDeleteWithRefresh(
+      uri: uri,
+      token: token,
+    );
+
+    final responseBody = utf8.decode(response.bodyBytes);
+
+    debugPrint('[Community] deleteMyComment status: ${response.statusCode}');
+    debugPrint('[Community] deleteMyComment body: $responseBody');
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      if (responseBody.isEmpty) return;
+
+      try {
+        final decoded = jsonDecode(responseBody);
+
+        if (decoded is Map<String, dynamic> && decoded['success'] == false) {
+          throw Exception(decoded['message'] ?? '내 댓글 삭제에 실패했습니다.');
+        }
+      } on FormatException {
+        return;
+      }
+
+      return;
+    }
+
+    final errorMessage = _parseErrorMessage(
+      responseBody: responseBody,
+      defaultMessage: '내 댓글 삭제에 실패했습니다.',
+    );
+
+    throw Exception('$errorMessage (${response.statusCode})');
+  }
 }
 
 // =========================
@@ -942,6 +1134,66 @@ class CommunityComment {
           .whereType<Map<String, dynamic>>()
           .map((item) => CommunityComment.fromJson(item))
           .toList(),
+    );
+  }
+}
+
+// =========================
+// 내 게시글 모델
+// GET /api/community/my/posts
+// =========================
+class MyCommunityPost {
+  final int postId;
+  final String title;
+  final String contentPreview;
+  final int likeCount;
+  final String createdAt;
+
+  MyCommunityPost({
+    required this.postId,
+    required this.title,
+    required this.contentPreview,
+    required this.likeCount,
+    required this.createdAt,
+  });
+
+  factory MyCommunityPost.fromJson(Map<String, dynamic> json) {
+    return MyCommunityPost(
+      postId: json['postId'] ?? 0,
+      title: json['title'] ?? '',
+      contentPreview: json['contentPreview'] ?? '',
+      likeCount: json['likeCount'] ?? 0,
+      createdAt: json['createdAt'] ?? '',
+    );
+  }
+}
+
+// =========================
+// 내 댓글 모델
+// GET /api/community/my/comments
+// =========================
+class MyCommunityComment {
+  final int commentId;
+  final int postId;
+  final String postTitle;
+  final String content;
+  final String createdAt;
+
+  MyCommunityComment({
+    required this.commentId,
+    required this.postId,
+    required this.postTitle,
+    required this.content,
+    required this.createdAt,
+  });
+
+  factory MyCommunityComment.fromJson(Map<String, dynamic> json) {
+    return MyCommunityComment(
+      commentId: json['commentId'] ?? 0,
+      postId: json['postId'] ?? 0,
+      postTitle: json['postTitle'] ?? '',
+      content: json['content'] ?? '',
+      createdAt: json['createdAt'] ?? '',
     );
   }
 }
