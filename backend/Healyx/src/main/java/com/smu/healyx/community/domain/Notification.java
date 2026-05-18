@@ -28,6 +28,9 @@ public class Notification {
     @Column(name = "reference_id")
     private Long referenceId;
 
+    @Column(name = "post_id")
+    private Long postId;
+
     @Column(name = "is_read", nullable = false,
             columnDefinition = "TINYINT(1) DEFAULT 0")
     private boolean isRead;

@@ -24,7 +24,7 @@ public class NotificationService {
      * FCM 발송 실패 시에도 알림 저장은 보장.
      */
     @Transactional
-    public void sendPushNotification(Long receiverId, String type, Long referenceId) {
+    public void sendPushNotification(Long receiverId, String type, Long referenceId, Long postId) {
         User receiver = userRepository.findById(receiverId).orElse(null);
         if (receiver == null) {
             log.warn("알림 수신자 미존재: userId={}", receiverId);
@@ -35,6 +35,7 @@ public class NotificationService {
                 .user(receiver)
                 .type(type)
                 .referenceId(referenceId)
+                .postId(postId)
                 .isRead(false)
                 .build());
 
