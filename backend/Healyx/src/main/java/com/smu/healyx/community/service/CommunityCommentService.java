@@ -81,12 +81,12 @@ public class CommunityCommentService {
         if (depth == 0) {
             Long postAuthorId = post.getUser().getUserId();
             if (!postAuthorId.equals(userId)) {
-                notificationService.sendPushNotification(postAuthorId, "COMMENT", commentId);
+                notificationService.sendPushNotification(postAuthorId, "COMMENT", commentId, post.getPostId());
             }
         } else {
             Long parentAuthorId = parentComment.getUser().getUserId();
             if (!parentAuthorId.equals(userId)) {
-                notificationService.sendPushNotification(parentAuthorId, "REPLY", commentId);
+                notificationService.sendPushNotification(parentAuthorId, "REPLY", commentId, post.getPostId());
             }
         }
 
