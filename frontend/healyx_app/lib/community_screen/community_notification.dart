@@ -121,13 +121,10 @@ class _CommunityNotificationScreenState
   int _getTargetPostId(CommunityNotificationItem notification) {
     final type = _normalizeType(notification.type);
 
-    // 백엔드에서 추가된 postId가 있으면 모든 알림은 postId 기준으로 이동
     if (notification.postId != null && notification.postId! > 0) {
       return notification.postId!;
     }
 
-    // 혹시 LIKE 알림에서만 postId가 누락되는 경우를 대비
-    // LIKE의 referenceId는 postId로 내려오는 것으로 확인됨
     if (type.contains('LIKE') && notification.referenceId > 0) {
       return notification.referenceId;
     }
@@ -162,7 +159,7 @@ class _CommunityNotificationScreenState
       final targetPostId = _getTargetPostId(notification);
 
       if (targetPostId <= 0) {
-        _showSnackBar('이동할 게시글 정보가 없습니다.');
+        _showSnackBar(AppLanguage.t('community_notification_no_post'));
         return;
       }
 
@@ -220,19 +217,28 @@ class _CommunityNotificationScreenState
     final difference = now.difference(local);
 
     if (difference.inSeconds < 60) {
-      return '방금 전';
+      return AppLanguage.t('time_just_now');
     }
 
     if (difference.inMinutes < 60) {
-      return '${difference.inMinutes}분';
+      return AppLanguage.t('time_minutes_ago').replaceAll(
+        '{count}',
+        difference.inMinutes.toString(),
+      );
     }
 
     if (difference.inHours < 24) {
-      return '${difference.inHours}시간';
+      return AppLanguage.t('time_hours_ago').replaceAll(
+        '{count}',
+        difference.inHours.toString(),
+      );
     }
 
     if (difference.inDays < 7) {
-      return '${difference.inDays}일';
+      return AppLanguage.t('time_days_ago').replaceAll(
+        '{count}',
+        difference.inDays.toString(),
+      );
     }
 
     final year = local.year.toString();
@@ -250,36 +256,36 @@ class _CommunityNotificationScreenState
     final type = _normalizeType(item.type);
 
     if (type.contains('LIKE')) {
-      return '내 게시글에 좋아요가 눌렸습니다.';
+      return AppLanguage.t('notification_title_like');
     }
 
     if (type.contains('REPLY')) {
-      return '내 댓글에 답글이 달렸습니다.';
+      return AppLanguage.t('notification_title_reply');
     }
 
     if (type.contains('COMMENT')) {
-      return '내 게시글에 댓글이 달렸습니다.';
+      return AppLanguage.t('notification_title_comment');
     }
 
-    return '새로운 알림이 도착했습니다.';
+    return AppLanguage.t('notification_title_default');
   }
 
   String _buildNotificationContent(CommunityNotificationItem item) {
     final type = _normalizeType(item.type);
 
     if (type.contains('LIKE')) {
-      return '관련 게시글을 확인해보세요.';
+      return AppLanguage.t('notification_content_like');
     }
 
     if (type.contains('REPLY')) {
-      return '답글이 달린 게시글로 이동합니다.';
+      return AppLanguage.t('notification_content_reply');
     }
 
     if (type.contains('COMMENT')) {
-      return '댓글이 달린 게시글로 이동합니다.';
+      return AppLanguage.t('notification_content_comment');
     }
 
-    return '알림을 선택하면 관련 게시글로 이동합니다.';
+    return AppLanguage.t('notification_content_default');
   }
 
   IconData _getNotificationIcon(String type) {
@@ -369,7 +375,8 @@ class _CommunityNotificationScreenState
               ),
               const SizedBox(height: 12),
               Text(
-                _errorMessage ?? '알림 목록을 불러오지 못했습니다.',
+                _errorMessage ??
+                    AppLanguage.t('community_notification_load_failed'),
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   color: Colors.black87,
@@ -390,9 +397,9 @@ class _CommunityNotificationScreenState
                       borderRadius: BorderRadius.circular(21),
                     ),
                   ),
-                  child: const Text(
-                    '다시 시도',
-                    style: TextStyle(
+                  child: Text(
+                    AppLanguage.t('retry'),
+                    style: const TextStyle(
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -415,19 +422,19 @@ class _CommunityNotificationScreenState
           children: [
             SizedBox(
               height: MediaQuery.of(context).size.height * 0.58,
-              child: const Center(
+              child: Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.notifications_none_rounded,
                       color: Color(0xFFBBBBBB),
                       size: 58,
                     ),
-                    SizedBox(height: 14),
+                    const SizedBox(height: 14),
                     Text(
-                      '아직 도착한 알림이 없습니다.',
-                      style: TextStyle(
+                      AppLanguage.t('community_notification_empty'),
+                      style: const TextStyle(
                         color: Color(0xFF9E9E9E),
                         fontSize: 15,
                         fontWeight: FontWeight.w600,

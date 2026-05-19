@@ -65,24 +65,26 @@ class _CommunityMainScreenState extends State<CommunityMainScreen> {
   Future<String> _loadSelectedLanguageCode() async {
     final prefs = await SharedPreferences.getInstance();
 
-    // AppLanguage.setLang()에서 실제로 저장하는 key
     final savedLanguage = prefs.getString('language_pref');
 
     if (savedLanguage != null && savedLanguage.trim().isNotEmpty) {
       final normalized = _normalizeLanguageCode(savedLanguage);
 
-      debugPrint('[CommunityMain] selected language from language_pref: $normalized');
+      debugPrint(
+        '[CommunityMain] selected language from language_pref: $normalized',
+      );
 
       return normalized;
     }
 
-    // 혹시 AppLanguage.currentLang가 이미 갱신되어 있는 경우 대비
     final currentLang = AppLanguage.currentLang.value;
 
     if (currentLang.trim().isNotEmpty) {
       final normalized = _normalizeLanguageCode(currentLang);
 
-      debugPrint('[CommunityMain] selected language from AppLanguage: $normalized');
+      debugPrint(
+        '[CommunityMain] selected language from AppLanguage: $normalized',
+      );
 
       return normalized;
     }
@@ -106,14 +108,14 @@ class _CommunityMainScreenState extends State<CommunityMainScreen> {
       return _CommunityMainPostViewData(
         post: post,
         displayTitle: translatedTitle.isNotEmpty ? translatedTitle : post.title,
-        displayContent:
-        translatedContent.isNotEmpty ? translatedContent : post.contentPreview,
+        displayContent: translatedContent.isNotEmpty
+            ? translatedContent
+            : post.contentPreview,
         isTranslated: true,
       );
     } catch (e) {
       debugPrint('[CommunityMain] translate failed postId=${post.postId}: $e');
 
-      // 번역 실패 시 목록 전체가 깨지지 않도록 원문으로 fallback
       return _CommunityMainPostViewData(
         post: post,
         displayTitle: post.title,
@@ -215,7 +217,6 @@ class _CommunityMainScreenState extends State<CommunityMainScreen> {
       ),
     );
 
-    // 상세 화면에서 게시글 삭제/수정/좋아요/댓글 변경 시 목록 새로고침
     if (result == true) {
       _loadPosts();
     }
@@ -285,18 +286,18 @@ class _CommunityMainScreenState extends State<CommunityMainScreen> {
         onRefresh: _loadPosts,
         child: ListView(
           padding: const EdgeInsets.fromLTRB(14, 40, 14, 20),
-          children: const [
-            SizedBox(height: 120),
-            Icon(
+          children: [
+            const SizedBox(height: 120),
+            const Icon(
               Icons.chat_bubble_outline,
               color: mainBlue,
               size: 44,
             ),
-            SizedBox(height: 14),
+            const SizedBox(height: 14),
             Center(
               child: Text(
-                '아직 등록된 게시글이 없습니다.',
-                style: TextStyle(
+                AppLanguage.t('community_no_posts'),
+                style: const TextStyle(
                   color: Colors.black54,
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
@@ -647,7 +648,10 @@ class _PostCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
-                '$languageCode 번역',
+                AppLanguage.t('community_translation_badge').replaceAll(
+                  '{lang}',
+                  languageCode,
+                ),
                 style: const TextStyle(
                   color: mainBlue,
                   fontSize: 11,
@@ -657,7 +661,7 @@ class _PostCard extends StatelessWidget {
             ),
 
           Text(
-            title.isEmpty ? '제목 없음' : title,
+            title.isEmpty ? AppLanguage.t('community_no_title') : title,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
@@ -672,7 +676,9 @@ class _PostCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  authorNickname.isEmpty ? '익명' : authorNickname,
+                  authorNickname.isEmpty
+                      ? AppLanguage.t('community_anonymous')
+                      : authorNickname,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
@@ -701,7 +707,9 @@ class _PostCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  content.isEmpty ? '내용 미리보기가 없습니다.' : content,
+                  content.isEmpty
+                      ? AppLanguage.t('community_no_content_preview')
+                      : content,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(

@@ -69,6 +69,10 @@ class _CommunityWriteScreenState extends State<CommunityWriteScreen> {
     super.dispose();
   }
 
+  String _tWithCount(String key, int count) {
+    return AppLanguage.t(key).replaceAll('{count}', count.toString());
+  }
+
   void _showSnackBar(String message) {
     if (!mounted) return;
 
@@ -79,7 +83,9 @@ class _CommunityWriteScreenState extends State<CommunityWriteScreen> {
 
   void _showAttachDialog() {
     if (_totalImageCount >= maxImageCount) {
-      _showSnackBar('이미지는 최대 $maxImageCount장까지 첨부할 수 있습니다.');
+      _showSnackBar(
+        _tWithCount('community_image_max_limit', maxImageCount),
+      );
       return;
     }
 
@@ -91,7 +97,9 @@ class _CommunityWriteScreenState extends State<CommunityWriteScreen> {
           final int remain = maxImageCount - _totalImageCount;
 
           if (remain <= 0) {
-            _showSnackBar('이미지는 최대 $maxImageCount장까지 첨부할 수 있습니다.');
+            _showSnackBar(
+              _tWithCount('community_image_max_limit', maxImageCount),
+            );
             return;
           }
 
@@ -163,7 +171,7 @@ class _CommunityWriteScreenState extends State<CommunityWriteScreen> {
 
         if (!mounted) return;
 
-        _showSnackBar('게시글이 수정되었습니다.');
+        _showSnackBar(AppLanguage.t('community_post_updated'));
       } else {
         await CommunityService().createPost(
           title: title,
@@ -173,7 +181,7 @@ class _CommunityWriteScreenState extends State<CommunityWriteScreen> {
 
         if (!mounted) return;
 
-        _showSnackBar('게시글이 등록되었습니다.');
+        _showSnackBar(AppLanguage.t('community_post_created'));
       }
 
       // true를 넘겨주면 이전 화면에서 새로고침 가능
@@ -305,8 +313,13 @@ class _CommunityWriteScreenState extends State<CommunityWriteScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final String submitText = _isEditMode ? '수정' : AppLanguage.t('review_submit');
-    final String submittingText = _isEditMode ? '수정 중...' : '등록 중...';
+    final String submitText = _isEditMode
+        ? AppLanguage.t('community_write_edit_submit')
+        : AppLanguage.t('community_write_submit');
+
+    final String submittingText = _isEditMode
+        ? AppLanguage.t('community_write_submitting_edit')
+        : AppLanguage.t('community_write_submitting_create');
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -324,9 +337,8 @@ class _CommunityWriteScreenState extends State<CommunityWriteScreen> {
                   child: Padding(
                     padding: const EdgeInsets.only(left: 8),
                     child: IconButton(
-                      onPressed: _isSubmitting
-                          ? null
-                          : () => Navigator.pop(context),
+                      onPressed:
+                      _isSubmitting ? null : () => Navigator.pop(context),
                       icon: const Icon(
                         Icons.arrow_back_ios,
                         color: mainBlue,
@@ -431,7 +443,7 @@ class _CommunityWriteScreenState extends State<CommunityWriteScreen> {
 
                     // 내용 라벨
                     Text(
-                      AppLanguage.t('review_content_label'),
+                      AppLanguage.t('community_write_content_label'),
                       style: const TextStyle(
                         color: mainBlue,
                         fontSize: 15,
@@ -480,17 +492,17 @@ class _CommunityWriteScreenState extends State<CommunityWriteScreen> {
 
                     if (_contentError) ...[
                       const SizedBox(height: 6),
-                      const Row(
+                      Row(
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.error,
                             color: Colors.red,
                             size: 15,
                           ),
-                          SizedBox(width: 4),
+                          const SizedBox(width: 4),
                           Text(
-                            '내용을 입력해주세요.',
-                            style: TextStyle(
+                            AppLanguage.t('community_write_content_error'),
+                            style: const TextStyle(
                               color: Colors.red,
                               fontSize: 13,
                               fontWeight: FontWeight.w500,
@@ -533,9 +545,9 @@ class _CommunityWriteScreenState extends State<CommunityWriteScreen> {
 
                     if (_isEditMode) ...[
                       const SizedBox(height: 6),
-                      const Text(
-                        '수정 시 새 이미지를 첨부하면 서버 정책에 따라 기존 이미지가 교체될 수 있습니다.',
-                        style: TextStyle(
+                      Text(
+                        AppLanguage.t('community_write_image_replace_notice'),
+                        style: const TextStyle(
                           color: Colors.black45,
                           fontSize: 12,
                           height: 1.4,

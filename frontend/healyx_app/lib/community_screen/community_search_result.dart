@@ -85,7 +85,6 @@ class _CommunitySearchResultScreenState
   Future<String> _loadSelectedLanguageCode() async {
     final prefs = await SharedPreferences.getInstance();
 
-    // AppLanguage.setLang()에서 실제로 저장하는 key
     final savedLanguage = prefs.getString('language_pref');
 
     if (savedLanguage != null && savedLanguage.trim().isNotEmpty) {
@@ -98,7 +97,6 @@ class _CommunitySearchResultScreenState
       return normalized;
     }
 
-    // 혹시 AppLanguage.currentLang가 이미 갱신되어 있는 경우 대비
     final currentLang = AppLanguage.currentLang.value;
 
     if (currentLang.trim().isNotEmpty) {
@@ -142,7 +140,6 @@ class _CommunitySearchResultScreenState
         '[CommunitySearch] translate failed postId=${post.postId}: $e',
       );
 
-      // 번역 실패 시 검색 결과 전체가 깨지지 않도록 원문으로 fallback
       return _CommunitySearchPostViewData(
         post: post,
         displayTitle: post.title,
@@ -387,7 +384,6 @@ class _CommunitySearchResultScreenState
                 children: [
                   const SizedBox(height: 16),
 
-                  // 상단 헤더
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Row(
@@ -463,7 +459,6 @@ class _CommunitySearchResultScreenState
 
                   const SizedBox(height: 28),
 
-                  // 필터 버튼
                   Padding(
                     padding: const EdgeInsets.only(left: 16, bottom: 12),
                     child: Row(
@@ -494,11 +489,9 @@ class _CommunitySearchResultScreenState
               ),
             ),
 
-            // 리스트 영역
             Expanded(
               child: Column(
                 children: [
-                  // 정렬 드롭다운
                   Padding(
                     padding: const EdgeInsets.only(
                       top: 10,
@@ -722,7 +715,10 @@ class _PostCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
-                '$languageCode 번역',
+                AppLanguage.t('community_translation_badge').replaceAll(
+                  '{lang}',
+                  languageCode,
+                ),
                 style: const TextStyle(
                   color: mainBlue,
                   fontSize: 11,
@@ -731,9 +727,8 @@ class _PostCard extends StatelessWidget {
               ),
             ),
 
-          // 제목
           Text(
-            title.isEmpty ? '제목 없음' : title,
+            title.isEmpty ? AppLanguage.t('community_no_title') : title,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
@@ -749,7 +744,9 @@ class _PostCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  authorNickname.isEmpty ? '익명' : authorNickname,
+                  authorNickname.isEmpty
+                      ? AppLanguage.t('community_anonymous')
+                      : authorNickname,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
@@ -773,13 +770,14 @@ class _PostCard extends StatelessWidget {
 
           const SizedBox(height: 8),
 
-          // 본문 + 좋아요/댓글 아이콘
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Expanded(
                 child: Text(
-                  content.isEmpty ? '내용 미리보기가 없습니다.' : content,
+                  content.isEmpty
+                      ? AppLanguage.t('community_no_content_preview')
+                      : content,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(

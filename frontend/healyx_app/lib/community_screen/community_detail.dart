@@ -314,7 +314,9 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
       });
 
       _showSnackBar(
-        result.bookmarked ? '북마크에 저장되었습니다.' : '북마크가 해제되었습니다.',
+        result.bookmarked
+            ? AppLanguage.t('community_bookmark_saved')
+            : AppLanguage.t('community_bookmark_removed'),
       );
     } catch (e) {
       if (!mounted) return;
@@ -361,7 +363,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
 
       if (!mounted) return;
 
-      _showSnackBar('신고가 접수되었습니다.');
+      _showSnackBar(AppLanguage.t('community_report_success'));
     } catch (e) {
       if (!mounted) return;
 
@@ -405,7 +407,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
 
       if (!mounted) return;
 
-      _showSnackBar('게시글이 삭제되었습니다.');
+      _showSnackBar(AppLanguage.t('community_post_deleted'));
 
       Navigator.pop(context, true);
     } catch (e) {
@@ -445,7 +447,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
         if (!mounted) return;
 
         if (translation == null) {
-          _showSnackBar('원문 정보를 불러오지 못했습니다.');
+          _showSnackBar(AppLanguage.t('community_original_load_failed'));
           return;
         }
 
@@ -454,7 +456,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
           _isOriginalMode = true;
         });
 
-        _showSnackBar('원문으로 전환되었습니다.');
+        _showSnackBar(AppLanguage.t('community_original_switched'));
       } finally {
         if (mounted) {
           setState(() {
@@ -471,7 +473,9 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
     });
 
     _showSnackBar(
-      _isOriginalMode ? '원문으로 전환되었습니다.' : '번역문으로 전환되었습니다.',
+      _isOriginalMode
+          ? AppLanguage.t('community_original_switched')
+          : AppLanguage.t('community_translated_switched'),
     );
   }
 
@@ -484,7 +488,9 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
 
     if (content.isEmpty) {
       _showSnackBar(
-        replyTarget == null ? '댓글을 입력해주세요.' : '답글을 입력해주세요.',
+        replyTarget == null
+            ? AppLanguage.t('community_comment_empty')
+            : AppLanguage.t('community_reply_empty'),
       );
       return;
     }
@@ -525,7 +531,9 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
       if (!mounted) return;
 
       _showSnackBar(
-        replyTarget == null ? '댓글이 등록되었습니다.' : '답글이 등록되었습니다.',
+        replyTarget == null
+            ? AppLanguage.t('community_comment_created')
+            : AppLanguage.t('community_reply_created'),
       );
     } catch (e) {
       if (!mounted) return;
@@ -550,7 +558,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
     final isMyComment = _myUserId != null && comment.authorId == _myUserId;
 
     if (!isMyComment) {
-      _showSnackBar('내가 작성한 댓글만 삭제할 수 있습니다.');
+      _showSnackBar(AppLanguage.t('community_my_comment_only'));
       return;
     }
 
@@ -587,7 +595,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
 
       if (!mounted) return;
 
-      _showSnackBar('댓글이 삭제되었습니다.');
+      _showSnackBar(AppLanguage.t('community_comment_deleted'));
     } catch (e) {
       if (!mounted) return;
 
@@ -676,7 +684,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
     }
 
     if (post.blinded) {
-      return '신고 누적으로 가려진 게시글입니다.';
+      return AppLanguage.t('community_blinded_post');
     }
 
     if (_isOriginalMode &&
@@ -771,7 +779,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
 
   void _handleReplyTap(CommunityComment comment) {
     if (comment.deleted) {
-      _showSnackBar('삭제된 댓글에는 답글을 작성할 수 없습니다.');
+      _showSnackBar(AppLanguage.t('community_deleted_reply_blocked'));
       return;
     }
 
@@ -782,7 +790,12 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
     _commentFocusNode.requestFocus();
 
     _showSnackBar(
-      '${comment.authorNickname.isEmpty ? '익명' : comment.authorNickname}님에게 답글 작성 중입니다.',
+      AppLanguage.t('community_replying_to').replaceAll(
+        '{nickname}',
+        comment.authorNickname.isEmpty
+            ? AppLanguage.t('community_anonymous')
+            : comment.authorNickname,
+      ),
     );
   }
 
@@ -853,7 +866,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
               ),
               const SizedBox(height: 12),
               Text(
-                _errorMessage ?? '게시글을 불러오지 못했습니다.',
+                _errorMessage ?? AppLanguage.t('community_post_load_failed'),
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   color: Colors.black87,
@@ -874,9 +887,9 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
                       borderRadius: BorderRadius.circular(21),
                     ),
                   ),
-                  child: const Text(
-                    '다시 시도',
-                    style: TextStyle(
+                  child: Text(
+                    AppLanguage.t('community_retry'),
+                    style: const TextStyle(
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -963,7 +976,9 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
     }
 
     final nickname =
-    replyTarget.authorNickname.isEmpty ? '익명' : replyTarget.authorNickname;
+    replyTarget.authorNickname.isEmpty
+        ? AppLanguage.t('community_anonymous')
+        : replyTarget.authorNickname;
 
     return Container(
       width: double.infinity,
@@ -983,7 +998,10 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
           const SizedBox(width: 6),
           Expanded(
             child: Text(
-              '$nickname님에게 답글 작성 중',
+              AppLanguage.t('community_replying_to_banner').replaceAll(
+                '{nickname}',
+                nickname,
+              ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
@@ -1037,7 +1055,9 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
                   maxLines: 4,
                   keyboardType: TextInputType.multiline,
                   decoration: InputDecoration(
-                    hintText: isReplyMode ? '답글을 입력해주세요.' : '댓글을 입력해주세요.',
+                    hintText: isReplyMode
+                        ? AppLanguage.t('community_reply_hint')
+                        : AppLanguage.t('community_comment_hint'),
                     hintStyle: const TextStyle(
                       color: Colors.black38,
                       fontSize: 14,
@@ -1077,7 +1097,9 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
                     ),
                   )
                       : Text(
-                    isReplyMode ? '답글' : '등록',
+                    isReplyMode
+                        ? AppLanguage.t('community_reply_submit')
+                        : AppLanguage.t('community_comment_submit'),
                     style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
@@ -1099,9 +1121,13 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
     isReply ? _findNicknameByUserId(comment.mentionUserId) : null;
 
     return _CommentCard(
-      nickname: comment.authorNickname.isEmpty ? '익명' : comment.authorNickname,
+      nickname: comment.authorNickname.isEmpty
+          ? AppLanguage.t('community_anonymous')
+          : comment.authorNickname,
       mentionNickname: mentionNickname,
-      content: comment.deleted ? '삭제된 댓글입니다.' : comment.content,
+      content: comment.deleted
+          ? AppLanguage.t('community_deleted_comment')
+          : comment.content,
       date: _formatDate(comment.createdAt),
       isMyComment: isMyComment && !comment.deleted,
       isDeleted: comment.deleted,
@@ -1152,12 +1178,12 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
             ),
           ),
           if (comments.isEmpty)
-            const Padding(
+            Padding(
               padding: EdgeInsets.symmetric(vertical: 16),
               child: Center(
                 child: Text(
-                  '아직 댓글이 없습니다.',
-                  style: TextStyle(
+                  AppLanguage.t('community_no_comments'),
+                  style: const TextStyle(
                     color: Colors.black54,
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -1261,7 +1287,12 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
-        _isOriginalMode ? '원문 보기 중' : '$_selectedLanguageCode 번역 보기 중',
+        _isOriginalMode
+            ? AppLanguage.t('community_original_badge')
+            : AppLanguage.t('community_translated_badge').replaceAll(
+          '{lang}',
+          _selectedLanguageCode,
+        ),
         style: const TextStyle(
           color: mainBlue,
           fontSize: 11,
@@ -1279,145 +1310,154 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
     }
 
     final dateText = _formatDate(post.createdAt);
-    final displayTitle = _displayTitle.trim().isEmpty ? '제목 없음' : _displayTitle;
+    final displayTitle = _displayTitle.trim().isEmpty
+        ? AppLanguage.t('community_no_title')
+        : _displayTitle;
     final displayContent = _displayContent;
 
     return Expanded(
       child: RefreshIndicator(
         color: mainBlue,
         onRefresh: _loadPostDetail,
-        child: SingleChildScrollView(
+        child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+          slivers: [
+            SliverToBoxAdapter(
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: Text(
-                            displayTitle,
-                            style: const TextStyle(
-                              color: mainBlue,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800,
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                displayTitle,
+                                style: const TextStyle(
+                                  color: mainBlue,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
-                        PopupMenuButton<String>(
-                          color: Colors.white,
-                          icon: _isMenuProcessing
-                              ? const SizedBox(
-                            width: 22,
-                            height: 22,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: mainBlue,
-                            ),
-                          )
-                              : const Icon(
-                            Icons.more_vert,
-                            color: mainBlue,
-                          ),
-                          onSelected:
-                          _isMenuProcessing ? null : _handleMenuSelected,
-                          itemBuilder: (context) {
-                            if (_isMyPost) {
-                              return [
-                                PopupMenuItem(
-                                  value: 'edit',
-                                  child: Text(
-                                    AppLanguage.t('community_menu_edit'),
-                                  ),
+                            PopupMenuButton<String>(
+                              color: Colors.white,
+                              icon: _isMenuProcessing
+                                  ? const SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: mainBlue,
                                 ),
-                                PopupMenuItem(
-                                  value: 'delete',
-                                  child: Text(
-                                    AppLanguage.t('community_menu_delete'),
-                                  ),
-                                ),
-                              ];
-                            } else {
-                              return [
-                                PopupMenuItem(
-                                  value: 'report',
-                                  child: Text(
-                                    AppLanguage.t('community_menu_report'),
-                                  ),
-                                ),
-                                PopupMenuItem(
-                                  value: 'view',
-                                  child: Text(
-                                    _isOriginalMode
-                                        ? '번역보기'
-                                        : AppLanguage.t(
-                                      'community_menu_original',
+                              )
+                                  : const Icon(
+                                Icons.more_vert,
+                                color: mainBlue,
+                              ),
+                              onSelected:
+                              _isMenuProcessing ? null : _handleMenuSelected,
+                              itemBuilder: (context) {
+                                if (_isMyPost) {
+                                  return [
+                                    PopupMenuItem(
+                                      value: 'edit',
+                                      child: Text(
+                                        AppLanguage.t('community_menu_edit'),
+                                      ),
                                     ),
-                                  ),
-                                ),
-                              ];
-                            }
-                          },
+                                    PopupMenuItem(
+                                      value: 'delete',
+                                      child: Text(
+                                        AppLanguage.t('community_menu_delete'),
+                                      ),
+                                    ),
+                                  ];
+                                } else {
+                                  return [
+                                    PopupMenuItem(
+                                      value: 'report',
+                                      child: Text(
+                                        AppLanguage.t('community_menu_report'),
+                                      ),
+                                    ),
+                                    PopupMenuItem(
+                                      value: 'view',
+                                      child: Text(
+                                        _isOriginalMode
+                                            ? AppLanguage.t('community_view_translated')
+                                            : AppLanguage.t(
+                                          'community_menu_original',
+                                        ),
+                                      ),
+                                    ),
+                                  ];
+                                }
+                              },
+                            ),
+                          ],
                         ),
+                        _buildTranslationBadge(),
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            Text(
+                              post.authorNickname.isEmpty
+                                  ? AppLanguage.t('community_anonymous')
+                                  : post.authorNickname,
+                              style: const TextStyle(
+                                color: mainBlue,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const Spacer(),
+                            Text(
+                              dateText,
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Container(height: 1, color: mainBlue),
                       ],
-                    ),
-                    _buildTranslationBadge(),
-                    const SizedBox(height: 6),
-                    Row(
-                      children: [
-                        Text(
-                          post.authorNickname.isEmpty
-                              ? '익명'
-                              : post.authorNickname,
-                          style: const TextStyle(
-                            color: mainBlue,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const Spacer(),
-                        Text(
-                          dateText,
-                          style: const TextStyle(fontSize: 12),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Container(height: 1, color: mainBlue),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 34),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    displayContent,
-                    style: const TextStyle(
-                      color: Colors.black87,
-                      fontSize: 16,
-                      height: 1.55,
-                      fontWeight: FontWeight.w400,
                     ),
                   ),
-                ),
+                  const SizedBox(height: 34),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        displayContent,
+                        style: const TextStyle(
+                          color: Colors.black87,
+                          fontSize: 16,
+                          height: 1.55,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                    ),
+                  ),
+                  _buildImageList(post.imageUrls),
+                  const SizedBox(height: 34),
+                  _buildReactionButtons(post),
+                  const SizedBox(height: 20),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Container(height: 1, color: mainBlue),
+                  ),
+                  const SizedBox(height: 20),
+                ],
               ),
-              _buildImageList(post.imageUrls),
-              const SizedBox(height: 34),
-              _buildReactionButtons(post),
-              const SizedBox(height: 20),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Container(height: 1, color: mainBlue),
-              ),
-              const SizedBox(height: 20),
-              _buildCommentSection(post),
-            ],
-          ),
+            ),
+            SliverFillRemaining(
+              hasScrollBody: false,
+              child: _buildCommentSection(post),
+            ),
+          ],
         ),
       ),
     );
