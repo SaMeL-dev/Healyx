@@ -154,6 +154,42 @@ class CommunityService {
     return response;
   }
 
+  Future<http.Response> _retryPatchWithRefresh({
+    required Uri uri,
+    required String token,
+    Map<String, String>? extraHeaders,
+  }) async {
+    Map<String, String> buildHeaders(String accessToken) {
+      return {
+        'Authorization': _bearerToken(accessToken),
+        'Accept': 'application/json',
+        ...?extraHeaders,
+      };
+    }
+
+    http.Response response = await http.patch(
+      uri,
+      headers: buildHeaders(token),
+    );
+
+    if (response.statusCode == 401) {
+      debugPrint('[Community] patch accessToken expired. Trying refresh.');
+
+      final String? newToken = await AuthService.refreshAccessToken();
+
+      if (newToken == null || newToken.isEmpty) {
+        throw Exception('로그인이 만료되었습니다. 다시 로그인해주세요.');
+      }
+
+      response = await http.patch(
+        uri,
+        headers: buildHeaders(newToken),
+      );
+    }
+
+    return response;
+  }
+
   Future<http.Response> _retryDeleteWithRefresh({
     required Uri uri,
     required String token,
@@ -975,6 +1011,116 @@ class CommunityService {
 
     throw Exception('$errorMessage (${response.statusCode})');
   }
+
+  // =========================
+  // 알림 목록 조회 API
+  // GET /api/notifications
+  // =========================
+  Future<CommunityNotificationPage> getNotifications({
+    int page = 0,
+    int size = 20,
+    String acceptLanguage = 'ko',
+  }) async {
+    final token = await _getValidAccessToken();
+
+    final uri = Uri.parse('$baseUrl/api/notifications').replace(
+      queryParameters: {
+        'page': page.toString(),
+        'size': size.toString(),
+      },
+    );
+
+    final response = await _retryGetWithRefresh(
+      uri: uri,
+      token: token,
+      extraHeaders: {
+        'Accept-Language': acceptLanguage,
+      },
+    );
+
+    final responseBody = utf8.decode(response.bodyBytes);
+
+    debugPrint('[Community] getNotifications status: ${response.statusCode}');
+    debugPrint('[Community] getNotifications body: $responseBody');
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      final decoded = jsonDecode(responseBody);
+
+      if (decoded is Map<String, dynamic> && decoded['success'] == true) {
+        final data = decoded['data'];
+
+        if (data is Map<String, dynamic>) {
+          return CommunityNotificationPage.fromJson(data);
+        }
+
+        return CommunityNotificationPage.empty();
+      }
+
+      throw Exception(
+        decoded is Map<String, dynamic>
+            ? decoded['message'] ?? '알림 목록 조회에 실패했습니다.'
+            : '알림 목록 조회에 실패했습니다.',
+      );
+    }
+
+    final errorMessage = _parseErrorMessage(
+      responseBody: responseBody,
+      defaultMessage: '알림 목록 조회에 실패했습니다.',
+    );
+
+    throw Exception('$errorMessage (${response.statusCode})');
+  }
+
+  // =========================
+  // 알림 읽음 처리 API
+  // PATCH /api/notifications/{notificationId}/read
+  // =========================
+  Future<void> markNotificationAsRead({
+    required int notificationId,
+    String acceptLanguage = 'ko',
+  }) async {
+    final token = await _getValidAccessToken();
+
+    final uri = Uri.parse('$baseUrl/api/notifications/$notificationId/read');
+
+    final response = await _retryPatchWithRefresh(
+      uri: uri,
+      token: token,
+      extraHeaders: {
+        'Accept-Language': acceptLanguage,
+      },
+    );
+
+    final responseBody = utf8.decode(response.bodyBytes);
+
+    debugPrint(
+      '[Community] markNotificationAsRead status: ${response.statusCode}',
+    );
+    debugPrint('[Community] markNotificationAsRead body: $responseBody');
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      if (responseBody.isEmpty) return;
+
+      try {
+        final decoded = jsonDecode(responseBody);
+
+        if (decoded is Map<String, dynamic> && decoded['success'] == false) {
+          throw Exception(decoded['message'] ?? '알림 읽음 처리에 실패했습니다.');
+        }
+      } on FormatException {
+        return;
+      }
+
+      return;
+    }
+
+    final errorMessage = _parseErrorMessage(
+      responseBody: responseBody,
+      defaultMessage: '알림 읽음 처리에 실패했습니다.',
+    );
+
+    throw Exception('$errorMessage (${response.statusCode})');
+  }
 }
 
 // =========================
@@ -1078,10 +1224,7 @@ class CommunityPostDetail {
   final bool myLikeExists;
   final bool myBookmarkExists;
 
-  // 부모 댓글 목록
-  // 대댓글은 각 CommunityComment의 replies 안에 유지됨
   final List<CommunityComment> comments;
-
   final bool blinded;
 
   CommunityPostDetail({
@@ -1150,8 +1293,6 @@ class CommunityComment {
   final int? mentionUserId;
   final String createdAt;
   final bool deleted;
-
-  // 상세 조회 응답에서 대댓글은 부모 댓글의 replies 배열 안에 내려옴
   final List<CommunityComment> replies;
 
   CommunityComment({
@@ -1255,6 +1396,114 @@ class MyCommunityComment {
       content: json['content'] ?? '',
       createdAt: json['createdAt'] ?? '',
     );
+  }
+}
+
+// =========================
+// 알림 목록 페이지 모델
+// GET /api/notifications
+// =========================
+class CommunityNotificationPage {
+  final int totalElements;
+  final int totalPages;
+  final int size;
+  final int number;
+  final int numberOfElements;
+  final bool first;
+  final bool last;
+  final bool empty;
+  final List<CommunityNotificationItem> content;
+
+  CommunityNotificationPage({
+    required this.totalElements,
+    required this.totalPages,
+    required this.size,
+    required this.number,
+    required this.numberOfElements,
+    required this.first,
+    required this.last,
+    required this.empty,
+    required this.content,
+  });
+
+  factory CommunityNotificationPage.empty() {
+    return CommunityNotificationPage(
+      totalElements: 0,
+      totalPages: 0,
+      size: 0,
+      number: 0,
+      numberOfElements: 0,
+      first: true,
+      last: true,
+      empty: true,
+      content: [],
+    );
+  }
+
+  factory CommunityNotificationPage.fromJson(Map<String, dynamic> json) {
+    final List<dynamic> contentJson = json['content'] ?? [];
+
+    return CommunityNotificationPage(
+      totalElements: json['totalElements'] ?? 0,
+      totalPages: json['totalPages'] ?? 0,
+      size: json['size'] ?? 0,
+      number: json['number'] ?? 0,
+      numberOfElements: json['numberOfElements'] ?? 0,
+      first: json['first'] ?? true,
+      last: json['last'] ?? true,
+      empty: json['empty'] ?? true,
+      content: contentJson
+          .whereType<Map<String, dynamic>>()
+          .map((item) => CommunityNotificationItem.fromJson(item))
+          .toList(),
+    );
+  }
+}
+
+// =========================
+// 알림 아이템 모델
+// =========================
+class CommunityNotificationItem {
+  final int notificationId;
+  final String type;
+  final int referenceId;
+
+  // 알림 클릭 시 이동할 게시글 ID
+  // LIKE는 referenceId와 같을 수 있고,
+  // COMMENT / REPLY는 백엔드에서 추가된 postId를 사용
+  final int? postId;
+
+  final String createdAt;
+  final bool read;
+
+  CommunityNotificationItem({
+    required this.notificationId,
+    required this.type,
+    required this.referenceId,
+    required this.postId,
+    required this.createdAt,
+    required this.read,
+  });
+
+  factory CommunityNotificationItem.fromJson(Map<String, dynamic> json) {
+    return CommunityNotificationItem(
+      notificationId: json['notificationId'] ?? 0,
+      type: json['type'] ?? '',
+      referenceId: json['referenceId'] ?? 0,
+      postId: _parseNullableInt(json['postId']),
+      createdAt: json['createdAt'] ?? '',
+      read: json['read'] ?? false,
+    );
+  }
+
+  static int? _parseNullableInt(dynamic value) {
+    if (value == null) return null;
+
+    if (value is int) {
+      return value;
+    }
+
+    return int.tryParse(value.toString());
   }
 }
 
