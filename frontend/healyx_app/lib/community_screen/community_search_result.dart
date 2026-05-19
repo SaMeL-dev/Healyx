@@ -1,5 +1,6 @@
 ﻿// 커뮤니티 검색 결과 화면 (검색창에서 검색 후 나오는 화면)
 // 선택 언어 코드 기반으로 검색 결과 게시글 제목/내용 미리보기를 번역해서 표시
+// 단, 내가 작성한 게시글은 번역하지 않고 원문 그대로 표시
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -114,10 +115,38 @@ class _CommunitySearchResultScreenState
     return 'ko';
   }
 
+  Future<Set<int>> _loadMyPostIds() async {
+    try {
+      final myPosts = await CommunityService().getMyPosts();
+
+      return myPosts.map((post) => post.postId).toSet();
+    } catch (e) {
+      debugPrint('[CommunitySearch] getMyPosts failed: $e');
+
+      // 비로그인 상태이거나 내 게시글 조회 실패 시에는
+      // 검색 결과 전체가 깨지지 않도록 내 글 판단 없이 진행
+      return {};
+    }
+  }
+
   Future<_CommunitySearchPostViewData> _translatePostForList({
     required CommunityPostSummary post,
     required String lang,
+    required Set<int> myPostIds,
   }) async {
+    final bool isMyPost = myPostIds.contains(post.postId);
+
+    // 내가 작성한 게시글은 번역하지 않고 원문 그대로 표시
+    if (isMyPost) {
+      return _CommunitySearchPostViewData(
+        post: post,
+        displayTitle: post.title,
+        displayContent: post.contentPreview,
+        isTranslated: false,
+        isMyPost: true,
+      );
+    }
+
     try {
       final translation = await CommunityService().getPostTranslation(
         postId: post.postId,
@@ -134,6 +163,7 @@ class _CommunitySearchResultScreenState
             ? translatedContent
             : post.contentPreview,
         isTranslated: true,
+        isMyPost: false,
       );
     } catch (e) {
       debugPrint(
@@ -145,6 +175,7 @@ class _CommunitySearchResultScreenState
         displayTitle: post.title,
         displayContent: post.contentPreview,
         isTranslated: false,
+        isMyPost: false,
       );
     }
   }
@@ -152,6 +183,7 @@ class _CommunitySearchResultScreenState
   Future<List<_CommunitySearchPostViewData>> _translatePostList({
     required List<CommunityPostSummary> targetPosts,
     required String lang,
+    required Set<int> myPostIds,
   }) async {
     if (targetPosts.isEmpty) {
       return [];
@@ -162,6 +194,7 @@ class _CommunitySearchResultScreenState
             (post) => _translatePostForList(
           post: post,
           lang: lang,
+          myPostIds: myPostIds,
         ),
       ),
     );
@@ -184,9 +217,12 @@ class _CommunitySearchResultScreenState
         searchField: _searchField,
       );
 
+      final myPostIds = await _loadMyPostIds();
+
       final translatedPosts = await _translatePostList(
         targetPosts: result.content,
         lang: selectedLanguageCode,
+        myPostIds: myPostIds,
       );
 
       if (!mounted) return;
@@ -550,8 +586,7 @@ class _CommunitySearchResultScreenState
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              AppLanguage.t('community_sort_label')
-                                  .replaceAll(
+                              AppLanguage.t('community_sort_label').replaceAll(
                                 '{sort}',
                                 selectedSort == '최신순'
                                     ? AppLanguage.t('community_sort_newest')
@@ -594,12 +629,14 @@ class _CommunitySearchPostViewData {
   final String displayTitle;
   final String displayContent;
   final bool isTranslated;
+  final bool isMyPost;
 
   const _CommunitySearchPostViewData({
     required this.post,
     required this.displayTitle,
     required this.displayContent,
     required this.isTranslated,
+    required this.isMyPost,
   });
 }
 

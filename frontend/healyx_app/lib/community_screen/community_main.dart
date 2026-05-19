@@ -1,5 +1,6 @@
 ﻿// 커뮤니티 메인 화면 (홈/인기 탭, 게시글 리스트, 검색/글쓰기 버튼)
 // 선택 언어 코드 기반으로 게시글 제목/내용 미리보기를 번역해서 표시
+// 단, 내가 작성한 게시글은 번역하지 않고 원문 그대로 표시
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -92,10 +93,38 @@ class _CommunityMainScreenState extends State<CommunityMainScreen> {
     return 'ko';
   }
 
+  Future<Set<int>> _loadMyPostIds() async {
+    try {
+      final myPosts = await CommunityService().getMyPosts();
+
+      return myPosts.map((post) => post.postId).toSet();
+    } catch (e) {
+      debugPrint('[CommunityMain] getMyPosts failed: $e');
+
+      // 비로그인 상태이거나 내 게시글 조회 실패 시에는
+      // 목록 전체가 깨지지 않도록 내 글 판단 없이 진행
+      return {};
+    }
+  }
+
   Future<_CommunityMainPostViewData> _translatePostForList({
     required CommunityPostSummary post,
     required String lang,
+    required Set<int> myPostIds,
   }) async {
+    final bool isMyPost = myPostIds.contains(post.postId);
+
+    // 내가 작성한 게시글은 번역하지 않고 원문 그대로 표시
+    if (isMyPost) {
+      return _CommunityMainPostViewData(
+        post: post,
+        displayTitle: post.title,
+        displayContent: post.contentPreview,
+        isTranslated: false,
+        isMyPost: true,
+      );
+    }
+
     try {
       final translation = await CommunityService().getPostTranslation(
         postId: post.postId,
@@ -112,6 +141,7 @@ class _CommunityMainScreenState extends State<CommunityMainScreen> {
             ? translatedContent
             : post.contentPreview,
         isTranslated: true,
+        isMyPost: false,
       );
     } catch (e) {
       debugPrint('[CommunityMain] translate failed postId=${post.postId}: $e');
@@ -121,6 +151,7 @@ class _CommunityMainScreenState extends State<CommunityMainScreen> {
         displayTitle: post.title,
         displayContent: post.contentPreview,
         isTranslated: false,
+        isMyPost: false,
       );
     }
   }
@@ -128,6 +159,7 @@ class _CommunityMainScreenState extends State<CommunityMainScreen> {
   Future<List<_CommunityMainPostViewData>> _translatePostList({
     required List<CommunityPostSummary> posts,
     required String lang,
+    required Set<int> myPostIds,
   }) async {
     if (posts.isEmpty) {
       return [];
@@ -138,6 +170,7 @@ class _CommunityMainScreenState extends State<CommunityMainScreen> {
             (post) => _translatePostForList(
           post: post,
           lang: lang,
+          myPostIds: myPostIds,
         ),
       ),
     );
@@ -158,9 +191,12 @@ class _CommunityMainScreenState extends State<CommunityMainScreen> {
         sort: _currentSort,
       );
 
+      final myPostIds = await _loadMyPostIds();
+
       final translatedPosts = await _translatePostList(
         posts: result.content,
         lang: selectedLanguageCode,
+        myPostIds: myPostIds,
       );
 
       if (!mounted) return;
@@ -530,12 +566,14 @@ class _CommunityMainPostViewData {
   final String displayTitle;
   final String displayContent;
   final bool isTranslated;
+  final bool isMyPost;
 
   const _CommunityMainPostViewData({
     required this.post,
     required this.displayTitle,
     required this.displayContent,
     required this.isTranslated,
+    required this.isMyPost,
   });
 }
 

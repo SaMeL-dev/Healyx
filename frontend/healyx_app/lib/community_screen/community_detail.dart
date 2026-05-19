@@ -191,22 +191,34 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
         _isLoading = true;
         _errorMessage = null;
         _isOriginalMode = false;
+        _postTranslation = null;
       });
 
+      final prefs = await SharedPreferences.getInstance();
+      final currentUserId = prefs.getInt('userId');
       final selectedLanguageCode = await _loadSelectedLanguageCode();
 
       final result = await CommunityService().getPostDetail(
         postId: widget.postId,
       );
 
-      final translation = await _fetchPostTranslation(
-        postId: result.postId,
-        lang: selectedLanguageCode,
-      );
+      final isMyPost = currentUserId != null && result.authorId == currentUserId;
+
+      CommunityPostTranslation? translation;
+
+      // 내가 작성한 게시글은 이미 이해할 수 있으므로 원문 그대로 표시한다.
+      // 다른 사람이 작성한 게시글만 선택 언어 기준으로 번역한다.
+      if (!isMyPost) {
+        translation = await _fetchPostTranslation(
+          postId: result.postId,
+          lang: selectedLanguageCode,
+        );
+      }
 
       if (!mounted) return;
 
       setState(() {
+        _myUserId = currentUserId;
         _post = result;
         _postTranslation = translation;
         _selectedLanguageCode = selectedLanguageCode;
