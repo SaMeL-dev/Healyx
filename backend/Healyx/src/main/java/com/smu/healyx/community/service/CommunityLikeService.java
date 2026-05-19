@@ -41,7 +41,7 @@ public class CommunityLikeService {
             liked = true;
             Long postAuthorId = post.getUser().getUserId();
             if (!postAuthorId.equals(userId)) {
-                notificationService.sendPushNotification(postAuthorId, "LIKE", postId);
+                notificationService.sendPushNotification(postAuthorId, "LIKE", postId, postId);
             }
         }
 

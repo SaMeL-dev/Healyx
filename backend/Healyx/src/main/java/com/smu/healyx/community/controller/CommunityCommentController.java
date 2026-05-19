@@ -3,14 +3,17 @@ package com.smu.healyx.community.controller;
 import com.smu.healyx.common.dto.ApiResponse;
 import com.smu.healyx.common.security.SecurityUtils;
 import com.smu.healyx.community.dto.CommentCreateRequest;
+import com.smu.healyx.community.dto.CommentTranslationResponse;
 import com.smu.healyx.community.service.CommunityCommentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -18,6 +21,7 @@ import java.util.Map;
 @Tag(name = "Community Comment", description = "댓글·대댓글 API")
 @RestController
 @RequiredArgsConstructor
+@Validated
 public class CommunityCommentController {
 
     private final CommunityCommentService commentService;
@@ -44,5 +48,16 @@ public class CommunityCommentController {
         Long userId = SecurityUtils.extractUserId(authentication);
         commentService.deleteComment(userId, commentId);
         return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    /** COM-011 — 댓글 번역 (게스트 허용) */
+    @Operation(summary = "댓글 번역", description = "댓글 내용을 지정 언어로 번역합니다. lang: ko|en|zh|vi|th|ja. 인증 불필요.")
+    @GetMapping("/api/community/comments/{commentId}/translate")
+    public ResponseEntity<ApiResponse<CommentTranslationResponse>> translateComment(
+            @PathVariable Long commentId,
+            @RequestParam
+            @Pattern(regexp = "^(ko|en|zh|vi|th|ja)$", message = "지원하지 않는 언어 코드입니다.")
+            String lang) {
+        return ResponseEntity.ok(ApiResponse.success(commentService.translateComment(commentId, lang)));
     }
 }

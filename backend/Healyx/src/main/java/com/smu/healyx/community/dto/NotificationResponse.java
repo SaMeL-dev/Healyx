@@ -13,6 +13,7 @@ public class NotificationResponse {
     private Long notificationId;
     private String type;
     private Long referenceId;
+    private Long postId;
     private boolean isRead;
     private LocalDateTime createdAt;
 
@@ -21,6 +22,7 @@ public class NotificationResponse {
                 .notificationId(n.getNotificationId())
                 .type(n.getType())
                 .referenceId(n.getReferenceId())
+                .postId(n.getPostId())
                 .isRead(n.isRead())
                 .createdAt(n.getCreatedAt())
                 .build();

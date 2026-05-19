@@ -2,7 +2,11 @@ package com.smu.healyx.common.exception;
 
 import com.smu.healyx.common.dto.ApiResponse;
 import jakarta.validation.ConstraintViolationException;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.MessageSource;
+import org.springframework.context.NoSuchMessageException;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -11,14 +15,29 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @Slf4j
 @RestControllerAdvice
+@RequiredArgsConstructor
 public class GlobalExceptionHandler {
+
+    private final MessageSource messageSource;
+
+    /**
+     * errorCode를 MessageSource 키로 조회하여 현재 locale의 메시지 반환.
+     * 키 미존재 시 fallback(한국어 원문) 반환.
+     */
+    private String resolveMessage(String code, String fallback) {
+        try {
+            return messageSource.getMessage(code, null, LocaleContextHolder.getLocale());
+        } catch (NoSuchMessageException ex) {
+            return fallback;
+        }
+    }
 
     @ExceptionHandler(AuthException.class)
     public ResponseEntity<ApiResponse<Void>> handleAuthException(AuthException e) {
         log.warn("Auth error [{}]: {}", e.getErrorCode(), e.getMessage());
         return ResponseEntity
             .status(e.getStatus())
-            .body(ApiResponse.error(e.getErrorCode(), e.getMessage()));
+            .body(ApiResponse.error(e.getErrorCode(), resolveMessage(e.getErrorCode(), e.getMessage())));
     }
 
     @ExceptionHandler(ExternalApiException.class)
@@ -26,7 +45,7 @@ public class GlobalExceptionHandler {
         log.error("External API error [{}]: {}", e.getErrorCode(), e.getMessage());
         return ResponseEntity
             .status(HttpStatus.SERVICE_UNAVAILABLE)
-            .body(ApiResponse.error(e.getErrorCode(), e.getMessage()));
+            .body(ApiResponse.error(e.getErrorCode(), resolveMessage(e.getErrorCode(), e.getMessage())));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

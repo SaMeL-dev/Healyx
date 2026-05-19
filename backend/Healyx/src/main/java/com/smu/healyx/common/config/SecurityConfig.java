@@ -1,5 +1,6 @@
 package com.smu.healyx.common.config;
 
+import com.smu.healyx.common.filter.LocaleFilter;
 import com.smu.healyx.common.security.JwtAuthenticationFilter;
 import com.smu.healyx.common.security.JwtProvider;
 import jakarta.servlet.http.HttpServletResponse;
@@ -18,7 +19,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
 import java.util.List;
 
 @Configuration
@@ -27,6 +27,7 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtProvider jwtProvider;
+    private final LocaleFilter localeFilter;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -79,9 +80,13 @@ public class SecurityConfig {
                 .requestMatchers("/actuator/health").permitAll()
                 // 커뮤니티 게시글 조회 — 게스트 허용
                 .requestMatchers(HttpMethod.GET, "/api/community/posts", "/api/community/posts/**").permitAll()
+                // 커뮤니티 번역 엔드포인트 — 게스트 허용 (COM-011)
+                .requestMatchers(HttpMethod.GET, "/api/community/posts/*/translate").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/community/comments/*/translate").permitAll()
                 // 그 외는 인증 필요
                 .anyRequest().authenticated()
             )
+            .addFilterBefore(localeFilter, UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(new JwtAuthenticationFilter(jwtProvider),
                              UsernamePasswordAuthenticationFilter.class);
 
