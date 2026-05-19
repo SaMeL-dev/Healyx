@@ -1,5 +1,9 @@
 ﻿// 커뮤니티 게시글 상세 화면
 // 게시글 상세 조회 API를 통해 제목, 작성자, 작성일, 본문, 이미지, 좋아요, 북마크, 댓글을 표시하는 화면
+// 게시글 원문보기 기능:
+// - 선택 언어 기준으로 게시글 제목/본문 번역 API 호출
+// - 원문보기 클릭 시 게시글 제목/본문만 원문으로 전환
+// - 댓글은 원문보기 대상에서 제외
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -36,11 +40,21 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
   bool _isDeleteProcessing = false;
   bool _isReportProcessing = false;
   bool _isCommentSubmitting = false;
+  bool _isTranslationProcessing = false;
 
   int? _deletingCommentId;
 
   // 답글 작성 대상 댓글
   CommunityComment? _replyTargetComment;
+
+  // 원문보기 상태
+  bool _isOriginalMode = false;
+
+  // 선택 언어 기준 게시글 번역 데이터
+  CommunityPostTranslation? _postTranslation;
+
+  // 현재 선택된 언어 코드
+  String _selectedLanguageCode = 'ko';
 
   // 수정/좋아요/북마크/댓글 변경 후 상세 화면에서 메인으로 돌아갈 때 목록 새로고침을 알려주기 위한 값
   bool _hasChanged = false;
@@ -73,21 +87,129 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
     });
   }
 
+  String _normalizeLanguageCode(String? value) {
+    final code = value?.trim().toLowerCase();
+
+    if (code == null || code.isEmpty) {
+      return 'ko';
+    }
+
+    const supportedCodes = {
+      'ko',
+      'en',
+      'zh',
+      'vi',
+      'th',
+      'ja',
+    };
+
+    if (supportedCodes.contains(code)) {
+      return code;
+    }
+
+    return 'ko';
+  }
+
+  Future<String> _loadSelectedLanguageCode() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    // AppLanguage.setLang()에서 실제로 저장하는 key
+    final savedLanguage = prefs.getString('language_pref');
+
+    if (savedLanguage != null && savedLanguage.trim().isNotEmpty) {
+      final normalized = _normalizeLanguageCode(savedLanguage);
+
+      debugPrint('[Community] selected language from language_pref: $normalized');
+
+      return normalized;
+    }
+
+    // 혹시 AppLanguage.currentLang가 이미 갱신되어 있는 경우 대비
+    final currentLang = AppLanguage.currentLang.value;
+
+    if (currentLang.trim().isNotEmpty) {
+      final normalized = _normalizeLanguageCode(currentLang);
+
+      debugPrint('[Community] selected language from AppLanguage: $normalized');
+
+      return normalized;
+    }
+
+    // 예비 호환용 key
+    final candidates = [
+      prefs.getString('preferredLanguage'),
+      prefs.getString('languageCode'),
+      prefs.getString('selectedLanguageCode'),
+      prefs.getString('selectedLanguage'),
+      prefs.getString('appLanguage'),
+      prefs.getString('lang'),
+    ];
+
+    for (final candidate in candidates) {
+      if (candidate != null && candidate.trim().isNotEmpty) {
+        final normalized = _normalizeLanguageCode(candidate);
+
+        debugPrint('[Community] selected language from fallback: $normalized');
+
+        return normalized;
+      }
+    }
+
+    debugPrint('[Community] selected language fallback to ko');
+
+    return 'ko';
+  }
+
+  Future<CommunityPostTranslation?> _fetchPostTranslation({
+    required int postId,
+    required String lang,
+    bool showError = false,
+  }) async {
+    try {
+      final translation = await CommunityService().getPostTranslation(
+        postId: postId,
+        lang: lang,
+      );
+
+      return translation;
+    } catch (e) {
+      debugPrint('[Community] getPostTranslation error: $e');
+
+      if (showError && mounted) {
+        _showSnackBar(
+          e.toString().replaceFirst('Exception: ', ''),
+        );
+      }
+
+      return null;
+    }
+  }
+
   Future<void> _loadPostDetail() async {
     try {
       setState(() {
         _isLoading = true;
         _errorMessage = null;
+        _isOriginalMode = false;
       });
+
+      final selectedLanguageCode = await _loadSelectedLanguageCode();
 
       final result = await CommunityService().getPostDetail(
         postId: widget.postId,
+      );
+
+      final translation = await _fetchPostTranslation(
+        postId: result.postId,
+        lang: selectedLanguageCode,
       );
 
       if (!mounted) return;
 
       setState(() {
         _post = result;
+        _postTranslation = translation;
+        _selectedLanguageCode = selectedLanguageCode;
       });
     } catch (e) {
       if (!mounted) return;
@@ -301,6 +423,58 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
     }
   }
 
+  Future<void> _toggleOriginalMode() async {
+    final post = _post;
+
+    if (post == null || _isMyPost || _isTranslationProcessing) {
+      return;
+    }
+
+    if (_postTranslation == null) {
+      try {
+        setState(() {
+          _isTranslationProcessing = true;
+        });
+
+        final translation = await _fetchPostTranslation(
+          postId: post.postId,
+          lang: _selectedLanguageCode,
+          showError: true,
+        );
+
+        if (!mounted) return;
+
+        if (translation == null) {
+          _showSnackBar('원문 정보를 불러오지 못했습니다.');
+          return;
+        }
+
+        setState(() {
+          _postTranslation = translation;
+          _isOriginalMode = true;
+        });
+
+        _showSnackBar('원문으로 전환되었습니다.');
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isTranslationProcessing = false;
+          });
+        }
+      }
+
+      return;
+    }
+
+    setState(() {
+      _isOriginalMode = !_isOriginalMode;
+    });
+
+    _showSnackBar(
+      _isOriginalMode ? '원문으로 전환되었습니다.' : '번역문으로 전환되었습니다.',
+    );
+  }
+
   Future<void> _submitComment() async {
     final post = _post;
     final content = _commentController.text.trim();
@@ -441,8 +615,12 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
       MaterialPageRoute(
         builder: (_) => CommunityWriteScreen(
           postId: post.postId,
-          initialTitle: post.title,
-          initialContent: post.content,
+          initialTitle: _postTranslation?.originalTitle.isNotEmpty == true
+              ? _postTranslation!.originalTitle
+              : post.title,
+          initialContent: _postTranslation?.originalContent.isNotEmpty == true
+              ? _postTranslation!.originalContent
+              : post.content,
           initialImageUrls: post.imageUrls,
         ),
       ),
@@ -465,7 +643,55 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
   }
 
   bool get _isMenuProcessing {
-    return _isDeleteProcessing || _isReportProcessing;
+    return _isDeleteProcessing || _isReportProcessing || _isTranslationProcessing;
+  }
+
+  String get _displayTitle {
+    final post = _post;
+
+    if (post == null) {
+      return '';
+    }
+
+    if (_isOriginalMode &&
+        _postTranslation != null &&
+        _postTranslation!.originalTitle.trim().isNotEmpty) {
+      return _postTranslation!.originalTitle;
+    }
+
+    if (!_isOriginalMode &&
+        _postTranslation != null &&
+        _postTranslation!.translatedTitle.trim().isNotEmpty) {
+      return _postTranslation!.translatedTitle;
+    }
+
+    return post.title;
+  }
+
+  String get _displayContent {
+    final post = _post;
+
+    if (post == null) {
+      return '';
+    }
+
+    if (post.blinded) {
+      return '신고 누적으로 가려진 게시글입니다.';
+    }
+
+    if (_isOriginalMode &&
+        _postTranslation != null &&
+        _postTranslation!.originalContent.trim().isNotEmpty) {
+      return _postTranslation!.originalContent;
+    }
+
+    if (!_isOriginalMode &&
+        _postTranslation != null &&
+        _postTranslation!.translatedContent.trim().isNotEmpty) {
+      return _postTranslation!.translatedContent;
+    }
+
+    return post.content;
   }
 
   String _formatDate(String value) {
@@ -539,7 +765,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
     } else if (value == 'edit') {
       _goToEditPost();
     } else if (value == 'view') {
-      _showSnackBar('원문보기 기능은 추후 연결 예정입니다.');
+      _toggleOriginalMode();
     }
   }
 
@@ -1022,6 +1248,29 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
     );
   }
 
+  Widget _buildTranslationBadge() {
+    if (_postTranslation == null) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(top: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: lightBlue,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        _isOriginalMode ? '원문 보기 중' : '$_selectedLanguageCode 번역 보기 중',
+        style: const TextStyle(
+          color: mainBlue,
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+
   Widget _buildPostContent() {
     final post = _post;
 
@@ -1030,6 +1279,8 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
     }
 
     final dateText = _formatDate(post.createdAt);
+    final displayTitle = _displayTitle.trim().isEmpty ? '제목 없음' : _displayTitle;
+    final displayContent = _displayContent;
 
     return Expanded(
       child: RefreshIndicator(
@@ -1048,7 +1299,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
                       children: [
                         Expanded(
                           child: Text(
-                            post.title.isEmpty ? '제목 없음' : post.title,
+                            displayTitle,
                             style: const TextStyle(
                               color: mainBlue,
                               fontSize: 18,
@@ -1100,7 +1351,11 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
                                 PopupMenuItem(
                                   value: 'view',
                                   child: Text(
-                                    AppLanguage.t('community_menu_original'),
+                                    _isOriginalMode
+                                        ? '번역보기'
+                                        : AppLanguage.t(
+                                      'community_menu_original',
+                                    ),
                                   ),
                                 ),
                               ];
@@ -1109,6 +1364,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
                         ),
                       ],
                     ),
+                    _buildTranslationBadge(),
                     const SizedBox(height: 6),
                     Row(
                       children: [
@@ -1140,9 +1396,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    post.blinded
-                        ? '신고 누적으로 가려진 게시글입니다.'
-                        : post.content,
+                    displayContent,
                     style: const TextStyle(
                       color: Colors.black87,
                       fontSize: 16,

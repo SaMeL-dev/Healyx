@@ -557,6 +557,134 @@ class CommunityService {
   }
 
   // =========================
+  // 게시글 번역 API
+  // GET /api/community/posts/{postId}/translate?lang={lang}
+  // 원문보기 기능은 originalTitle / originalContent 사용
+  // =========================
+  Future<CommunityPostTranslation> getPostTranslation({
+    required int postId,
+    required String lang,
+    String acceptLanguage = 'ko',
+  }) async {
+    final token = await _getValidAccessToken();
+
+    final targetLang = lang.trim().isEmpty ? 'ko' : lang.trim();
+
+    final uri = Uri.parse('$baseUrl/api/community/posts/$postId/translate')
+        .replace(
+      queryParameters: {
+        'lang': targetLang,
+      },
+    );
+
+    final response = await _retryGetWithRefresh(
+      uri: uri,
+      token: token,
+      extraHeaders: {
+        'Accept-Language': acceptLanguage,
+      },
+    );
+
+    final responseBody = utf8.decode(response.bodyBytes);
+
+    debugPrint('[Community] getPostTranslation status: ${response.statusCode}');
+    debugPrint('[Community] getPostTranslation body: $responseBody');
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      final decoded = jsonDecode(responseBody);
+
+      if (decoded is Map<String, dynamic> && decoded['success'] == true) {
+        final data = decoded['data'];
+
+        if (data is Map<String, dynamic>) {
+          return CommunityPostTranslation.fromJson(data);
+        }
+
+        throw Exception('게시글 번역 데이터가 올바르지 않습니다.');
+      }
+
+      throw Exception(
+        decoded is Map<String, dynamic>
+            ? decoded['message'] ?? '게시글 번역에 실패했습니다.'
+            : '게시글 번역에 실패했습니다.',
+      );
+    }
+
+    final errorMessage = _parseErrorMessage(
+      responseBody: responseBody,
+      defaultMessage: '게시글 번역에 실패했습니다.',
+    );
+
+    throw Exception('$errorMessage (${response.statusCode})');
+  }
+
+  // =========================
+  // 댓글 번역 API
+  // GET /api/community/comments/{commentId}/translate?lang={lang}
+  // 현재 원문보기는 게시글만 적용하지만,
+  // 댓글은 선택 언어 기준 번역 표시가 필요할 수 있어 함수만 제공
+  // =========================
+  Future<CommunityCommentTranslation> getCommentTranslation({
+    required int commentId,
+    required String lang,
+    String acceptLanguage = 'ko',
+  }) async {
+    final token = await _getValidAccessToken();
+
+    final targetLang = lang.trim().isEmpty ? 'ko' : lang.trim();
+
+    final uri = Uri.parse(
+      '$baseUrl/api/community/comments/$commentId/translate',
+    ).replace(
+      queryParameters: {
+        'lang': targetLang,
+      },
+    );
+
+    final response = await _retryGetWithRefresh(
+      uri: uri,
+      token: token,
+      extraHeaders: {
+        'Accept-Language': acceptLanguage,
+      },
+    );
+
+    final responseBody = utf8.decode(response.bodyBytes);
+
+    debugPrint(
+      '[Community] getCommentTranslation status: ${response.statusCode}',
+    );
+    debugPrint('[Community] getCommentTranslation body: $responseBody');
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      final decoded = jsonDecode(responseBody);
+
+      if (decoded is Map<String, dynamic> && decoded['success'] == true) {
+        final data = decoded['data'];
+
+        if (data is Map<String, dynamic>) {
+          return CommunityCommentTranslation.fromJson(data);
+        }
+
+        throw Exception('댓글 번역 데이터가 올바르지 않습니다.');
+      }
+
+      throw Exception(
+        decoded is Map<String, dynamic>
+            ? decoded['message'] ?? '댓글 번역에 실패했습니다.'
+            : '댓글 번역에 실패했습니다.',
+      );
+    }
+
+    final errorMessage = _parseErrorMessage(
+      responseBody: responseBody,
+      defaultMessage: '댓글 번역에 실패했습니다.',
+    );
+
+    throw Exception('$errorMessage (${response.statusCode})');
+  }
+
+  // =========================
   // 좋아요 토글 API
   // POST /api/community/posts/{postId}/likes
   // 좋아요가 없으면 추가, 이미 있으면 취소
@@ -1340,6 +1468,66 @@ class CommunityComment {
 }
 
 // =========================
+// 게시글 번역 모델
+// GET /api/community/posts/{postId}/translate
+// =========================
+class CommunityPostTranslation {
+  final int postId;
+  final String lang;
+  final String translatedTitle;
+  final String translatedContent;
+  final String originalTitle;
+  final String originalContent;
+
+  CommunityPostTranslation({
+    required this.postId,
+    required this.lang,
+    required this.translatedTitle,
+    required this.translatedContent,
+    required this.originalTitle,
+    required this.originalContent,
+  });
+
+  factory CommunityPostTranslation.fromJson(Map<String, dynamic> json) {
+    return CommunityPostTranslation(
+      postId: json['postId'] ?? 0,
+      lang: json['lang'] ?? '',
+      translatedTitle: json['translatedTitle'] ?? '',
+      translatedContent: json['translatedContent'] ?? '',
+      originalTitle: json['originalTitle'] ?? '',
+      originalContent: json['originalContent'] ?? '',
+    );
+  }
+}
+
+// =========================
+// 댓글 번역 모델
+// GET /api/community/comments/{commentId}/translate
+// =========================
+class CommunityCommentTranslation {
+  final int commentId;
+  final String lang;
+  final String translatedContent;
+  final String originalContent;
+
+  CommunityCommentTranslation({
+    required this.commentId,
+    required this.lang,
+    required this.translatedContent,
+    required this.originalContent,
+  });
+
+  factory CommunityCommentTranslation.fromJson(Map<String, dynamic> json) {
+    return CommunityCommentTranslation(
+      commentId: json['commentId'] ?? 0,
+      lang: json['lang'] ?? '',
+      translatedContent: json['translatedContent'] ?? '',
+      originalContent: json['originalContent'] ?? '',
+    );
+  }
+}
+
+// =========================
 // 내 게시글 모델
 // GET /api/community/my/posts
 // =========================
@@ -1468,9 +1656,6 @@ class CommunityNotificationItem {
   final String type;
   final int referenceId;
 
-  // 알림 클릭 시 이동할 게시글 ID
-  // LIKE는 referenceId와 같을 수 있고,
-  // COMMENT / REPLY는 백엔드에서 추가된 postId를 사용
   final int? postId;
 
   final String createdAt;

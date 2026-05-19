@@ -1,5 +1,7 @@
 ﻿// 커뮤니티 메인 화면 (홈/인기 탭, 게시글 리스트, 검색/글쓰기 버튼)
+// 선택 언어 코드 기반으로 게시글 제목/내용 미리보기를 번역해서 표시
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../app_language.dart';
 import 'community_search.dart';
@@ -26,7 +28,9 @@ class _CommunityMainScreenState extends State<CommunityMainScreen> {
   bool _isLoading = false;
   String? _errorMessage;
 
-  List<CommunityPostSummary> _posts = [];
+  String _selectedLanguageCode = 'ko';
+
+  List<_CommunityMainPostViewData> _posts = [];
 
   @override
   void initState() {
@@ -41,6 +45,102 @@ class _CommunityMainScreenState extends State<CommunityMainScreen> {
     return 'popular';
   }
 
+  String _normalizeLanguageCode(String? value) {
+    final code = value?.trim().toLowerCase();
+
+    if (code == null || code.isEmpty) {
+      return 'ko';
+    }
+
+    if (code.startsWith('ko')) return 'ko';
+    if (code.startsWith('en')) return 'en';
+    if (code.startsWith('zh')) return 'zh';
+    if (code.startsWith('vi')) return 'vi';
+    if (code.startsWith('th')) return 'th';
+    if (code.startsWith('ja')) return 'ja';
+
+    return 'ko';
+  }
+
+  Future<String> _loadSelectedLanguageCode() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    // AppLanguage.setLang()에서 실제로 저장하는 key
+    final savedLanguage = prefs.getString('language_pref');
+
+    if (savedLanguage != null && savedLanguage.trim().isNotEmpty) {
+      final normalized = _normalizeLanguageCode(savedLanguage);
+
+      debugPrint('[CommunityMain] selected language from language_pref: $normalized');
+
+      return normalized;
+    }
+
+    // 혹시 AppLanguage.currentLang가 이미 갱신되어 있는 경우 대비
+    final currentLang = AppLanguage.currentLang.value;
+
+    if (currentLang.trim().isNotEmpty) {
+      final normalized = _normalizeLanguageCode(currentLang);
+
+      debugPrint('[CommunityMain] selected language from AppLanguage: $normalized');
+
+      return normalized;
+    }
+
+    return 'ko';
+  }
+
+  Future<_CommunityMainPostViewData> _translatePostForList({
+    required CommunityPostSummary post,
+    required String lang,
+  }) async {
+    try {
+      final translation = await CommunityService().getPostTranslation(
+        postId: post.postId,
+        lang: lang,
+      );
+
+      final translatedTitle = translation.translatedTitle.trim();
+      final translatedContent = translation.translatedContent.trim();
+
+      return _CommunityMainPostViewData(
+        post: post,
+        displayTitle: translatedTitle.isNotEmpty ? translatedTitle : post.title,
+        displayContent:
+        translatedContent.isNotEmpty ? translatedContent : post.contentPreview,
+        isTranslated: true,
+      );
+    } catch (e) {
+      debugPrint('[CommunityMain] translate failed postId=${post.postId}: $e');
+
+      // 번역 실패 시 목록 전체가 깨지지 않도록 원문으로 fallback
+      return _CommunityMainPostViewData(
+        post: post,
+        displayTitle: post.title,
+        displayContent: post.contentPreview,
+        isTranslated: false,
+      );
+    }
+  }
+
+  Future<List<_CommunityMainPostViewData>> _translatePostList({
+    required List<CommunityPostSummary> posts,
+    required String lang,
+  }) async {
+    if (posts.isEmpty) {
+      return [];
+    }
+
+    return Future.wait(
+      posts.map(
+            (post) => _translatePostForList(
+          post: post,
+          lang: lang,
+        ),
+      ),
+    );
+  }
+
   Future<void> _loadPosts() async {
     try {
       setState(() {
@@ -48,16 +148,24 @@ class _CommunityMainScreenState extends State<CommunityMainScreen> {
         _errorMessage = null;
       });
 
+      final selectedLanguageCode = await _loadSelectedLanguageCode();
+
       final result = await CommunityService().getPosts(
         page: 0,
         size: 10,
         sort: _currentSort,
       );
 
+      final translatedPosts = await _translatePostList(
+        posts: result.content,
+        lang: selectedLanguageCode,
+      );
+
       if (!mounted) return;
 
       setState(() {
-        _posts = result.content;
+        _selectedLanguageCode = selectedLanguageCode;
+        _posts = translatedPosts;
       });
     } catch (e) {
       if (!mounted) return;
@@ -97,17 +205,17 @@ class _CommunityMainScreenState extends State<CommunityMainScreen> {
     }
   }
 
-  Future<void> _goToDetailScreen(CommunityPostSummary post) async {
+  Future<void> _goToDetailScreen(_CommunityMainPostViewData item) async {
     final result = await Navigator.push<bool>(
       context,
       MaterialPageRoute(
         builder: (_) => CommunityDetailScreen(
-          postId: post.postId,
+          postId: item.post.postId,
         ),
       ),
     );
 
-    // 상세 화면에서 게시글 삭제 성공 시 Navigator.pop(context, true)로 돌아오면 목록 새로고침
+    // 상세 화면에서 게시글 삭제/수정/좋아요/댓글 변경 시 목록 새로고침
     if (result == true) {
       _loadPosts();
     }
@@ -157,9 +265,9 @@ class _CommunityMainScreenState extends State<CommunityMainScreen> {
                       borderRadius: BorderRadius.circular(21),
                     ),
                   ),
-                  child: const Text(
-                    '다시 시도',
-                    style: TextStyle(
+                  child: Text(
+                    AppLanguage.t('retry'),
+                    style: const TextStyle(
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -208,17 +316,20 @@ class _CommunityMainScreenState extends State<CommunityMainScreen> {
         itemCount: _posts.length,
         separatorBuilder: (_, __) => const SizedBox(height: 14),
         itemBuilder: (context, index) {
-          final post = _posts[index];
+          final item = _posts[index];
+          final post = item.post;
 
           return GestureDetector(
-            onTap: () => _goToDetailScreen(post),
+            onTap: () => _goToDetailScreen(item),
             child: _PostCard(
-              title: post.title,
-              content: post.contentPreview,
+              title: item.displayTitle,
+              content: item.displayContent,
               authorNickname: post.authorNickname,
               likeCount: post.likeCount,
               commentCount: post.commentCount,
               createdAt: post.createdAt,
+              languageCode: _selectedLanguageCode,
+              isTranslated: item.isTranslated,
             ),
           );
         },
@@ -413,6 +524,20 @@ class _CommunityMainScreenState extends State<CommunityMainScreen> {
   }
 }
 
+class _CommunityMainPostViewData {
+  final CommunityPostSummary post;
+  final String displayTitle;
+  final String displayContent;
+  final bool isTranslated;
+
+  const _CommunityMainPostViewData({
+    required this.post,
+    required this.displayTitle,
+    required this.displayContent,
+    required this.isTranslated,
+  });
+}
+
 class _TabButton extends StatelessWidget {
   final String text;
   final bool isSelected;
@@ -460,6 +585,8 @@ class _PostCard extends StatelessWidget {
   final int likeCount;
   final int commentCount;
   final String createdAt;
+  final String languageCode;
+  final bool isTranslated;
 
   static const Color mainBlue = Color(0xFF2260FF);
   static const Color softBg = Color(0xFFECF1FF);
@@ -471,6 +598,8 @@ class _PostCard extends StatelessWidget {
     required this.likeCount,
     required this.commentCount,
     required this.createdAt,
+    required this.languageCode,
+    required this.isTranslated,
   });
 
   String _formatDate(String value) {
@@ -509,6 +638,24 @@ class _PostCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (isTranslated)
+            Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+              decoration: BoxDecoration(
+                color: softBg,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                '$languageCode 번역',
+                style: const TextStyle(
+                  color: mainBlue,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+
           Text(
             title.isEmpty ? '제목 없음' : title,
             maxLines: 1,

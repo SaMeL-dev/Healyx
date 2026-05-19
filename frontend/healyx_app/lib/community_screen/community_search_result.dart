@@ -1,5 +1,7 @@
 ﻿// 커뮤니티 검색 결과 화면 (검색창에서 검색 후 나오는 화면)
+// 선택 언어 코드 기반으로 검색 결과 게시글 제목/내용 미리보기를 번역해서 표시
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../app_language.dart';
 
@@ -33,7 +35,9 @@ class _CommunitySearchResultScreenState
   bool _isLoading = false;
   String? _errorMessage;
 
-  List<CommunityPostSummary> posts = [];
+  String _selectedLanguageCode = 'ko';
+
+  List<_CommunitySearchPostViewData> posts = [];
 
   @override
   void initState() {
@@ -61,12 +65,119 @@ class _CommunitySearchResultScreenState
     return 'latest';
   }
 
+  String _normalizeLanguageCode(String? value) {
+    final code = value?.trim().toLowerCase();
+
+    if (code == null || code.isEmpty) {
+      return 'ko';
+    }
+
+    if (code.startsWith('ko')) return 'ko';
+    if (code.startsWith('en')) return 'en';
+    if (code.startsWith('zh')) return 'zh';
+    if (code.startsWith('vi')) return 'vi';
+    if (code.startsWith('th')) return 'th';
+    if (code.startsWith('ja')) return 'ja';
+
+    return 'ko';
+  }
+
+  Future<String> _loadSelectedLanguageCode() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    // AppLanguage.setLang()에서 실제로 저장하는 key
+    final savedLanguage = prefs.getString('language_pref');
+
+    if (savedLanguage != null && savedLanguage.trim().isNotEmpty) {
+      final normalized = _normalizeLanguageCode(savedLanguage);
+
+      debugPrint(
+        '[CommunitySearch] selected language from language_pref: $normalized',
+      );
+
+      return normalized;
+    }
+
+    // 혹시 AppLanguage.currentLang가 이미 갱신되어 있는 경우 대비
+    final currentLang = AppLanguage.currentLang.value;
+
+    if (currentLang.trim().isNotEmpty) {
+      final normalized = _normalizeLanguageCode(currentLang);
+
+      debugPrint(
+        '[CommunitySearch] selected language from AppLanguage: $normalized',
+      );
+
+      return normalized;
+    }
+
+    debugPrint('[CommunitySearch] selected language fallback to ko');
+
+    return 'ko';
+  }
+
+  Future<_CommunitySearchPostViewData> _translatePostForList({
+    required CommunityPostSummary post,
+    required String lang,
+  }) async {
+    try {
+      final translation = await CommunityService().getPostTranslation(
+        postId: post.postId,
+        lang: lang,
+      );
+
+      final translatedTitle = translation.translatedTitle.trim();
+      final translatedContent = translation.translatedContent.trim();
+
+      return _CommunitySearchPostViewData(
+        post: post,
+        displayTitle: translatedTitle.isNotEmpty ? translatedTitle : post.title,
+        displayContent: translatedContent.isNotEmpty
+            ? translatedContent
+            : post.contentPreview,
+        isTranslated: true,
+      );
+    } catch (e) {
+      debugPrint(
+        '[CommunitySearch] translate failed postId=${post.postId}: $e',
+      );
+
+      // 번역 실패 시 검색 결과 전체가 깨지지 않도록 원문으로 fallback
+      return _CommunitySearchPostViewData(
+        post: post,
+        displayTitle: post.title,
+        displayContent: post.contentPreview,
+        isTranslated: false,
+      );
+    }
+  }
+
+  Future<List<_CommunitySearchPostViewData>> _translatePostList({
+    required List<CommunityPostSummary> targetPosts,
+    required String lang,
+  }) async {
+    if (targetPosts.isEmpty) {
+      return [];
+    }
+
+    return Future.wait(
+      targetPosts.map(
+            (post) => _translatePostForList(
+          post: post,
+          lang: lang,
+        ),
+      ),
+    );
+  }
+
   Future<void> _loadSearchResults() async {
     try {
       setState(() {
         _isLoading = true;
         _errorMessage = null;
       });
+
+      final selectedLanguageCode = await _loadSelectedLanguageCode();
 
       final result = await CommunityService().getPosts(
         page: 0,
@@ -76,10 +187,16 @@ class _CommunitySearchResultScreenState
         searchField: _searchField,
       );
 
+      final translatedPosts = await _translatePostList(
+        targetPosts: result.content,
+        lang: selectedLanguageCode,
+      );
+
       if (!mounted) return;
 
       setState(() {
-        posts = result.content;
+        _selectedLanguageCode = selectedLanguageCode;
+        posts = translatedPosts;
       });
     } catch (e) {
       if (!mounted) return;
@@ -116,15 +233,19 @@ class _CommunitySearchResultScreenState
     _loadSearchResults();
   }
 
-  void _goToDetailScreen(CommunityPostSummary post) {
-    Navigator.push(
+  Future<void> _goToDetailScreen(_CommunitySearchPostViewData item) async {
+    final result = await Navigator.push<bool>(
       context,
       MaterialPageRoute(
         builder: (_) => CommunityDetailScreen(
-          postId: post.postId,
+          postId: item.post.postId,
         ),
       ),
     );
+
+    if (result == true) {
+      _loadSearchResults();
+    }
   }
 
   Widget _buildPostList() {
@@ -171,9 +292,9 @@ class _CommunitySearchResultScreenState
                       borderRadius: BorderRadius.circular(21),
                     ),
                   ),
-                  child: const Text(
-                    '다시 시도',
-                    style: TextStyle(
+                  child: Text(
+                    AppLanguage.t('retry'),
+                    style: const TextStyle(
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -191,18 +312,18 @@ class _CommunitySearchResultScreenState
         onRefresh: _loadSearchResults,
         child: ListView(
           padding: const EdgeInsets.fromLTRB(14, 40, 14, 20),
-          children: const [
-            SizedBox(height: 120),
-            Icon(
+          children: [
+            const SizedBox(height: 120),
+            const Icon(
               Icons.search_off,
               color: mainBlue,
               size: 44,
             ),
-            SizedBox(height: 14),
+            const SizedBox(height: 14),
             Center(
               child: Text(
-                '검색 결과가 없습니다.',
-                style: TextStyle(
+                AppLanguage.t('review_search_no_result'),
+                style: const TextStyle(
                   color: Colors.black54,
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
@@ -222,22 +343,35 @@ class _CommunitySearchResultScreenState
         itemCount: posts.length,
         separatorBuilder: (_, __) => const SizedBox(height: 14),
         itemBuilder: (context, index) {
-          final post = posts[index];
+          final item = posts[index];
+          final post = item.post;
 
           return GestureDetector(
-            onTap: () => _goToDetailScreen(post),
+            onTap: () => _goToDetailScreen(item),
             child: _PostCard(
-              title: post.title,
-              content: post.contentPreview,
+              title: item.displayTitle,
+              content: item.displayContent,
               authorNickname: post.authorNickname,
               likeCount: post.likeCount,
               commentCount: post.commentCount,
               createdAt: post.createdAt,
+              languageCode: _selectedLanguageCode,
+              isTranslated: item.isTranslated,
             ),
           );
         },
       ),
     );
+  }
+
+  String _buildSearchResultSubtitle() {
+    final keyword = widget.keyword.trim();
+
+    if (keyword.isEmpty) {
+      return AppLanguage.t('community_search_result_subtitle');
+    }
+
+    return '"$keyword" ${AppLanguage.t('community_search_result_title')}';
   }
 
   @override
@@ -319,9 +453,7 @@ class _CommunitySearchResultScreenState
                   const SizedBox(height: 6),
 
                   Text(
-                    widget.keyword.trim().isEmpty
-                        ? AppLanguage.t('community_search_result_subtitle')
-                        : '"${widget.keyword}" 검색 결과',
+                    _buildSearchResultSubtitle(),
                     style: const TextStyle(
                       color: Colors.black,
                       fontSize: 16,
@@ -464,6 +596,20 @@ class _CommunitySearchResultScreenState
   }
 }
 
+class _CommunitySearchPostViewData {
+  final CommunityPostSummary post;
+  final String displayTitle;
+  final String displayContent;
+  final bool isTranslated;
+
+  const _CommunitySearchPostViewData({
+    required this.post,
+    required this.displayTitle,
+    required this.displayContent,
+    required this.isTranslated,
+  });
+}
+
 class _FilterButton extends StatelessWidget {
   final String text;
   final bool isSelected;
@@ -514,6 +660,8 @@ class _PostCard extends StatelessWidget {
   final int likeCount;
   final int commentCount;
   final String createdAt;
+  final String languageCode;
+  final bool isTranslated;
 
   static const Color mainBlue = Color(0xFF2260FF);
   static const Color softBg = Color(0xFFECF1FF);
@@ -525,6 +673,8 @@ class _PostCard extends StatelessWidget {
     required this.likeCount,
     required this.commentCount,
     required this.createdAt,
+    required this.languageCode,
+    required this.isTranslated,
   });
 
   String _formatDate(String value) {
@@ -563,6 +713,24 @@ class _PostCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (isTranslated)
+            Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+              decoration: BoxDecoration(
+                color: softBg,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                '$languageCode 번역',
+                style: const TextStyle(
+                  color: mainBlue,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+
           // 제목
           Text(
             title.isEmpty ? '제목 없음' : title,
