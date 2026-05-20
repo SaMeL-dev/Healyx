@@ -71,12 +71,12 @@ public class HospitalAgentService {
             5, List.of("01")
     );
 
-    /** 위험도별 검색 반경 (m): 1~2단계 3km, 3~5단계 15km */
+    /** 위험도별 검색 반경 (m): 1~2단계 3km, 3~4단계 10km, 5단계 15km */
     private static final Map<Integer, Integer> RISK_TO_RADIUS = Map.of(
             1, 3000,
             2, 3000,
-            3, 15000,
-            4, 15000,
+            3, 10000,
+            4, 10000,
             5, 15000
     );
 
@@ -198,6 +198,17 @@ public class HospitalAgentService {
             }
         }
 
+        // 모든 clCd 호출 실패 또는 결과 없음 — NPE 및 JPA IN-empty 예외 방지
+        if (merged.isEmpty()) {
+            log.warn("dgsbjtCd={}, riskLevel={}: 모든 clCd 검색 결과 없음", dgsbjtCd, req.getRiskLevel());
+            return HospitalSearchResponse.builder()
+                    .hospitals(List.of())
+                    .pageNo(1)
+                    .numOfRows(0)
+                    .totalCount(0)
+                    .build();
+        }
+
         // 단일 IN 쿼리로 인증 병원 ykiho Set 확보 (N+1 방지)
         Set<String> certifiedYkihos = foreignCertifiedHospitalRepository
                 .findAllByYkihoIn(merged.keySet()) // DB 조히
@@ -249,10 +260,11 @@ public class HospitalAgentService {
                 %s
 
                 Available HIRA department codes:
-                  00:일반의, 01:내과, 02:신경과, 03:정신건강의학과, 04:피부과,
-                  05:외과, 06:흉부외과, 07:정형외과, 08:신경외과, 09:산부인과,
-                  10:소아청소년과, 11:안과, 12:이비인후과, 13:비뇨의학과,
-                  18:재활의학과, 20:가정의학과, 21:응급의학과, 24:치과
+                  00:일반의, 01:내과, 02:신경과, 03:정신건강의학과, 04:외과,
+                  05:정형외과, 06:신경외과, 07:흉부외과, 08:성형외과, 09:마취통증의학과,
+                  10:산부인과, 11:소아청소년과, 12:안과, 13:이비인후과, 14:피부과,
+                  15:비뇨의학과, 21:재활의학과, 23:가정의학과, 24:응급의학과,
+                  50:구강악안면외과, 51:치과보철과, 61:통합치의학과
                 """.formatted(patientContext);
 
         List<GptChatRequest.Message> messages = new ArrayList<>();
@@ -273,7 +285,7 @@ public class HospitalAgentService {
                                 "properties", Map.of(
                                         "dgsbjtCd", Map.of(
                                                 "type", "string",
-                                                "description", "HIRA 진료과목 코드 (예: '01'=내과, '12'=이비인후과)"
+                                                "description", "HIRA 진료과목 코드 (예: '01'=내과, '12'=안과, '13'=이비인후과)"
                                         ),
                                         "departmentName", Map.of(
                                                 "type", "string",
