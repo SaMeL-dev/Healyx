@@ -9,4 +9,5 @@ public interface CostReferenceRepository extends JpaRepository<CostReference, Lo
     Optional<CostReference> findByIcd10CodeAndVisitType(String icd10Code, String visitType);
     List<CostReference> findByDiseaseNameContainingAndVisitType(String diseaseName, String visitType);
     List<CostReference> findByIcd10CodeIsNull();
+    boolean existsByIcd10CodeAndVisitType(String icd10Code, String visitType);
 }
