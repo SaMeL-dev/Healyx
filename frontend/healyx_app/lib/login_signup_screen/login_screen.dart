@@ -1,6 +1,7 @@
 ﻿// 로그인 화면 구현
 import 'package:flutter/material.dart';
-import 'package:healyx_app/app_language.dart'; 
+import 'package:healyx_app/app_language.dart';
+
 import '../login_signup_screen/sign_up_screen.dart';
 import '../find_account_screen/find_id_screen.dart';
 import '../find_account_screen/find_password_screen.dart';
@@ -21,7 +22,6 @@ class _LoginScreenState extends State<LoginScreen> {
   bool isAutoLogin = false;
   bool isObscure = true;
   bool isLoading = false;
-
 
   String? idErrorText;
   String? passwordErrorText;
@@ -61,6 +61,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final result = await AuthService.login(
       username: id,
       password: password,
+      autoLogin: isAutoLogin,
     );
 
     if (!mounted) return;
@@ -80,7 +81,8 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     } else {
       setState(() {
-        loginErrorText = result.message ?? AppLanguage.t('login_error'); // '아이디 및 비밀번호가 일치하지 않습니다.'
+        loginErrorText =
+            result.message ?? AppLanguage.t('login_error'); // '아이디 및 비밀번호가 일치하지 않습니다.'
       });
     }
   }
@@ -120,7 +122,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             color: Color(0xFF4E7CFF),
                           ),
                         ),
-                        Expanded( // 수정
+                        Expanded(
                           child: Center(
                             child: Text(
                               AppLanguage.t('login_title'), // '로그인'
@@ -138,7 +140,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                     const SizedBox(height: 12),
 
-                    Center( // 수정
+                    Center(
                       child: Text(
                         AppLanguage.t('login_subtitle'), // '계정으로 로그인 하여 서비스를 이용하세요.'
                         style: const TextStyle(
@@ -151,7 +153,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                     const SizedBox(height: 56),
 
-                    Text( // 수정
+                    Text(
                       AppLanguage.t('username_label'), // '아이디'
                       style: const TextStyle(
                         fontSize: 18,
@@ -170,7 +172,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                     const SizedBox(height: 28),
 
-                    Text( // 수정
+                    Text(
                       AppLanguage.t('password_label'), // '비밀번호'
                       style: const TextStyle(
                         fontSize: 18,
@@ -225,7 +227,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Text( // 수정
+                        Text(
                           AppLanguage.t('auto_login'), // '자동 로그인'
                           style: const TextStyle(
                             fontSize: 15,
@@ -260,7 +262,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             color: Colors.white,
                           ),
                         )
-                            : Text( // 수정
+                            : Text(
                           AppLanguage.t('login_title'), // '로그인'
                           style: const TextStyle(
                             fontSize: 22,
@@ -356,7 +358,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ],
                   ),
                   const SizedBox(height: 18),
-                  Row( // 수정
+                  Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Icon(
