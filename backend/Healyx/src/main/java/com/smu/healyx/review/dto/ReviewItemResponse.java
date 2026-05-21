@@ -1,7 +1,6 @@
 package com.smu.healyx.review.dto;
 
 import com.smu.healyx.review.domain.Review;
-import com.smu.healyx.review.domain.ReviewImage;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -22,7 +21,7 @@ public class ReviewItemResponse {
     private List<String> images;
     private LocalDateTime createdAt;
 
-    public static ReviewItemResponse of(Review review, List<ReviewImage> reviewImages) {
+    public static ReviewItemResponse of(Review review, List<String> presignedImageUrls) {
         String nickname = review.getUser().getNickname();
         String masked = nickname.length() > 2
                 ? nickname.substring(0, 2) + "***"
@@ -33,7 +32,7 @@ public class ReviewItemResponse {
                 .nickname(masked)
                 .rating(review.getRating())
                 .content(review.getContent())
-                .images(reviewImages.stream().map(ReviewImage::getImageUrl).toList())
+                .images(presignedImageUrls)
                 .createdAt(review.getCreatedAt())
                 .build();
     }
