@@ -80,4 +80,9 @@ public class CommunityComment {
         softDelete("삭제된 댓글입니다.");
     }
 
+    /** 댓글 내용 수정 — @PreUpdate 에 의해 updatedAt 자동 갱신. */
+    public void updateContent(String content) {
+        this.content = content;
+    }
+
 }
