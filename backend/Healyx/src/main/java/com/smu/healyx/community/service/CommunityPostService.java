@@ -129,8 +129,9 @@ public class CommunityPostService {
 
         postRepository.incrementViewCount(postId);
 
-        List<String> imageUrls = postImageRepository.findByPost_PostIdOrderBySortOrderAsc(postId)
+        List<String> storedUrls = postImageRepository.findByPost_PostIdOrderBySortOrderAsc(postId)
                 .stream().map(PostImage::getImageUrl).toList();
+        List<String> imageUrls = s3UploadService.presignAll(storedUrls);
 
         String displayContent = post.isBlinded()
                 ? messageSource.getMessage("post.blinded", null, LocaleContextHolder.getLocale())

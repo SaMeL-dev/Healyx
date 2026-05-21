@@ -211,8 +211,12 @@ public class ReviewService {
         }
 
         List<ReviewItemResponse> reviews = reviewPage.getContent().stream()
-                .map(r -> ReviewItemResponse.of(r,
-                        reviewImageRepository.findByReview_ReviewIdOrderBySortOrderAsc(r.getReviewId())))
+                .map(r -> {
+                    List<String> presignedUrls = s3UploadService.presignAll(
+                            reviewImageRepository.findByReview_ReviewIdOrderBySortOrderAsc(r.getReviewId())
+                                    .stream().map(ReviewImage::getImageUrl).toList());
+                    return ReviewItemResponse.of(r, presignedUrls);
+                })
                 .toList();
 
         return HospitalReviewResponse.builder()
