@@ -4,6 +4,7 @@ import com.smu.healyx.common.dto.ApiResponse;
 import com.smu.healyx.common.security.SecurityUtils;
 import com.smu.healyx.community.dto.CommentCreateRequest;
 import com.smu.healyx.community.dto.CommentTranslationResponse;
+import com.smu.healyx.community.dto.CommentUpdateRequest;
 import com.smu.healyx.community.service.CommunityCommentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -37,6 +38,18 @@ public class CommunityCommentController {
         Long commentId = commentService.createComment(userId, postId, request);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(Map.of("commentId", commentId)));
+    }
+
+    /** 댓글 수정 */
+    @Operation(summary = "댓글 수정", description = "본인이 작성한 댓글의 내용을 수정합니다. 소프트 삭제된 댓글은 수정할 수 없습니다.")
+    @PutMapping("/api/community/comments/{commentId}")
+    public ResponseEntity<ApiResponse<Void>> updateComment(
+            @PathVariable Long commentId,
+            @RequestBody @Valid CommentUpdateRequest request,
+            Authentication authentication) {
+        Long userId = SecurityUtils.extractUserId(authentication);
+        commentService.updateComment(userId, commentId, request);
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     /** HX_COM_007 — 댓글 삭제 */

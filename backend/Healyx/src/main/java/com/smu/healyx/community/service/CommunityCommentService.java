@@ -6,6 +6,7 @@ import com.smu.healyx.community.domain.CommunityPost;
 import com.smu.healyx.community.dto.CommentCreateRequest;
 import com.smu.healyx.community.dto.CommentResponse;
 import com.smu.healyx.community.dto.CommentTranslationResponse;
+import com.smu.healyx.community.dto.CommentUpdateRequest;
 import com.smu.healyx.community.repository.CommunityCommentRepository;
 import com.smu.healyx.community.repository.CommunityPostRepository;
 import com.smu.healyx.deepl.service.TranslationService;
@@ -91,6 +92,24 @@ public class CommunityCommentService {
         }
 
         return commentId;
+    }
+
+    /** 댓글 수정 — 본인 댓글 content만 변경 가능 */
+    @Transactional
+    public void updateComment(Long userId, Long commentId, CommentUpdateRequest req) {
+        CommunityComment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new AuthException("COMMENT_NOT_FOUND", "댓글을 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
+
+        if (!comment.getUser().getUserId().equals(userId)) {
+            throw new AuthException("FORBIDDEN", "해당 댓글을 수정할 권한이 없습니다.", HttpStatus.FORBIDDEN);
+        }
+
+        if (comment.isDeleted()) {
+            throw new AuthException("COMMENT_ALREADY_DELETED", "이미 삭제된 댓글은 수정할 수 없습니다.", HttpStatus.BAD_REQUEST);
+        }
+
+        contentFilterService.filterWithLLM(null, req.getContent());
+        comment.updateContent(req.getContent());
     }
 
     /** HX_COM_007 — 댓글 삭제 (soft/hard 조건 분기) */
