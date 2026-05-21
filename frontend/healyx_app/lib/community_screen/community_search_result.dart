@@ -1,12 +1,22 @@
 ﻿// 커뮤니티 검색 결과 화면 (검색창에서 검색 후 나오는 화면)
+// 선택 언어 코드 기반으로 검색 결과 게시글 제목/내용 미리보기를 번역해서 표시
+// 단, 내가 작성한 게시글은 번역하지 않고 원문 그대로 표시
 import 'package:flutter/material.dart';
-import '../app_language.dart'; 
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../app_language.dart';
 
 import 'community_search.dart';
 import 'community_detail.dart';
+import 'services/community_service.dart';
 
 class CommunitySearchResultScreen extends StatefulWidget {
-  const CommunitySearchResultScreen({super.key});
+  final String keyword;
+
+  const CommunitySearchResultScreen({
+    super.key,
+    this.keyword = '',
+  });
 
   @override
   State<CommunitySearchResultScreen> createState() =>
@@ -23,24 +33,379 @@ class _CommunitySearchResultScreenState
   String selectedFilter = '제목+글';
   String selectedSort = '최신순';
 
-  final posts = [
-    {
-      'title': '서울에 24시간 하는 병원있나요?',
-      'content': '서울에 밤에도 진료하는 곳 있는지 궁금해요!\n야간 진료 가능한 곳 추천해주세요 !',
-    },
-    {
-      'title': '한국에서 치과 치료 보험',
-      'content': '한국에서 치과치료 받을 때 보험이 어떤식으로\n적용되는지 궁금합니다.',
-    },
-    {
-      'title': '서울에 24시간 하는 병원있나요?',
-      'content': '서울에 밤에도 진료하는 곳 있는지 궁금해요!\n야간 진료 가능한 곳 추천해주세요 !',
-    },
-    {
-      'title': '서울에 24시간 하는 병원있나요?',
-      'content': '서울에 밤에도 진료하는 곳 있는지 궁금해요!\n야간 진료 가능한 곳 추천해주세요 !',
-    },
-  ];
+  bool _isLoading = false;
+  String? _errorMessage;
+
+  String _selectedLanguageCode = 'ko';
+
+  List<_CommunitySearchPostViewData> posts = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSearchResults();
+  }
+
+  String get _searchField {
+    if (selectedFilter == '제목') {
+      return 'title';
+    }
+
+    if (selectedFilter == '글') {
+      return 'content';
+    }
+
+    return 'all';
+  }
+
+  String get _sort {
+    if (selectedSort == '인기순') {
+      return 'popular';
+    }
+
+    return 'latest';
+  }
+
+  String _normalizeLanguageCode(String? value) {
+    final code = value?.trim().toLowerCase();
+
+    if (code == null || code.isEmpty) {
+      return 'ko';
+    }
+
+    if (code.startsWith('ko')) return 'ko';
+    if (code.startsWith('en')) return 'en';
+    if (code.startsWith('zh')) return 'zh';
+    if (code.startsWith('vi')) return 'vi';
+    if (code.startsWith('th')) return 'th';
+    if (code.startsWith('ja')) return 'ja';
+
+    return 'ko';
+  }
+
+  Future<String> _loadSelectedLanguageCode() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    final savedLanguage = prefs.getString('language_pref');
+
+    if (savedLanguage != null && savedLanguage.trim().isNotEmpty) {
+      final normalized = _normalizeLanguageCode(savedLanguage);
+
+      debugPrint(
+        '[CommunitySearch] selected language from language_pref: $normalized',
+      );
+
+      return normalized;
+    }
+
+    final currentLang = AppLanguage.currentLang.value;
+
+    if (currentLang.trim().isNotEmpty) {
+      final normalized = _normalizeLanguageCode(currentLang);
+
+      debugPrint(
+        '[CommunitySearch] selected language from AppLanguage: $normalized',
+      );
+
+      return normalized;
+    }
+
+    debugPrint('[CommunitySearch] selected language fallback to ko');
+
+    return 'ko';
+  }
+
+  Future<Set<int>> _loadMyPostIds() async {
+    try {
+      final myPosts = await CommunityService().getMyPosts();
+
+      return myPosts.map((post) => post.postId).toSet();
+    } catch (e) {
+      debugPrint('[CommunitySearch] getMyPosts failed: $e');
+
+      // 비로그인 상태이거나 내 게시글 조회 실패 시에는
+      // 검색 결과 전체가 깨지지 않도록 내 글 판단 없이 진행
+      return {};
+    }
+  }
+
+  Future<_CommunitySearchPostViewData> _translatePostForList({
+    required CommunityPostSummary post,
+    required String lang,
+    required Set<int> myPostIds,
+  }) async {
+    final bool isMyPost = myPostIds.contains(post.postId);
+
+    // 내가 작성한 게시글은 번역하지 않고 원문 그대로 표시
+    if (isMyPost) {
+      return _CommunitySearchPostViewData(
+        post: post,
+        displayTitle: post.title,
+        displayContent: post.contentPreview,
+        isTranslated: false,
+        isMyPost: true,
+      );
+    }
+
+    try {
+      final translation = await CommunityService().getPostTranslation(
+        postId: post.postId,
+        lang: lang,
+      );
+
+      final translatedTitle = translation.translatedTitle.trim();
+      final translatedContent = translation.translatedContent.trim();
+
+      return _CommunitySearchPostViewData(
+        post: post,
+        displayTitle: translatedTitle.isNotEmpty ? translatedTitle : post.title,
+        displayContent: translatedContent.isNotEmpty
+            ? translatedContent
+            : post.contentPreview,
+        isTranslated: true,
+        isMyPost: false,
+      );
+    } catch (e) {
+      debugPrint(
+        '[CommunitySearch] translate failed postId=${post.postId}: $e',
+      );
+
+      return _CommunitySearchPostViewData(
+        post: post,
+        displayTitle: post.title,
+        displayContent: post.contentPreview,
+        isTranslated: false,
+        isMyPost: false,
+      );
+    }
+  }
+
+  Future<List<_CommunitySearchPostViewData>> _translatePostList({
+    required List<CommunityPostSummary> targetPosts,
+    required String lang,
+    required Set<int> myPostIds,
+  }) async {
+    if (targetPosts.isEmpty) {
+      return [];
+    }
+
+    return Future.wait(
+      targetPosts.map(
+            (post) => _translatePostForList(
+          post: post,
+          lang: lang,
+          myPostIds: myPostIds,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _loadSearchResults() async {
+    try {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
+
+      final selectedLanguageCode = await _loadSelectedLanguageCode();
+
+      final result = await CommunityService().getPosts(
+        page: 0,
+        size: 10,
+        sort: _sort,
+        keyword: widget.keyword.trim().isEmpty ? null : widget.keyword.trim(),
+        searchField: _searchField,
+      );
+
+      final myPostIds = await _loadMyPostIds();
+
+      final translatedPosts = await _translatePostList(
+        targetPosts: result.content,
+        lang: selectedLanguageCode,
+        myPostIds: myPostIds,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        _selectedLanguageCode = selectedLanguageCode;
+        posts = translatedPosts;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  void _changeFilter(String filter) {
+    if (selectedFilter == filter) return;
+
+    setState(() {
+      selectedFilter = filter;
+    });
+
+    _loadSearchResults();
+  }
+
+  void _changeSort(String sort) {
+    if (selectedSort == sort) return;
+
+    setState(() {
+      selectedSort = sort;
+    });
+
+    _loadSearchResults();
+  }
+
+  Future<void> _goToDetailScreen(_CommunitySearchPostViewData item) async {
+    final result = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CommunityDetailScreen(
+          postId: item.post.postId,
+        ),
+      ),
+    );
+
+    if (result == true) {
+      _loadSearchResults();
+    }
+  }
+
+  Widget _buildPostList() {
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(
+          color: mainBlue,
+        ),
+      );
+    }
+
+    if (_errorMessage != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 28),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.error_outline,
+                color: mainBlue,
+                size: 40,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                _errorMessage!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.black87,
+                  fontSize: 14,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                height: 42,
+                child: ElevatedButton(
+                  onPressed: _loadSearchResults,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: mainBlue,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(21),
+                    ),
+                  ),
+                  child: Text(
+                    AppLanguage.t('retry'),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (posts.isEmpty) {
+      return RefreshIndicator(
+        color: mainBlue,
+        onRefresh: _loadSearchResults,
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(14, 40, 14, 20),
+          children: [
+            const SizedBox(height: 120),
+            const Icon(
+              Icons.search_off,
+              color: mainBlue,
+              size: 44,
+            ),
+            const SizedBox(height: 14),
+            Center(
+              child: Text(
+                AppLanguage.t('review_search_no_result'),
+                style: const TextStyle(
+                  color: Colors.black54,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      color: mainBlue,
+      onRefresh: _loadSearchResults,
+      child: ListView.separated(
+        padding: const EdgeInsets.fromLTRB(14, 6, 14, 20),
+        itemCount: posts.length,
+        separatorBuilder: (_, __) => const SizedBox(height: 14),
+        itemBuilder: (context, index) {
+          final item = posts[index];
+          final post = item.post;
+
+          return GestureDetector(
+            onTap: () => _goToDetailScreen(item),
+            child: _PostCard(
+              title: item.displayTitle,
+              content: item.displayContent,
+              authorNickname: post.authorNickname,
+              likeCount: post.likeCount,
+              commentCount: post.commentCount,
+              createdAt: post.createdAt,
+              languageCode: _selectedLanguageCode,
+              isTranslated: item.isTranslated,
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  String _buildSearchResultSubtitle() {
+    final keyword = widget.keyword.trim();
+
+    if (keyword.isEmpty) {
+      return AppLanguage.t('community_search_result_subtitle');
+    }
+
+    return '"$keyword" ${AppLanguage.t('community_search_result_title')}';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,21 +420,23 @@ class _CommunitySearchResultScreenState
                 children: [
                   const SizedBox(height: 16),
 
-                  // 상단 헤더
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Row(
                       children: [
                         IconButton(
                           onPressed: () => Navigator.pop(context),
-                          icon: const Icon(Icons.arrow_back_ios,
-                              color: mainBlue, size: 20),
+                          icon: const Icon(
+                            Icons.arrow_back_ios,
+                            color: mainBlue,
+                            size: 20,
+                          ),
                         ),
                         Expanded(
                           child: Center(
                             child: Text(
-                              AppLanguage.t('community'), // '커뮤니티'
-                              style: TextStyle(
+                              AppLanguage.t('community'),
+                              style: const TextStyle(
                                 color: mainBlue,
                                 fontSize: 28,
                                 fontWeight: FontWeight.w800,
@@ -93,8 +460,11 @@ class _CommunitySearchResultScreenState
                               color: softBg,
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(Icons.search,
-                                color: Colors.black54, size: 22),
+                            child: const Icon(
+                              Icons.search,
+                              color: Colors.black54,
+                              size: 22,
+                            ),
                           ),
                         ),
                       ],
@@ -104,7 +474,7 @@ class _CommunitySearchResultScreenState
                   const SizedBox(height: 28),
 
                   Text(
-                    AppLanguage.t('community_search_result_title'), // '검색 결과'
+                    AppLanguage.t('community_search_result_title'),
                     style: const TextStyle(
                       color: mainBlue,
                       fontSize: 26,
@@ -115,7 +485,7 @@ class _CommunitySearchResultScreenState
                   const SizedBox(height: 6),
 
                   Text(
-                    AppLanguage.t('community_search_result_subtitle'), // '원하는 정보를 찾아보세요.'
+                    _buildSearchResultSubtitle(),
                     style: const TextStyle(
                       color: Colors.black,
                       fontSize: 16,
@@ -125,27 +495,28 @@ class _CommunitySearchResultScreenState
 
                   const SizedBox(height: 28),
 
-                  // 필터 버튼
                   Padding(
                     padding: const EdgeInsets.only(left: 16, bottom: 12),
                     child: Row(
                       children: [
                         _FilterButton(
-                          text: AppLanguage.t('community_filter_title_content'), // '제목+글'
+                          text: AppLanguage.t(
+                            'community_filter_title_content',
+                          ),
                           isSelected: selectedFilter == '제목+글',
-                          onTap: () => setState(() => selectedFilter = '제목+글'),
+                          onTap: () => _changeFilter('제목+글'),
                         ),
                         const SizedBox(width: 8),
                         _FilterButton(
-                          text: AppLanguage.t('community_filter_title'), // '제목'
+                          text: AppLanguage.t('community_filter_title'),
                           isSelected: selectedFilter == '제목',
-                          onTap: () => setState(() => selectedFilter = '제목'),
+                          onTap: () => _changeFilter('제목'),
                         ),
                         const SizedBox(width: 8),
                         _FilterButton(
-                          text: AppLanguage.t('community_filter_content'), // '글'
+                          text: AppLanguage.t('community_filter_content'),
                           isSelected: selectedFilter == '글',
-                          onTap: () => setState(() => selectedFilter = '글'),
+                          onTap: () => _changeFilter('글'),
                         ),
                       ],
                     ),
@@ -154,13 +525,15 @@ class _CommunitySearchResultScreenState
               ),
             ),
 
-            // 리스트 영역
             Expanded(
               child: Column(
                 children: [
-                  // 정렬 드롭다운
                   Padding(
-                    padding: const EdgeInsets.only(top: 10, right: 16, bottom: 4),
+                    padding: const EdgeInsets.only(
+                      top: 10,
+                      right: 16,
+                      bottom: 4,
+                    ),
                     child: Align(
                       alignment: Alignment.centerRight,
                       child: PopupMenuButton<String>(
@@ -170,27 +543,41 @@ class _CommunitySearchResultScreenState
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        onSelected: (value) => setState(() => selectedSort = value),
+                        onSelected: _changeSort,
                         itemBuilder: (context) => [
                           PopupMenuItem(
                             value: '최신순',
                             child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              mainAxisAlignment:
+                              MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(AppLanguage.t('community_sort_newest')), // '최신순'
+                                Text(
+                                  AppLanguage.t('community_sort_newest'),
+                                ),
                                 if (selectedSort == '최신순')
-                                  const Icon(Icons.check, color: mainBlue, size: 18),
+                                  const Icon(
+                                    Icons.check,
+                                    color: mainBlue,
+                                    size: 18,
+                                  ),
                               ],
                             ),
                           ),
                           PopupMenuItem(
                             value: '인기순',
                             child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              mainAxisAlignment:
+                              MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(AppLanguage.t('community_sort_popular')), // '인기순'
+                                Text(
+                                  AppLanguage.t('community_sort_popular'),
+                                ),
                                 if (selectedSort == '인기순')
-                                  const Icon(Icons.check, color: mainBlue, size: 18),
+                                  const Icon(
+                                    Icons.check,
+                                    color: mainBlue,
+                                    size: 18,
+                                  ),
                               ],
                             ),
                           ),
@@ -199,44 +586,33 @@ class _CommunitySearchResultScreenState
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              AppLanguage.t('community_sort_label').replaceAll('{sort}', selectedSort == '최신순' ? AppLanguage.t('community_sort_newest') : AppLanguage.t('community_sort_popular')), // '정렬: {sort}'
+                              AppLanguage.t('community_sort_label').replaceAll(
+                                '{sort}',
+                                selectedSort == '최신순'
+                                    ? AppLanguage.t('community_sort_newest')
+                                    : AppLanguage.t(
+                                  'community_sort_popular',
+                                ),
+                              ),
                               style: const TextStyle(
                                 color: Colors.black,
                                 fontSize: 14,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
-                            const Icon(Icons.arrow_drop_down,
-                                color: Colors.black, size: 22),
+                            const Icon(
+                              Icons.arrow_drop_down,
+                              color: Colors.black,
+                              size: 22,
+                            ),
                           ],
                         ),
                       ),
                     ),
                   ),
 
-                  // 포스트 리스트
                   Expanded(
-                    child: ListView.separated(
-                      padding: const EdgeInsets.fromLTRB(14, 6, 14, 20),
-                      itemCount: posts.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 14),
-                      itemBuilder: (context, index) {
-                        return GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const CommunityDetailScreen(),
-                              ),
-                            );
-                          },
-                          child: _PostCard(
-                            title: posts[index]['title']!,
-                            content: posts[index]['content']!,
-                          ),
-                        );
-                      },
-                    ),
+                    child: _buildPostList(),
                   ),
                 ],
               ),
@@ -246,6 +622,22 @@ class _CommunitySearchResultScreenState
       ),
     );
   }
+}
+
+class _CommunitySearchPostViewData {
+  final CommunityPostSummary post;
+  final String displayTitle;
+  final String displayContent;
+  final bool isTranslated;
+  final bool isMyPost;
+
+  const _CommunitySearchPostViewData({
+    required this.post,
+    required this.displayTitle,
+    required this.displayContent,
+    required this.isTranslated,
+    required this.isMyPost,
+  });
 }
 
 class _FilterButton extends StatelessWidget {
@@ -268,9 +660,9 @@ class _FilterButton extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        constraints: const BoxConstraints(minWidth: 72), //수정
+        constraints: const BoxConstraints(minWidth: 72),
         height: 36,
-        padding: const EdgeInsets.symmetric(horizontal: 14), //수정
+        padding: const EdgeInsets.symmetric(horizontal: 14),
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: isSelected ? mainBlue : tabInactive,
@@ -278,11 +670,11 @@ class _FilterButton extends StatelessWidget {
         ),
         child: Text(
           text,
-          maxLines: 1, //수정
-          overflow: TextOverflow.ellipsis, //수정
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: const TextStyle(
             color: Colors.white,
-            fontSize: 13, //수정
+            fontSize: 13,
             fontWeight: FontWeight.w700,
           ),
         ),
@@ -294,6 +686,12 @@ class _FilterButton extends StatelessWidget {
 class _PostCard extends StatelessWidget {
   final String title;
   final String content;
+  final String authorNickname;
+  final int likeCount;
+  final int commentCount;
+  final String createdAt;
+  final String languageCode;
+  final bool isTranslated;
 
   static const Color mainBlue = Color(0xFF2260FF);
   static const Color softBg = Color(0xFFECF1FF);
@@ -301,10 +699,34 @@ class _PostCard extends StatelessWidget {
   const _PostCard({
     required this.title,
     required this.content,
+    required this.authorNickname,
+    required this.likeCount,
+    required this.commentCount,
+    required this.createdAt,
+    required this.languageCode,
+    required this.isTranslated,
   });
+
+  String _formatDate(String value) {
+    final dateTime = DateTime.tryParse(value);
+
+    if (dateTime == null) {
+      return '';
+    }
+
+    final local = dateTime.toLocal();
+
+    final year = local.year.toString();
+    final month = local.month.toString().padLeft(2, '0');
+    final day = local.day.toString().padLeft(2, '0');
+
+    return '$year.$month.$day';
+  }
 
   @override
   Widget build(BuildContext context) {
+    final dateText = _formatDate(createdAt);
+
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 18, 18, 18),
       decoration: BoxDecoration(
@@ -321,9 +743,29 @@ class _PostCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 제목
+          if (isTranslated)
+            Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+              decoration: BoxDecoration(
+                color: softBg,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                AppLanguage.t('community_translation_badge').replaceAll(
+                  '{lang}',
+                  languageCode,
+                ),
+                style: const TextStyle(
+                  color: mainBlue,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+
           Text(
-            title,
+            title.isEmpty ? AppLanguage.t('community_no_title') : title,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
@@ -332,14 +774,47 @@ class _PostCard extends StatelessWidget {
               fontWeight: FontWeight.w800,
             ),
           ),
+
+          const SizedBox(height: 6),
+
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  authorNickname.isEmpty
+                      ? AppLanguage.t('community_anonymous')
+                      : authorNickname,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Colors.black45,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              if (dateText.isNotEmpty)
+                Text(
+                  dateText,
+                  style: const TextStyle(
+                    color: Colors.black38,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+            ],
+          ),
+
           const SizedBox(height: 8),
-          // 본문 + 댓글 아이콘 같은 행
+
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Expanded(
                 child: Text(
-                  content,
+                  content.isEmpty
+                      ? AppLanguage.t('community_no_content_preview')
+                      : content,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
@@ -351,29 +826,67 @@ class _PostCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 10),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-                decoration: BoxDecoration(
-                  color: softBg,
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.chat_bubble_rounded, color: mainBlue, size: 15),
-                    SizedBox(width: 4),
-                    Text(
-                      '35',
-                      style: TextStyle(
-                        color: mainBlue,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _CountBadge(
+                    icon: Icons.favorite_rounded,
+                    count: likeCount,
+                  ),
+                  const SizedBox(width: 6),
+                  _CountBadge(
+                    icon: Icons.chat_bubble_rounded,
+                    count: commentCount,
+                  ),
+                ],
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CountBadge extends StatelessWidget {
+  final IconData icon;
+  final int count;
+
+  static const Color mainBlue = Color(0xFF2260FF);
+  static const Color softBg = Color(0xFFECF1FF);
+
+  const _CountBadge({
+    required this.icon,
+    required this.count,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 9,
+        vertical: 5,
+      ),
+      decoration: BoxDecoration(
+        color: softBg,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            color: mainBlue,
+            size: 15,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            count.toString(),
+            style: const TextStyle(
+              color: mainBlue,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ),
