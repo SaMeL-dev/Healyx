@@ -4,7 +4,10 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "cost_reference")
+@Table(name = "cost_reference", indexes = {
+        @Index(name = "idx_costref_icd_visit",     columnList = "icd10_code, visit_type"),
+        @Index(name = "idx_costref_disease_visit",  columnList = "disease_name, visit_type")
+})
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
