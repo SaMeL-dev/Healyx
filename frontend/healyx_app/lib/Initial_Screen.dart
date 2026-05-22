@@ -1,9 +1,11 @@
-
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import 'choose_language_screen.dart';
 import 'main_screen.dart';
+import 'services/auth_service.dart';
 
 class InitialScreen extends StatefulWidget {
   const InitialScreen({super.key});
@@ -31,11 +33,28 @@ class _InitialScreenState extends State<InitialScreen> {
     final prefs = results[1] as SharedPreferences;
     final hasLanguage = prefs.getString('language_pref') != null;
 
+    // 언어 선택을 하지 않은 사용자는 기존처럼 언어 선택 화면으로 이동
+    if (!hasLanguage) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const ChooseLanguageScreen(),
+        ),
+      );
+      return;
+    }
+
+    // 언어 선택이 되어 있는 경우 자동 로그인 시도
+    final isAutoLoggedIn = await AuthService.tryAutoLogin();
+
+    if (!mounted) return;
+
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (context) =>
-            hasLanguage ? const MainScreen() : const ChooseLanguageScreen(),
+        builder: (context) => MainScreen(
+          isLoggedIn: isAutoLoggedIn,
+        ),
       ),
     );
   }
