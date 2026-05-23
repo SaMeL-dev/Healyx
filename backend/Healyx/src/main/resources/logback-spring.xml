@@ -1,0 +1,30 @@
+<configuration>
+
+    <!-- 운영 환경(prod): JSON 형식으로 출력 → CloudWatch 분석 가능 -->
+    <springProfile name="prod">
+        <appender name="JSON_CONSOLE"
+                  class="ch.qos.logback.core.ConsoleAppender">
+            <encoder
+                class="net.logstash.logback.encoder.LogstashEncoder"/>
+        </appender>
+        <root level="INFO">
+            <appender-ref ref="JSON_CONSOLE"/>
+        </root>
+    </springProfile>
+
+    <!-- 개발 환경(로컬): 기존 텍스트 로그 그대로 유지 -->
+    <springProfile name="!prod">
+        <appender name="CONSOLE"
+                  class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>
+                    %d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger{36} - %msg%n
+                </pattern>
+            </encoder>
+        </appender>
+        <root level="DEBUG">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+
+</configuration>
