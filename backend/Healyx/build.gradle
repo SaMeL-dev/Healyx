@@ -64,6 +64,13 @@ dependencies {
 
 	// Load Balancer 상태 검사용
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+	// Grafana 메트릭 연동
+	implementation 'io.micrometer:micrometer-registry-prometheus'
+	implementation 'net.logstash.logback:logstash-logback-encoder:7.4'
+	// Cache (Caffeine 인메모리 캐시)
+	implementation 'org.springframework.boot:spring-boot-starter-cache'
+	implementation 'com.github.ben-manes.caffeine:caffeine'
 }
 
 tasks.named('test') {

@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -13,6 +14,9 @@ public interface HospitalRepository extends JpaRepository<Hospital, Long> {
     // ── 기존 ──────────────────────────────────────
     Optional<Hospital> findByYkiho(String ykiho);
     boolean existsByYkiho(String ykiho);
+
+    // ── 신규: N+1 방지용 일괄 조회 ──────────────────
+    List<Hospital> findAllByYkihoIn(Collection<String> ykihos);
 
     // ── 신규: Haversine 반경 내 진료과 보유 병원 조회 ──
     /**

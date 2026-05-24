@@ -4,7 +4,9 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "cost_adjustment")
+@Table(name = "cost_adjustment", indexes = {
+        @Index(name = "idx_costadj_age_gender", columnList = "age_max, gender")
+})
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
