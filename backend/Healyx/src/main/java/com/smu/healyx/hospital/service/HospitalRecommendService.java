@@ -23,7 +23,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Slf4j
 @Service
@@ -144,64 +148,105 @@ public class HospitalRecommendService {
      * UI-HOS-07-G의 "의료보험 미적용 안내 아이콘" 분기는 클라이언트 자체 상태로
      * 처리한다. 서버는 별도 플래그를 응답에 포함하지 않는다.
      */
+    /**
+     * 카드 목록 조립 (병렬 처리).
+     *
+     * <p>5개 카드에 대해 {@link CostPredictionService#predict}를
+     * {@code CompletableFuture.supplyAsync} × 5건으로 병렬 발사 후
+     * {@code CompletableFuture.allOf().join()}으로 합류한다.
+     * ForkJoinPool.commonPool() 사용 (5개 task는 commonPool로 충분).
+     *
+     * <p>카드 순서는 입력 hospitals 순서 그대로 보존.
+     * 단일 카드 예외는 기존과 동일하게 graceful degradation.
+     * {@link CostPredictionService}는 {@code @Transactional(REQUIRES_NEW)}이므로
+     * 병렬 호출 시에도 트랜잭션 충돌 없음.
+     */
     private List<HospitalCardDto> buildCards(List<HospitalDto> hospitals,
                                              HospitalAssistantResponse agent,
                                              HospitalRecommendRequest request,
                                              UserProfileDto userProfile,
                                              Long userId) {
 
-        List<HospitalCardDto> cards = new ArrayList<>(hospitals.size());
+        @SuppressWarnings("unchecked")
+        CompletableFuture<HospitalCardDto>[] futures =
+                new CompletableFuture[hospitals.size()];
 
-        for (HospitalDto h : hospitals) {
-            try {
-                CostPredictRequest costReq = CostPredictRequest.builder()
-                        .icd10Code(agent.getIcd10Code())
-                        .departmentName(agent.getDepartmentName())
-                        .riskLevel(request.getEffectiveRiskLevel())
-                        .hospitalType(h.getClCd())
-                        .sidoCdNm(h.getSidoCdNm())
-                        .build();
+        for (int i = 0; i < hospitals.size(); i++) {
+            final HospitalDto h = hospitals.get(i);
+            futures[i] = CompletableFuture.supplyAsync(() -> {
+                try {
+                    CostPredictRequest costReq = CostPredictRequest.builder()
+                            .icd10Code(agent.getIcd10Code())
+                            .departmentName(agent.getDepartmentName())
+                            .riskLevel(request.getEffectiveRiskLevel())
+                            .hospitalType(h.getClCd())
+                            .sidoCdNm(h.getSidoCdNm())
+                            .build();
 
-                CostPredictResponse cost = costPredictionService.predict(
-                        costReq, userProfile, userId);
+                    CostPredictResponse cost = costPredictionService.predict(
+                            costReq, userProfile, userId);
 
-                cards.add(HospitalCardDto.of(
-                        h, cost.getMinCost(), cost.getMaxCost(), cost.getVisitType(), null));
+                    return HospitalCardDto.of(
+                            h, cost.getMinCost(), cost.getMaxCost(), cost.getVisitType(), null);
 
-            } catch (Exception e) {
-                // 단일 카드 예측 실패가 전체 추천 응답을 막지 않도록 graceful degradation.
-                // 흔한 사유: cost_reference 미매칭(희귀 ICD-10), DB 일시 오류 등.
-                log.warn("카드 의료비 예측 실패 ykiho={} icd10={} : {}",
-                        h.getYkiho(), agent.getIcd10Code(), e.getMessage());
+                } catch (Exception e) {
+                    // 단일 카드 예측 실패가 전체 추천 응답을 막지 않도록 graceful degradation.
+                    // 흔한 사유: cost_reference 미매칭(희귀 ICD-10), DB 일시 오류 등.
+                    log.warn("카드 의료비 예측 실패 ykiho={} icd10={} : {}",
+                            h.getYkiho(), agent.getIcd10Code(), e.getMessage());
 
-                String reason = (e.getClass().getSimpleName().contains("AuthException"))
-                        ? "COST_REFERENCE_NOT_FOUND"
-                        : "COST_PREDICT_ERROR";
+                    String reason = (e.getClass().getSimpleName().contains("AuthException"))
+                            ? "COST_REFERENCE_NOT_FOUND"
+                            : "COST_PREDICT_ERROR";
 
-                cards.add(HospitalCardDto.of(h, null, null, null, reason));
-            }
+                    return HospitalCardDto.of(h, null, null, null, reason);
+                }
+            });
         }
 
-        return cards;
+        // 모든 카드 완료 대기 후 입력 순서 그대로 수집
+        CompletableFuture.allOf(futures).join();
+
+        return IntStream.range(0, futures.length)
+                .mapToObj(i -> futures[i].join())
+                .collect(Collectors.toList());
     }
 
     /**
      * HIRA 응답 병원 목록을 hospitals 테이블에 ykiho 기준으로 upsert.
      * - 기존 행: HIRA 최신 데이터로 갱신 (이름·주소·좌표·인증여부)
      * - 신규 행: INSERT
-     * 5건 이하라 N+1 부담 없음.
+     *
+     * <p>N+1 제거: findByYkiho 5회 → findAllByYkihoIn 1회 IN 쿼리 후
+     * ykiho → Hospital Map 구성. 신규/기존 분기 후 saveAll 일괄 저장.
      */
     private void upsertHospitals(List<HospitalDto> dtos) {
+        List<String> ykihos = dtos.stream()
+                .map(HospitalDto::getYkiho)
+                .filter(y -> y != null && !y.isBlank())
+                .collect(Collectors.toList());
+
+        if (ykihos.isEmpty()) return;
+
+        Map<String, Hospital> existing = hospitalRepository.findAllByYkihoIn(ykihos)
+                .stream()
+                .collect(Collectors.toMap(Hospital::getYkiho, Function.identity()));
+
+        List<Hospital> toSave = new ArrayList<>();
         for (HospitalDto dto : dtos) {
             if (dto.getYkiho() == null || dto.getYkiho().isBlank()) continue;
 
-            hospitalRepository.findByYkiho(dto.getYkiho())
-                    .ifPresentOrElse(
-                            existing -> existing.updateFromHira(dto),
-                            () -> hospitalRepository.save(Hospital.fromHiraDto(dto))
-                    );
+            Hospital hospital = existing.get(dto.getYkiho());
+            if (hospital != null) {
+                hospital.updateFromHira(dto);
+                toSave.add(hospital);
+            } else {
+                toSave.add(Hospital.fromHiraDto(dto));
+            }
         }
-        log.debug("hospitals upsert 완료: {}건", dtos.size());
+
+        hospitalRepository.saveAll(toSave);
+        log.debug("hospitals upsert 완료: {}건", toSave.size());
     }
 
     /**
