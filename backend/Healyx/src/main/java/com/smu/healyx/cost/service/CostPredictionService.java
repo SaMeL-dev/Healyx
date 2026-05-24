@@ -6,14 +6,9 @@ import com.smu.healyx.cost.domain.CostPrediction;
 import com.smu.healyx.cost.domain.CostReference;
 import com.smu.healyx.cost.dto.CostPredictRequest;
 import com.smu.healyx.cost.dto.CostPredictResponse;
-import com.smu.healyx.cost.repository.CostAdjustmentRepository;
 import com.smu.healyx.cost.repository.CostPredictionRepository;
-import com.smu.healyx.cost.repository.CostReferenceRepository;
-import com.smu.healyx.cost.repository.HospitalTypeAdjustmentRepository;
-import com.smu.healyx.cost.repository.RegionAdjustmentRepository;
 import com.smu.healyx.user.domain.User;
 import com.smu.healyx.user.dto.UserProfileDto;
-import com.smu.healyx.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -30,12 +25,8 @@ public class CostPredictionService {
     private static final double CONFIDENCE_MIN   = 0.75;
     private static final double CONFIDENCE_MAX   = 1.25;
 
-    private final CostReferenceRepository          costReferenceRepository;
-    private final CostAdjustmentRepository         costAdjustmentRepository;
-    private final HospitalTypeAdjustmentRepository hospitalTypeAdjustmentRepository;
-    private final RegionAdjustmentRepository       regionAdjustmentRepository;
+    private final CostMasterDataService            costMasterDataService;
     private final CostPredictionRepository         costPredictionRepository;
-    private final UserRepository                   userRepository;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public CostPredictResponse predict(
@@ -96,9 +87,7 @@ public class CostPredictionService {
                 insuranceFactor, INFLATION_FACTOR, minCost, maxCost);
 
         // ── 11. 결과 저장 ──────────────────────────────────────────
-        User user = (userId != null)
-                ? userRepository.findById(userId).orElse(null)
-                : null;
+        User user = costMasterDataService.findUserById(userId);
 
         CostPrediction saved = costPredictionRepository.save(
                 CostPrediction.builder()
@@ -132,24 +121,25 @@ public class CostPredictionService {
     /**
      * cost_reference 조회.
      * icd10Code → 정확 매칭 우선, 2차 시도로 상위 코드 prefix 매칭(e.g. J06.9 -> J06), 실패 시 departmentName fallback.
+     * 마스터 데이터는 CostMasterDataService(@Cacheable)를 통해 조회한다.
      */
     private CostReference resolveCostReference(CostPredictRequest req, String visitType) {
         if (req.getIcd10Code() != null && !req.getIcd10Code().isBlank()) {
             // 1차: 정확 매칭 (J06.9)
-            var found = costReferenceRepository
-                    .findByIcd10CodeAndVisitType(req.getIcd10Code(), visitType);
-            if (found.isPresent()) return found.get();
+            CostReference found = costMasterDataService
+                    .findCostReferenceByIcd(req.getIcd10Code(), visitType);
+            if (found != null) return found;
 
-            // ✅ 2차: 상위 코드 prefix 매칭 (J06.9 → J06)
+            // 2차: 상위 코드 prefix 매칭 (J06.9 → J06)
             String prefix = req.getIcd10Code().contains(".")
                     ? req.getIcd10Code().substring(0, req.getIcd10Code().indexOf('.'))
                     : null;
             if (prefix != null) {
-                var prefixFound = costReferenceRepository
-                        .findByIcd10CodeAndVisitType(prefix, visitType);
-                if (prefixFound.isPresent()) {
+                CostReference prefixFound = costMasterDataService
+                        .findCostReferenceByIcd(prefix, visitType);
+                if (prefixFound != null) {
                     log.debug("cost_reference prefix 매칭: {}→{}", req.getIcd10Code(), prefix);
-                    return prefixFound.get();
+                    return prefixFound;
                 }
             }
 
@@ -158,8 +148,8 @@ public class CostPredictionService {
 
         // 3차: departmentName fallback
         if (req.getDepartmentName() != null && !req.getDepartmentName().isBlank()) {
-            var list = costReferenceRepository
-                    .findByDiseaseNameContainingAndVisitType(req.getDepartmentName(), visitType);
+            var list = costMasterDataService
+                    .findCostReferenceByDept(req.getDepartmentName(), visitType);
             if (!list.isEmpty()) return list.get(0);
         }
 
@@ -186,6 +176,7 @@ public class CostPredictionService {
      * 로그인 사용자: DB 프로필 우선.
      * 게스트: 요청 파라미터 사용.
      * age/gender 어느 쪽이든 없으면 1.0 적용.
+     * 마스터 데이터는 CostMasterDataService(@Cacheable)를 통해 조회한다.
      */
     private double resolveAgeGenderFactor(CostPredictRequest req, UserProfileDto profile) {
         int age;
@@ -204,28 +195,29 @@ public class CostPredictionService {
             return 1.0;
         }
 
-        return costAdjustmentRepository.findFirstByAgeAndGender(age, gender)
-                .map(CostAdjustment::getAdjFactorFull)
-                .orElseGet(() -> {
-                    log.debug("cost_adjustment 미매칭 (age={}, gender={}) → 1.0 적용", age, gender);
-                    return 1.0;
-                });
+        CostAdjustment adj = costMasterDataService.findCostAdjustment(age, gender);
+        if (adj != null) {
+            return adj.getAdjFactorFull();
+        }
+        log.debug("cost_adjustment 미매칭 (age={}, gender={}) → 1.0 적용", age, gender);
+        return 1.0;
     }
 
     /**
      * 병원 종별 보정계수 결정.
      * hospitalType(clCd) 미전달 또는 미매칭 시 1.0 적용.
+     * 마스터 데이터는 CostMasterDataService(@Cacheable)를 통해 조회한다.
      */
     private double resolveHospitalTypeFactor(String hospitalType) {
         if (hospitalType == null || hospitalType.isBlank()) {
             return 1.0;
         }
-        return hospitalTypeAdjustmentRepository.findByClCd(hospitalType)
-                .map(ht -> ht.getAdjFactor())
-                .orElseGet(() -> {
-                    log.debug("hospital_type_adjustment 미매칭 (clCd={}) → 1.0 적용", hospitalType);
-                    return 1.0;
-                });
+        var ht = costMasterDataService.findHospitalTypeAdjustment(hospitalType);
+        if (ht != null) {
+            return ht.getAdjFactor();
+        }
+        log.debug("hospital_type_adjustment 미매칭 (clCd={}) → 1.0 적용", hospitalType);
+        return 1.0;
     }
 
     /**
@@ -239,7 +231,8 @@ public class CostPredictionService {
      * </ol>
      *
      * <p>region_adjustment 테이블이 비어있는 경우(맵 API 데이터 적재 전)에도
-     * Optional.empty() 처리되어 1.0 fallback이 자동 적용된다.
+     * null 처리되어 1.0 fallback이 자동 적용된다.
+     * 마스터 데이터는 CostMasterDataService(@Cacheable)를 통해 조회한다.
      *
      * @param sidoCdNm   HIRA 응답 시도명 (예: "서울", "부산")
      * @param department 진료과명 (한국어)
@@ -250,19 +243,19 @@ public class CostPredictionService {
         }
 
         if (department != null && !department.isBlank()) {
-            var matched = regionAdjustmentRepository
-                    .findByRegionAndDepartment(sidoCdNm, department);
-            if (matched.isPresent()) {
-                return matched.get().getAdjFactor();
+            var matched = costMasterDataService
+                    .findRegionAdjustmentByRegionAndDept(sidoCdNm, department);
+            if (matched != null) {
+                return matched.getAdjFactor();
             }
         }
 
-        return regionAdjustmentRepository.findByRegion(sidoCdNm)
-                .map(ra -> ra.getAdjFactor())
-                .orElseGet(() -> {
-                    log.debug("region_adjustment 미매칭 (region={}, dept={}) → 1.0 적용",
-                            sidoCdNm, department);
-                    return 1.0;
-                });
+        var ra = costMasterDataService.findRegionAdjustmentByRegion(sidoCdNm);
+        if (ra != null) {
+            return ra.getAdjFactor();
+        }
+        log.debug("region_adjustment 미매칭 (region={}, dept={}) → 1.0 적용",
+                sidoCdNm, department);
+        return 1.0;
     }
 }

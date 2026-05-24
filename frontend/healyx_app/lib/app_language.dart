@@ -315,6 +315,15 @@ class AppLanguage {
       'community_write_content_error': '내용을 입력해주세요.',
       'community_write_image_replace_notice': '수정 시 새 이미지를 첨부하면 서버 정책에 따라 기존 이미지가 교체될 수 있습니다.',
 
+      'community_comment_edit': '수정',
+      'community_comment_report': '신고',
+      'community_comment_editing': '댓글 수정 중',
+      'community_comment_update_submit': '수정',
+      'community_comment_updated': '댓글이 수정되었습니다.',
+      'community_comment_reported': '댓글 신고가 접수되었습니다.',
+      'community_comment_edit_empty': '수정할 댓글 내용을 입력해주세요.',
+      'community_comment_edit_cancel': '수정 취소',
+
 
       // 알림창
       'community_notification_no_post': '이동할 게시글 정보가 없습니다.',
@@ -666,6 +675,16 @@ class AppLanguage {
       'community_write_content_label': 'Content',
       'community_write_content_error': 'Please enter content.',
       'community_write_image_replace_notice': 'When editing, attaching new images may replace existing images depending on the server policy.',
+
+
+      'community_comment_edit': 'Edit',
+      'community_comment_report': 'Report',
+      'community_comment_editing': 'Editing comment',
+      'community_comment_update_submit': 'Update',
+      'community_comment_updated': 'Comment updated.',
+      'community_comment_reported': 'Comment report submitted.',
+      'community_comment_edit_empty': 'Please enter the comment to update.',
+      'community_comment_edit_cancel': 'Cancel editing',
 
 
       // 알림창
@@ -1022,6 +1041,16 @@ class AppLanguage {
       'community_write_image_replace_notice': '修改时如果添加新图片，根据服务器政策，现有图片可能会被替换。',
 
 
+      'community_comment_edit': '修改',
+      'community_comment_report': '举报',
+      'community_comment_editing': '正在修改评论',
+      'community_comment_update_submit': '更新',
+      'community_comment_updated': '评论已修改。',
+      'community_comment_reported': '评论举报已提交。',
+      'community_comment_edit_empty': '请输入要修改的评论内容。',
+      'community_comment_edit_cancel': '取消修改',
+
+
       // 알림창
       'community_notification_no_post': '无法找到要跳转的帖子信息。',
       'community_notification_load_failed': '无法加载通知列表。',
@@ -1372,6 +1401,16 @@ class AppLanguage {
       'community_write_content_label': '内容',
       'community_write_content_error': '内容を入力してください。',
       'community_write_image_replace_notice': '修正時に新しい画像を添付すると、サーバーポリシーにより既存の画像が置き換えられる場合があります。',
+
+
+      'community_comment_edit': '修正',
+      'community_comment_report': '通報',
+      'community_comment_editing': 'コメントを編集中',
+      'community_comment_update_submit': '更新',
+      'community_comment_updated': 'コメントが修正されました。',
+      'community_comment_reported': 'コメントの通報が受け付けられました。',
+      'community_comment_edit_empty': '修正するコメント内容を入力してください。',
+      'community_comment_edit_cancel': '修正をキャンセル',
 
 
       // 알림창
@@ -1726,6 +1765,16 @@ class AppLanguage {
       'community_write_image_replace_notice': 'Khi chỉnh sửa, nếu đính kèm ảnh mới, ảnh hiện có có thể bị thay thế tùy theo chính sách máy chủ.',
 
 
+      'community_comment_edit': 'Chỉnh sửa',
+      'community_comment_report': 'Báo cáo',
+      'community_comment_editing': 'Đang chỉnh sửa bình luận',
+      'community_comment_update_submit': 'Cập nhật',
+      'community_comment_updated': 'Bình luận đã được cập nhật.',
+      'community_comment_reported': 'Đã gửi báo cáo bình luận.',
+      'community_comment_edit_empty': 'Vui lòng nhập nội dung bình luận cần cập nhật.',
+      'community_comment_edit_cancel': 'Hủy chỉnh sửa',
+
+
       // 알림창
       'community_notification_no_post': 'Không có thông tin bài viết để chuyển đến.',
       'community_notification_load_failed': 'Không thể tải danh sách thông báo.',
@@ -2078,6 +2127,16 @@ class AppLanguage {
       'community_write_content_label': 'เนื้อหา',
       'community_write_content_error': 'กรุณาใส่เนื้อหา',
       'community_write_image_replace_notice': 'เมื่อแก้ไข หากแนบรูปภาพใหม่ รูปภาพเดิมอาจถูกแทนที่ตามนโยบายของเซิร์ฟเวอร์',
+
+
+      'community_comment_edit': 'แก้ไข',
+      'community_comment_report': 'รายงาน',
+      'community_comment_editing': 'กำลังแก้ไขความคิดเห็น',
+      'community_comment_update_submit': 'อัปเดต',
+      'community_comment_updated': 'แก้ไขความคิดเห็นแล้ว',
+      'community_comment_reported': 'ส่งรายงานความคิดเห็นแล้ว',
+      'community_comment_edit_empty': 'กรุณาใส่เนื้อหาความคิดเห็นที่ต้องการแก้ไข',
+      'community_comment_edit_cancel': 'ยกเลิกการแก้ไข',
 
 
       // 알림창

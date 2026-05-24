@@ -43,9 +43,13 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
   bool _isTranslationProcessing = false;
 
   int? _deletingCommentId;
+  int? _reportingCommentId;
 
   // 답글 작성 대상 댓글
   CommunityComment? _replyTargetComment;
+
+  // 수정 중인 댓글
+  CommunityComment? _editingComment;
 
   // 원문보기 상태
   bool _isOriginalMode = false;
@@ -494,16 +498,21 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
   Future<void> _submitComment() async {
     final post = _post;
     final content = _commentController.text.trim();
+    final editingComment = _editingComment;
     final replyTarget = _replyTargetComment;
 
     if (post == null || _isCommentSubmitting) return;
 
     if (content.isEmpty) {
-      _showSnackBar(
-        replyTarget == null
-            ? AppLanguage.t('community_comment_empty')
-            : AppLanguage.t('community_reply_empty'),
-      );
+      if (editingComment != null) {
+        _showSnackBar(AppLanguage.t('community_comment_edit_empty'));
+      } else {
+        _showSnackBar(
+          replyTarget == null
+              ? AppLanguage.t('community_comment_empty')
+              : AppLanguage.t('community_reply_empty'),
+        );
+      }
       return;
     }
 
@@ -512,7 +521,12 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
         _isCommentSubmitting = true;
       });
 
-      if (replyTarget == null) {
+      if (editingComment != null) {
+        await CommunityService().updateComment(
+          commentId: editingComment.commentId,
+          content: content,
+        );
+      } else if (replyTarget == null) {
         await CommunityService().createComment(
           postId: post.postId,
           content: content,
@@ -534,6 +548,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
       FocusScope.of(context).unfocus();
 
       setState(() {
+        _editingComment = null;
         _replyTargetComment = null;
         _hasChanged = true;
       });
@@ -543,7 +558,9 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
       if (!mounted) return;
 
       _showSnackBar(
-        replyTarget == null
+        editingComment != null
+            ? AppLanguage.t('community_comment_updated')
+            : replyTarget == null
             ? AppLanguage.t('community_comment_created')
             : AppLanguage.t('community_reply_created'),
       );
@@ -601,6 +618,11 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
         if (_replyTargetComment?.commentId == comment.commentId) {
           _replyTargetComment = null;
         }
+
+        if (_editingComment?.commentId == comment.commentId) {
+          _editingComment = null;
+          _commentController.clear();
+        }
       });
 
       await _loadPostDetail();
@@ -621,6 +643,86 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
         });
       }
     }
+  }
+
+  Future<void> _confirmReportComment(CommunityComment comment) async {
+    if (comment.deleted || _reportingCommentId != null) {
+      return;
+    }
+
+    final isMyComment = _myUserId != null && comment.authorId == _myUserId;
+
+    if (isMyComment) {
+      return;
+    }
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierColor: mainBlue.withOpacity(0.5),
+      builder: (_) => const ReportDialog(),
+    );
+
+    if (confirmed != true || !mounted) {
+      return;
+    }
+
+    try {
+      setState(() {
+        _reportingCommentId = comment.commentId;
+      });
+
+      await CommunityService().reportContent(
+        targetType: 'COMMENT',
+        targetId: comment.commentId,
+        reason: '부적절한 콘텐츠',
+      );
+
+      if (!mounted) return;
+
+      _showSnackBar(AppLanguage.t('community_comment_reported'));
+    } catch (e) {
+      if (!mounted) return;
+
+      _showSnackBar(
+        e.toString().replaceFirst('Exception: ', ''),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _reportingCommentId = null;
+        });
+      }
+    }
+  }
+
+  void _handleEditCommentTap(CommunityComment comment) {
+    if (comment.deleted) {
+      return;
+    }
+
+    final isMyComment = _myUserId != null && comment.authorId == _myUserId;
+
+    if (!isMyComment) {
+      return;
+    }
+
+    setState(() {
+      _editingComment = comment;
+      _replyTargetComment = null;
+      _commentController.text = comment.content;
+      _commentController.selection = TextSelection.fromPosition(
+        TextPosition(offset: _commentController.text.length),
+      );
+    });
+
+    _commentFocusNode.requestFocus();
+  }
+
+  void _cancelEditComment() {
+    setState(() {
+      _editingComment = null;
+      _commentController.clear();
+    });
   }
 
   Future<void> _goToEditPost() async {
@@ -796,6 +898,11 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
     }
 
     setState(() {
+      if (_editingComment != null) {
+        _commentController.clear();
+      }
+
+      _editingComment = null;
       _replyTargetComment = comment;
     });
 
@@ -1036,8 +1143,57 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
     );
   }
 
+  Widget _buildEditTargetBanner() {
+    final editingComment = _editingComment;
+
+    if (editingComment == null) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+      decoration: BoxDecoration(
+        color: lightBlue,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.edit_outlined,
+            color: mainBlue,
+            size: 18,
+          ),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              AppLanguage.t('community_comment_editing'),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: mainBlue,
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          GestureDetector(
+            onTap: _isCommentSubmitting ? null : _cancelEditComment,
+            child: const Icon(
+              Icons.close,
+              color: mainBlue,
+              size: 18,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildCommentInput() {
-    final isReplyMode = _replyTargetComment != null;
+    final isEditMode = _editingComment != null;
+    final isReplyMode = !isEditMode && _replyTargetComment != null;
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -1054,7 +1210,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
       ),
       child: Column(
         children: [
-          _buildReplyTargetBanner(),
+          if (isEditMode) _buildEditTargetBanner() else _buildReplyTargetBanner(),
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
@@ -1109,7 +1265,9 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
                     ),
                   )
                       : Text(
-                    isReplyMode
+                    isEditMode
+                        ? AppLanguage.t('community_comment_update_submit')
+                        : isReplyMode
                         ? AppLanguage.t('community_reply_submit')
                         : AppLanguage.t('community_comment_submit'),
                     style: const TextStyle(
@@ -1129,6 +1287,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
   Widget _buildCommentCard(CommunityComment comment, {bool isReply = false}) {
     final isMyComment = _myUserId != null && comment.authorId == _myUserId;
     final isDeleting = _deletingCommentId == comment.commentId;
+    final isReporting = _reportingCommentId == comment.commentId;
     final mentionNickname =
     isReply ? _findNicknameByUserId(comment.mentionUserId) : null;
 
@@ -1144,8 +1303,11 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
       isMyComment: isMyComment && !comment.deleted,
       isDeleted: comment.deleted,
       isDeleting: isDeleting,
+      isReporting: isReporting,
       isReply: isReply || comment.depth > 0,
+      onEdit: () => _handleEditCommentTap(comment),
       onDelete: () => _confirmDeleteComment(comment),
+      onReport: () => _confirmReportComment(comment),
       onReply: () => _handleReplyTap(comment),
       replies: comment.replies
           .map(
@@ -1511,8 +1673,11 @@ class _CommentCard extends StatelessWidget {
   final bool isMyComment;
   final bool isDeleted;
   final bool isDeleting;
+  final bool isReporting;
   final bool isReply;
+  final VoidCallback onEdit;
   final VoidCallback onDelete;
+  final VoidCallback onReport;
   final VoidCallback onReply;
   final List<Widget> replies;
 
@@ -1524,14 +1689,51 @@ class _CommentCard extends StatelessWidget {
     required this.isMyComment,
     required this.isDeleted,
     required this.isDeleting,
+    required this.isReporting,
     required this.isReply,
+    required this.onEdit,
     required this.onDelete,
+    required this.onReport,
     required this.onReply,
     required this.replies,
   });
 
   static const Color mainBlue = Color(0xFF2260FF);
   static const Color softBg = Color(0xFFECF1FF);
+
+  Widget _buildHeaderActions(Color backgroundColor) {
+    if (isDeleted) {
+      return const SizedBox.shrink();
+    }
+
+    if (isMyComment) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _CommentActionChip(
+            text: AppLanguage.t('community_comment_edit'),
+            isLoading: false,
+            backgroundColor: backgroundColor,
+            onTap: onEdit,
+          ),
+          const SizedBox(width: 6),
+          _CommentActionChip(
+            text: AppLanguage.t('community_delete'),
+            isLoading: isDeleting,
+            backgroundColor: backgroundColor,
+            onTap: onDelete,
+          ),
+        ],
+      );
+    }
+
+    return _CommentActionChip(
+      text: AppLanguage.t('community_comment_report'),
+      isLoading: isReporting,
+      backgroundColor: backgroundColor,
+      onTap: onReport,
+    );
+  }
 
   Widget _buildContentText() {
     final bool shouldShowMention = isReply &&
@@ -1578,7 +1780,7 @@ class _CommentCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Color cardColor = isReply ? softBg : Colors.white;
-    final Color deleteButtonColor = isReply ? Colors.white : softBg;
+    final Color actionButtonColor = isReply ? Colors.white : softBg;
 
     return Opacity(
       opacity: isDeleted ? 0.75 : 1,
@@ -1621,12 +1823,7 @@ class _CommentCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  if (isMyComment)
-                    _DeleteChip(
-                      isDeleting: isDeleting,
-                      backgroundColor: deleteButtonColor,
-                      onDelete: onDelete,
-                    ),
+                  _buildHeaderActions(actionButtonColor),
                 ],
               ),
               const SizedBox(height: 5),
@@ -1645,12 +1842,7 @@ class _CommentCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  if (isMyComment)
-                    _DeleteChip(
-                      isDeleting: isDeleting,
-                      backgroundColor: deleteButtonColor,
-                      onDelete: onDelete,
-                    ),
+                  _buildHeaderActions(actionButtonColor),
                 ],
               ),
             _buildContentText(),
@@ -1709,15 +1901,17 @@ class _CommentCard extends StatelessWidget {
   }
 }
 
-class _DeleteChip extends StatelessWidget {
-  final bool isDeleting;
+class _CommentActionChip extends StatelessWidget {
+  final String text;
+  final bool isLoading;
   final Color backgroundColor;
-  final VoidCallback onDelete;
+  final VoidCallback onTap;
 
-  const _DeleteChip({
-    required this.isDeleting,
+  const _CommentActionChip({
+    required this.text,
+    required this.isLoading,
     required this.backgroundColor,
-    required this.onDelete,
+    required this.onTap,
   });
 
   static const Color mainBlue = Color(0xFF2260FF);
@@ -1725,7 +1919,7 @@ class _DeleteChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: isDeleting ? null : onDelete,
+      onTap: isLoading ? null : onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(
           horizontal: 12,
@@ -1735,7 +1929,7 @@ class _DeleteChip extends StatelessWidget {
           color: backgroundColor,
           borderRadius: BorderRadius.circular(12),
         ),
-        child: isDeleting
+        child: isLoading
             ? const SizedBox(
           width: 14,
           height: 14,
@@ -1745,7 +1939,7 @@ class _DeleteChip extends StatelessWidget {
           ),
         )
             : Text(
-          AppLanguage.t('community_delete'),
+          text,
           style: const TextStyle(
             color: mainBlue,
             fontSize: 13,
