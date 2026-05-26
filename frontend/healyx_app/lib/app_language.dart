@@ -237,7 +237,8 @@ class AppLanguage {
       'review_submitted': '리뷰가 등록되었습니다.',
       'review_duplicate_error': '이미 이 병원에 리뷰를 작성하셨습니다.',
       'review_submit_error': '리뷰 등록에 실패했습니다. 다시 시도해주세요.',
-
+      'region_all': '지역',
+      
       // 커뮤니티
       'community_banner_text': '병원 / 약 / 번역 관련해서\n서로 소통해보세요!',
       'community_tab_home': '홈',
@@ -598,6 +599,7 @@ class AppLanguage {
       'review_submitted': 'Review has been submitted.',
       'review_duplicate_error': 'You have already written a review for this hospital.',
       'review_submit_error': 'Failed to submit review. Please try again.',
+      'region_all': 'Region',
 
       // 커뮤니티
       'community_banner_text': 'Communicate with others\nabout hospitals, medicine, and translation!',
@@ -960,6 +962,7 @@ class AppLanguage {
       'review_submitted': '评价已注册。',
       'review_duplicate_error': '您已经为该医院写过评价了。',
       'review_submit_error': '评价注册失败，请重试。',
+      'region_all': '地区',
 
       // 커뮤니티
       'community_banner_text': '关于医院、药物、翻译\n互相交流吧！',
@@ -1324,7 +1327,7 @@ class AppLanguage {
       'review_submitted': 'レビューが登録されました。',
       'review_duplicate_error': 'この病院にはすでにレビューを書いています。',
       'review_submit_error': 'レビューの登録に失敗しました。もう一度お試しください。',
-
+      'region_all': '地域',
       // 커뮤니티
       'community_banner_text': '病院・薬・翻訳について\nお互いに交流しましょう！',
       'community_tab_home': 'ホーム',
@@ -1686,6 +1689,7 @@ class AppLanguage {
       'review_submitted': 'Đánh giá đã được đăng.',
       'review_duplicate_error': 'Bạn đã viết đánh giá cho bệnh viện này rồi.',
       'review_submit_error': 'Đăng đánh giá thất bại. Vui lòng thử lại.',
+      'region_all': 'Khu vực',
 
       // 커뮤니티
       'community_banner_text': 'Hãy giao lưu với nhau\nvề bệnh viện, thuốc và dịch thuật!',
@@ -2050,7 +2054,8 @@ class AppLanguage {
       'review_submitted': 'รีวิวได้รับการลงทะเบียนแล้ว',
       'review_duplicate_error': 'คุณได้เขียนรีวิวสำหรับโรงพยาบาลนี้แล้ว',
       'review_submit_error': 'การลงทะเบียนรีวิวล้มเหลว กรุณาลองใหม่อีกครั้ง',
-
+      'region_all': 'ภูมิภาค',
+      
       // 커뮤니티
       'community_banner_text': 'มาพูดคุยกันเกี่ยวกับ\nโรงพยาบาล ยา และการแปล!',
       'community_tab_home': 'หน้าหลัก',
