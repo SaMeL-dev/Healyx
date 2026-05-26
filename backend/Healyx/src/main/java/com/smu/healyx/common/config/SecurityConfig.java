@@ -78,6 +78,8 @@ public class SecurityConfig {
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                 // Application Load Balancer
                 .requestMatchers("/actuator/health").permitAll()
+                // Grafana Prometheus 메트릭
+                .requestMatchers("/actuator/prometheus").permitAll()
                 // 커뮤니티 게시글 조회 — 게스트 허용
                 .requestMatchers(HttpMethod.GET, "/api/community/posts", "/api/community/posts/**").permitAll()
                 // 커뮤니티 번역 엔드포인트 — 게스트 허용 (COM-011)
