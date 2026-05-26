@@ -1,13 +1,17 @@
 ﻿import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'find_hospital_screen/find_hospital_main.dart';
 import 'translation_screen/translation_upload.dart';
 import 'community_screen/community_main.dart';
+import 'community_screen/community_detail.dart';
 import 'review_screen/review_search.dart';
 import 'community_screen/community_notification.dart';
 import 'menu_screen/menu_main.dart';
 import 'login_signup_screen/login_screen.dart';
 import 'services/auth_service.dart';
-import 'app_language.dart'; 
+import 'community_screen/services/community_service.dart';
+import 'app_language.dart';
 
 class MainScreen extends StatefulWidget {
   // true = 로그인 상태, false = 비로그인 상태
@@ -25,6 +29,13 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   late bool _isLoggedIn;
 
+  bool _isCommunityLoading = false;
+  String? _communityErrorMessage;
+
+  String _selectedLanguageCode = 'ko';
+
+  List<_MainCommunityPostViewData> _latestCommunityPosts = [];
+
   @override
   void initState() {
     super.initState();
@@ -34,6 +45,9 @@ class _MainScreenState extends State<MainScreen> {
 
     // 실제 저장된 accessToken 기준으로 로그인 상태 다시 확인
     _checkLoginStatus();
+
+    // 메인 화면 커뮤니티 영역 최신 게시글 2개 조회
+    _loadLatestCommunityPosts();
   }
 
   Future<bool> _checkLoginStatus() async {
@@ -46,6 +60,165 @@ class _MainScreenState extends State<MainScreen> {
     });
 
     return result;
+  }
+
+  String _normalizeLanguageCode(String? value) {
+    final code = value?.trim().toLowerCase();
+
+    if (code == null || code.isEmpty) {
+      return 'ko';
+    }
+
+    if (code.startsWith('ko')) return 'ko';
+    if (code.startsWith('en')) return 'en';
+    if (code.startsWith('zh')) return 'zh';
+    if (code.startsWith('vi')) return 'vi';
+    if (code.startsWith('th')) return 'th';
+    if (code.startsWith('ja')) return 'ja';
+
+    return 'ko';
+  }
+
+  Future<String> _loadSelectedLanguageCode() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    final savedLanguage = prefs.getString('language_pref');
+
+    if (savedLanguage != null && savedLanguage.trim().isNotEmpty) {
+      return _normalizeLanguageCode(savedLanguage);
+    }
+
+    final currentLang = AppLanguage.currentLang.value;
+
+    if (currentLang.trim().isNotEmpty) {
+      return _normalizeLanguageCode(currentLang);
+    }
+
+    return 'ko';
+  }
+
+  Future<Set<int>> _loadMyPostIds() async {
+    try {
+      final myPosts = await CommunityService().getMyPosts();
+
+      return myPosts.map((post) => post.postId).toSet();
+    } catch (e) {
+      debugPrint('[MainScreen] getMyPosts failed: $e');
+
+      // 내 게시글 조회에 실패해도 메인 화면 전체가 깨지지 않도록 빈 Set 반환
+      return {};
+    }
+  }
+
+  Future<_MainCommunityPostViewData> _buildCommunityPostViewData({
+    required CommunityPostSummary post,
+    required String lang,
+    required Set<int> myPostIds,
+    required bool canTranslate,
+  }) async {
+    final isMyPost = myPostIds.contains(post.postId);
+
+    // 비로그인 상태이거나 내가 작성한 게시글이면 원문 그대로 표시
+    if (!canTranslate || isMyPost) {
+      return _MainCommunityPostViewData(
+        post: post,
+        displayTitle: post.title,
+        displayContent: post.contentPreview,
+        isTranslated: false,
+        isMyPost: isMyPost,
+      );
+    }
+
+    try {
+      final translation = await CommunityService().getPostTranslation(
+        postId: post.postId,
+        lang: lang,
+      );
+
+      final translatedTitle = translation.translatedTitle.trim();
+      final translatedContent = translation.translatedContent.trim();
+
+      final hasTranslatedText =
+          translatedTitle.isNotEmpty || translatedContent.isNotEmpty;
+
+      return _MainCommunityPostViewData(
+        post: post,
+        displayTitle: translatedTitle.isNotEmpty ? translatedTitle : post.title,
+        displayContent: translatedContent.isNotEmpty
+            ? translatedContent
+            : post.contentPreview,
+        isTranslated: hasTranslatedText,
+        isMyPost: false,
+      );
+    } catch (e) {
+      debugPrint(
+        '[MainScreen] translate failed postId=${post.postId}: $e',
+      );
+
+      return _MainCommunityPostViewData(
+        post: post,
+        displayTitle: post.title,
+        displayContent: post.contentPreview,
+        isTranslated: false,
+        isMyPost: false,
+      );
+    }
+  }
+
+  Future<void> _loadLatestCommunityPosts() async {
+    try {
+      setState(() {
+        _isCommunityLoading = true;
+        _communityErrorMessage = null;
+      });
+
+      final selectedLanguageCode = await _loadSelectedLanguageCode();
+
+      final loggedIn = await AuthService.isLoggedIn();
+
+      final result = await CommunityService().getPosts(
+        page: 0,
+        size: 2,
+        sort: 'latest',
+      );
+
+      Set<int> myPostIds = {};
+
+      if (loggedIn) {
+        myPostIds = await _loadMyPostIds();
+      }
+
+      final viewPosts = await Future.wait(
+        result.content.map(
+              (post) => _buildCommunityPostViewData(
+            post: post,
+            lang: selectedLanguageCode,
+            myPostIds: myPostIds,
+            canTranslate: loggedIn,
+          ),
+        ),
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        _isLoggedIn = loggedIn;
+        _selectedLanguageCode = selectedLanguageCode;
+        _latestCommunityPosts = viewPosts;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _communityErrorMessage = e.toString().replaceFirst('Exception: ', '');
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isCommunityLoading = false;
+        });
+      }
+    }
   }
 
   void _showLoginRequiredDialog(BuildContext context) {
@@ -68,7 +241,7 @@ class _MainScreenState extends State<MainScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  AppLanguage.t('login_required'), // '로그인이 필요한 기능입니다.\n로그인 하시겠습니까?'
+                  AppLanguage.t('login_required'),
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontSize: 18,
@@ -103,7 +276,7 @@ class _MainScreenState extends State<MainScreen> {
                             ),
                           ),
                           child: Text(
-                            AppLanguage.t('yes'), // '예'
+                            AppLanguage.t('yes'),
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
@@ -129,7 +302,7 @@ class _MainScreenState extends State<MainScreen> {
                             ),
                           ),
                           child: Text(
-                            AppLanguage.t('no'), // '아니요'
+                            AppLanguage.t('no'),
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
@@ -168,6 +341,57 @@ class _MainScreenState extends State<MainScreen> {
     }
   }
 
+  Future<void> _openCommunityMain(BuildContext context) async {
+    final loggedIn = await _checkLoginStatus();
+
+    if (!context.mounted) return;
+
+    if (loggedIn) {
+      final result = await Navigator.push<bool>(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const CommunityMainScreen(),
+        ),
+      );
+
+      if (result == true) {
+        _loadLatestCommunityPosts();
+      } else {
+        _loadLatestCommunityPosts();
+      }
+    } else {
+      _showLoginRequiredDialog(context);
+    }
+  }
+
+  Future<void> _openCommunityDetail({
+    required BuildContext context,
+    required int postId,
+  }) async {
+    final loggedIn = await _checkLoginStatus();
+
+    if (!context.mounted) return;
+
+    if (loggedIn) {
+      final result = await Navigator.push<bool>(
+        context,
+        MaterialPageRoute(
+          builder: (_) => CommunityDetailScreen(
+            postId: postId,
+          ),
+        ),
+      );
+
+      if (result == true) {
+        _loadLatestCommunityPosts();
+      } else {
+        _loadLatestCommunityPosts();
+      }
+    } else {
+      _showLoginRequiredDialog(context);
+    }
+  }
+
   Future<void> _openMenu(BuildContext context) async {
     final loggedIn = await _checkLoginStatus();
 
@@ -178,6 +402,95 @@ class _MainScreenState extends State<MainScreen> {
       MaterialPageRoute(
         builder: (_) => MenuScreen(
           isLoggedIn: loggedIn,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCommunityPreviewList() {
+    if (_isCommunityLoading) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 24),
+        child: Center(
+          child: CircularProgressIndicator(
+            color: Color(0xFF4E7CFF),
+            strokeWidth: 2,
+          ),
+        ),
+      );
+    }
+
+    if (_communityErrorMessage != null) {
+      return _buildCommunityInfoCard(
+        message: _communityErrorMessage!,
+      );
+    }
+
+    if (_latestCommunityPosts.isEmpty) {
+      return _buildCommunityInfoCard(
+        message: AppLanguage.t('community_no_posts'),
+      );
+    }
+
+    return Column(
+      children: List.generate(_latestCommunityPosts.length, (index) {
+        final item = _latestCommunityPosts[index];
+        final post = item.post;
+
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: index == _latestCommunityPosts.length - 1 ? 0 : 10,
+          ),
+          child: GestureDetector(
+            onTap: () {
+              _openCommunityDetail(
+                context: context,
+                postId: post.postId,
+              );
+            },
+            child: _buildCommunityCard(
+              title: item.displayTitle.trim().isEmpty
+                  ? AppLanguage.t('community_no_title')
+                  : item.displayTitle,
+              subtitle: item.displayContent.trim().isEmpty
+                  ? AppLanguage.t('community_no_content_preview')
+                  : item.displayContent,
+              likes: post.likeCount.toString(),
+              comments: post.commentCount.toString(),
+            ),
+          ),
+        );
+      }),
+    );
+  }
+
+  Widget _buildCommunityInfoCard({
+    required String message,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 18),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEFF4FF),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFDDE6FF)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Center(
+        child: Text(
+          message,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            fontSize: 12,
+            color: Colors.black54,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
     );
@@ -266,7 +579,7 @@ class _MainScreenState extends State<MainScreen> {
                           Expanded(
                             child: _buildTopMenuCard(
                               icon: Icons.search,
-                              title: AppLanguage.t('find_hospital'), // '병원 찾기'
+                              title: AppLanguage.t('find_hospital'),
                               onTap: () {
                                 Navigator.push(
                                   context,
@@ -282,7 +595,7 @@ class _MainScreenState extends State<MainScreen> {
                           Expanded(
                             child: _buildTopMenuCard(
                               icon: Icons.translate,
-                              title: AppLanguage.t('medical_translation'), // '의료 번역'
+                              title: AppLanguage.t('medical_translation'),
                               onTap: () {
                                 Navigator.push(
                                   context,
@@ -307,7 +620,7 @@ class _MainScreenState extends State<MainScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildSectionTitle(
-                            title: AppLanguage.t('review'), // '리뷰'
+                            title: AppLanguage.t('review'),
                             // 리뷰 더보기 → 로그인 필요
                             onArrowTap: () {
                               _moveIfLoggedIn(
@@ -332,29 +645,14 @@ class _MainScreenState extends State<MainScreen> {
                           ),
                           const SizedBox(height: 18),
                           _buildSectionTitle(
-                            title: AppLanguage.t('community'), // '커뮤니티' 
+                            title: AppLanguage.t('community'),
                             // 커뮤니티 더보기 → 로그인 필요
                             onArrowTap: () {
-                              _moveIfLoggedIn(
-                                context: context,
-                                screen: const CommunityMainScreen(),
-                              );
+                              _openCommunityMain(context);
                             },
                           ),
                           const SizedBox(height: 8),
-                          _buildCommunityCard(
-                            title: '아산시 병원 추천',
-                            subtitle: '제가 사는 아산은 병원이 많지도, 외국인을 수용할만한...',
-                            likes: '5',
-                            comments: '6',
-                          ),
-                          const SizedBox(height: 10),
-                          _buildCommunityCard(
-                            title: '건강보험 자동 가입',
-                            subtitle: '내년에 자동 가입돼서 가격 가입한다는데 가능하나요...',
-                            likes: '44',
-                            comments: '10',
-                          ),
+                          _buildCommunityPreviewList(),
                         ],
                       ),
                     ),
@@ -539,6 +837,8 @@ class _MainScreenState extends State<MainScreen> {
         children: [
           Text(
             title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w700,
@@ -548,13 +848,15 @@ class _MainScreenState extends State<MainScreen> {
           const SizedBox(height: 4),
           Text(
             subtitle,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(fontSize: 11, color: Colors.black87),
           ),
           const SizedBox(height: 8),
           Row(
             children: [
               const Icon(
-                Icons.thumb_up_alt_outlined,
+                Icons.favorite_border,
                 size: 14,
                 color: Color(0xFF7C9CFF),
               ),
@@ -588,4 +890,20 @@ class _MainScreenState extends State<MainScreen> {
       ),
     );
   }
+}
+
+class _MainCommunityPostViewData {
+  final CommunityPostSummary post;
+  final String displayTitle;
+  final String displayContent;
+  final bool isTranslated;
+  final bool isMyPost;
+
+  const _MainCommunityPostViewData({
+    required this.post,
+    required this.displayTitle,
+    required this.displayContent,
+    required this.isTranslated,
+    required this.isMyPost,
+  });
 }
