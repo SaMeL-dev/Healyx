@@ -324,6 +324,8 @@ class AppLanguage {
       'community_comment_edit_empty': '수정할 댓글 내용을 입력해주세요.',
       'community_comment_edit_cancel': '수정 취소',
 
+      'community_cleanbot_blocked': '커뮤니티 가이드라인에 위반되는 내용입니다.',
+
 
       // 알림창
       'community_notification_no_post': '이동할 게시글 정보가 없습니다.',
@@ -685,6 +687,8 @@ class AppLanguage {
       'community_comment_reported': 'Comment report submitted.',
       'community_comment_edit_empty': 'Please enter the comment to update.',
       'community_comment_edit_cancel': 'Cancel editing',
+
+      'community_cleanbot_blocked': 'This content violates community guidelines.',
 
 
       // 알림창
@@ -1050,6 +1054,8 @@ class AppLanguage {
       'community_comment_edit_empty': '请输入要修改的评论内容。',
       'community_comment_edit_cancel': '取消修改',
 
+      'community_cleanbot_blocked': 'コミュニティガイドラインに違反する内容です。',
+
 
       // 알림창
       'community_notification_no_post': '无法找到要跳转的帖子信息。',
@@ -1412,6 +1418,8 @@ class AppLanguage {
       'community_comment_edit_empty': '修正するコメント内容を入力してください。',
       'community_comment_edit_cancel': '修正をキャンセル',
 
+      'community_cleanbot_blocked': '该内容违反了社区准则。',
+
 
       // 알림창
       'community_notification_no_post': '移動する投稿情報がありません。',
@@ -1773,6 +1781,8 @@ class AppLanguage {
       'community_comment_reported': 'Đã gửi báo cáo bình luận.',
       'community_comment_edit_empty': 'Vui lòng nhập nội dung bình luận cần cập nhật.',
       'community_comment_edit_cancel': 'Hủy chỉnh sửa',
+
+      'community_cleanbot_blocked': 'Nội dung này vi phạm nguyên tắc cộng đồng.',
 
 
       // 알림창
@@ -2137,6 +2147,8 @@ class AppLanguage {
       'community_comment_reported': 'ส่งรายงานความคิดเห็นแล้ว',
       'community_comment_edit_empty': 'กรุณาใส่เนื้อหาความคิดเห็นที่ต้องการแก้ไข',
       'community_comment_edit_cancel': 'ยกเลิกการแก้ไข',
+
+      'community_cleanbot_blocked': 'เนื้อหานี้ละเมิดหลักเกณฑ์ของชุมชน',
 
 
       // 알림창

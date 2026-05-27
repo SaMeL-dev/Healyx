@@ -1,6 +1,8 @@
 ﻿// 커뮤니티 메인 화면 (홈/인기 탭, 게시글 리스트, 검색/글쓰기 버튼)
 // 선택 언어 코드 기반으로 게시글 제목/내용 미리보기를 번역해서 표시
 // 단, 내가 작성한 게시글은 번역하지 않고 원문 그대로 표시
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -9,6 +11,12 @@ import 'community_search.dart';
 import 'community_write.dart';
 import 'community_detail.dart';
 import 'services/community_service.dart';
+
+enum _CommunityToastType {
+  success,
+  warning,
+  error,
+}
 
 class CommunityMainScreen extends StatefulWidget {
   const CommunityMainScreen({super.key});
@@ -33,10 +41,19 @@ class _CommunityMainScreenState extends State<CommunityMainScreen> {
 
   List<_CommunityMainPostViewData> _posts = [];
 
+  OverlayEntry? _toastEntry;
+  Timer? _toastTimer;
+
   @override
   void initState() {
     super.initState();
     _loadPosts();
+  }
+
+  @override
+  void dispose() {
+    _removeCustomToast();
+    super.dispose();
   }
 
   String get _currentSort {
@@ -208,9 +225,16 @@ class _CommunityMainScreenState extends State<CommunityMainScreen> {
     } catch (e) {
       if (!mounted) return;
 
+      final message = e.toString().replaceFirst('Exception: ', '');
+
       setState(() {
-        _errorMessage = e.toString().replaceFirst('Exception: ', '');
+        _errorMessage = message;
       });
+
+      _showCustomToast(
+        message,
+        type: _CommunityToastType.error,
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -256,6 +280,131 @@ class _CommunityMainScreenState extends State<CommunityMainScreen> {
     if (result == true) {
       _loadPosts();
     }
+  }
+
+  void _removeCustomToast() {
+    _toastTimer?.cancel();
+    _toastTimer = null;
+    _toastEntry?.remove();
+    _toastEntry = null;
+  }
+
+  void _showCustomToast(
+      String message, {
+        _CommunityToastType type = _CommunityToastType.success,
+      }) {
+    if (!mounted || message.trim().isEmpty) return;
+
+    _removeCustomToast();
+
+    final overlay = Overlay.maybeOf(context);
+
+    if (overlay == null) {
+      return;
+    }
+
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+
+    final bool isSuccess = type == _CommunityToastType.success;
+
+    final IconData iconData =
+    isSuccess ? Icons.check_rounded : Icons.priority_high_rounded;
+
+    final Color iconColor = isSuccess ? mainBlue : const Color(0xFFFF8A00);
+    final Color iconBg =
+    isSuccess ? softBg : const Color(0xFFFFF3E0);
+    final Color borderColor =
+    isSuccess ? const Color(0xFFD8E4FF) : const Color(0xFFFFD6A6);
+    final Color textColor = isSuccess ? mainBlue : const Color(0xFFE06B00);
+
+    _toastEntry = OverlayEntry(
+      builder: (context) {
+        return Positioned(
+          left: 20,
+          right: 20,
+          bottom: bottomPadding + 26,
+          child: IgnorePointer(
+            ignoring: true,
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0, end: 1),
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOutCubic,
+              builder: (context, value, child) {
+                return Opacity(
+                  opacity: value,
+                  child: Transform.translate(
+                    offset: Offset(0, 16 * (1 - value)),
+                    child: child,
+                  ),
+                );
+              },
+              child: Material(
+                color: Colors.transparent,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 13,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(
+                      color: borderColor,
+                      width: 1.2,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.12),
+                        blurRadius: 14,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 24,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          color: iconBg,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          iconData,
+                          color: iconColor,
+                          size: 17,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          message,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: textColor,
+                            fontSize: 14,
+                            height: 1.35,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+
+    overlay.insert(_toastEntry!);
+
+    _toastTimer = Timer(const Duration(milliseconds: 2200), () {
+      _removeCustomToast();
+    });
   }
 
   Widget _buildPostList() {

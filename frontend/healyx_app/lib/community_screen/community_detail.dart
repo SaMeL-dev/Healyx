@@ -4,6 +4,8 @@
 // - 선택 언어 기준으로 게시글 제목/본문 번역 API 호출
 // - 원문보기 클릭 시 게시글 제목/본문만 원문으로 전환
 // - 댓글은 원문보기 대상에서 제외
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -13,6 +15,12 @@ import '../dialogs/delete_confirm_dialog.dart';
 import '../dialogs/comment_delete_dialog.dart';
 import 'community_write.dart';
 import 'services/community_service.dart';
+
+enum _CommunityToastType {
+  success,
+  warning,
+  error,
+}
 
 class CommunityDetailScreen extends StatefulWidget {
   final int postId;
@@ -33,6 +41,9 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
 
   final TextEditingController _commentController = TextEditingController();
   final FocusNode _commentFocusNode = FocusNode();
+
+  OverlayEntry? _toastEntry;
+  Timer? _toastTimer;
 
   bool _isLoading = false;
   bool _isLikeProcessing = false;
@@ -76,6 +87,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
 
   @override
   void dispose() {
+    _removeCustomToast();
     _commentController.dispose();
     _commentFocusNode.dispose();
     super.dispose();
@@ -164,6 +176,22 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
     return 'ko';
   }
 
+
+  String _localizedCommunityErrorMessage(Object error) {
+    final message = error.toString().replaceFirst('Exception: ', '').trim();
+    final lowerMessage = message.toLowerCase();
+
+    if (lowerMessage.contains('community guidelines') ||
+        lowerMessage.contains('violates community') ||
+        lowerMessage.contains('content violates') ||
+        lowerMessage.contains('cleanbot') ||
+        message.contains('(422)')) {
+      return AppLanguage.t('community_cleanbot_blocked');
+    }
+
+    return message;
+  }
+
   Future<CommunityPostTranslation?> _fetchPostTranslation({
     required int postId,
     required String lang,
@@ -181,7 +209,8 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
 
       if (showError && mounted) {
         _showSnackBar(
-          e.toString().replaceFirst('Exception: ', ''),
+          _localizedCommunityErrorMessage(e),
+          type: _CommunityToastType.error,
         );
       }
 
@@ -231,7 +260,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
       if (!mounted) return;
 
       setState(() {
-        _errorMessage = e.toString().replaceFirst('Exception: ', '');
+        _errorMessage = _localizedCommunityErrorMessage(e);
       });
     } finally {
       if (mounted) {
@@ -294,7 +323,8 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
       if (!mounted) return;
 
       _showSnackBar(
-        e.toString().replaceFirst('Exception: ', ''),
+        _localizedCommunityErrorMessage(e),
+        type: _CommunityToastType.error,
       );
     } finally {
       if (mounted) {
@@ -338,7 +368,8 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
       if (!mounted) return;
 
       _showSnackBar(
-        e.toString().replaceFirst('Exception: ', ''),
+        _localizedCommunityErrorMessage(e),
+        type: _CommunityToastType.error,
       );
     } finally {
       if (mounted) {
@@ -384,7 +415,8 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
       if (!mounted) return;
 
       _showSnackBar(
-        e.toString().replaceFirst('Exception: ', ''),
+        _localizedCommunityErrorMessage(e),
+        type: _CommunityToastType.error,
       );
     } finally {
       if (mounted) {
@@ -430,7 +462,8 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
       if (!mounted) return;
 
       _showSnackBar(
-        e.toString().replaceFirst('Exception: ', ''),
+        _localizedCommunityErrorMessage(e),
+        type: _CommunityToastType.error,
       );
     } finally {
       if (mounted) {
@@ -463,7 +496,10 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
         if (!mounted) return;
 
         if (translation == null) {
-          _showSnackBar(AppLanguage.t('community_original_load_failed'));
+          _showSnackBar(
+            AppLanguage.t('community_original_load_failed'),
+            type: _CommunityToastType.warning,
+          );
           return;
         }
 
@@ -505,12 +541,16 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
 
     if (content.isEmpty) {
       if (editingComment != null) {
-        _showSnackBar(AppLanguage.t('community_comment_edit_empty'));
+        _showSnackBar(
+          AppLanguage.t('community_comment_edit_empty'),
+          type: _CommunityToastType.warning,
+        );
       } else {
         _showSnackBar(
           replyTarget == null
               ? AppLanguage.t('community_comment_empty')
               : AppLanguage.t('community_reply_empty'),
+          type: _CommunityToastType.warning,
         );
       }
       return;
@@ -568,7 +608,8 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
       if (!mounted) return;
 
       _showSnackBar(
-        e.toString().replaceFirst('Exception: ', ''),
+        _localizedCommunityErrorMessage(e),
+        type: _CommunityToastType.error,
       );
     } finally {
       if (mounted) {
@@ -587,7 +628,10 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
     final isMyComment = _myUserId != null && comment.authorId == _myUserId;
 
     if (!isMyComment) {
-      _showSnackBar(AppLanguage.t('community_my_comment_only'));
+      _showSnackBar(
+        AppLanguage.t('community_my_comment_only'),
+        type: _CommunityToastType.warning,
+      );
       return;
     }
 
@@ -634,7 +678,8 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
       if (!mounted) return;
 
       _showSnackBar(
-        e.toString().replaceFirst('Exception: ', ''),
+        _localizedCommunityErrorMessage(e),
+        type: _CommunityToastType.error,
       );
     } finally {
       if (mounted) {
@@ -684,7 +729,8 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
       if (!mounted) return;
 
       _showSnackBar(
-        e.toString().replaceFirst('Exception: ', ''),
+        _localizedCommunityErrorMessage(e),
+        type: _CommunityToastType.error,
       );
     } finally {
       if (mounted) {
@@ -867,12 +913,126 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
     return null;
   }
 
-  void _showSnackBar(String message) {
-    if (!mounted) return;
+  void _removeCustomToast() {
+    _toastTimer?.cancel();
+    _toastTimer = null;
+    _toastEntry?.remove();
+    _toastEntry = null;
+  }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
+  void _showSnackBar(
+      String message, {
+        _CommunityToastType type = _CommunityToastType.success,
+      }) {
+    if (!mounted || message.trim().isEmpty) return;
+
+    _removeCustomToast();
+
+    final overlay = Overlay.maybeOf(context);
+
+    if (overlay == null) {
+      return;
+    }
+
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+    final bool isSuccess = type == _CommunityToastType.success;
+
+    final IconData iconData =
+    isSuccess ? Icons.check_rounded : Icons.priority_high_rounded;
+    final Color iconColor = isSuccess ? mainBlue : const Color(0xFFFF8A00);
+    final Color iconBg = isSuccess ? lightBlue : const Color(0xFFFFF3E0);
+    final Color borderColor =
+    isSuccess ? const Color(0xFFD8E4FF) : const Color(0xFFFFD6A6);
+    final Color textColor = isSuccess ? mainBlue : const Color(0xFFE06B00);
+
+    _toastEntry = OverlayEntry(
+      builder: (context) {
+        return Positioned(
+          left: 20,
+          right: 20,
+          bottom: bottomPadding + 26,
+          child: IgnorePointer(
+            ignoring: true,
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0, end: 1),
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOutCubic,
+              builder: (context, value, child) {
+                return Opacity(
+                  opacity: value,
+                  child: Transform.translate(
+                    offset: Offset(0, 16 * (1 - value)),
+                    child: child,
+                  ),
+                );
+              },
+              child: Material(
+                color: Colors.transparent,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 13,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(
+                      color: borderColor,
+                      width: 1.2,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.12),
+                        blurRadius: 14,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 24,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          color: iconBg,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          iconData,
+                          color: iconColor,
+                          size: 17,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          message,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: textColor,
+                            fontSize: 14,
+                            height: 1.35,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
+
+    overlay.insert(_toastEntry!);
+
+    _toastTimer = Timer(const Duration(milliseconds: 2200), () {
+      _removeCustomToast();
+    });
   }
 
   void _goBack() {
@@ -893,7 +1053,10 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
 
   void _handleReplyTap(CommunityComment comment) {
     if (comment.deleted) {
-      _showSnackBar(AppLanguage.t('community_deleted_reply_blocked'));
+      _showSnackBar(
+        AppLanguage.t('community_deleted_reply_blocked'),
+        type: _CommunityToastType.warning,
+      );
       return;
     }
 
@@ -907,15 +1070,6 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
     });
 
     _commentFocusNode.requestFocus();
-
-    _showSnackBar(
-      AppLanguage.t('community_replying_to').replaceAll(
-        '{nickname}',
-        comment.authorNickname.isEmpty
-            ? AppLanguage.t('community_anonymous')
-            : comment.authorNickname,
-      ),
-    );
   }
 
   void _cancelReply() {

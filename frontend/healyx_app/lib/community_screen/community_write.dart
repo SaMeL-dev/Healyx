@@ -1,5 +1,6 @@
 ﻿// 커뮤니티 글쓰기/수정 화면
 // 제목 입력, 내용 입력, 사진 첨부 기능이 있는 화면
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -8,6 +9,12 @@ import 'package:image_picker/image_picker.dart';
 import '../app_language.dart';
 import '../dialogs/image_attach_dialog.dart';
 import 'services/community_service.dart';
+
+enum _CommunityToastType {
+  success,
+  warning,
+  error,
+}
 
 class CommunityWriteScreen extends StatefulWidget {
   final int? postId;
@@ -39,6 +46,9 @@ class _CommunityWriteScreenState extends State<CommunityWriteScreen> {
 
   final ImagePicker picker = ImagePicker();
 
+  OverlayEntry? _toastEntry;
+  Timer? _toastTimer;
+
   // 새로 선택한 이미지
   final List<XFile> selectedImages = [];
 
@@ -64,6 +74,7 @@ class _CommunityWriteScreenState extends State<CommunityWriteScreen> {
 
   @override
   void dispose() {
+    _removeCustomToast();
     titleController.dispose();
     contentController.dispose();
     super.dispose();
@@ -73,18 +84,147 @@ class _CommunityWriteScreenState extends State<CommunityWriteScreen> {
     return AppLanguage.t(key).replaceAll('{count}', count.toString());
   }
 
-  void _showSnackBar(String message) {
-    if (!mounted) return;
+  String _localizedCommunityErrorMessage(Object error) {
+    final message = error.toString().replaceFirst('Exception: ', '').trim();
+    final lowerMessage = message.toLowerCase();
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
+    if (lowerMessage.contains('community guidelines') ||
+        lowerMessage.contains('violates community') ||
+        lowerMessage.contains('cleanbot') ||
+        lowerMessage.contains('(422)')) {
+      return AppLanguage.t('community_cleanbot_blocked');
+    }
+
+    return message;
+  }
+
+  void _removeCustomToast() {
+    _toastTimer?.cancel();
+    _toastTimer = null;
+    _toastEntry?.remove();
+    _toastEntry = null;
+  }
+
+  void _showSnackBar(
+      String message, {
+        _CommunityToastType type = _CommunityToastType.success,
+      }) {
+    if (!mounted || message.trim().isEmpty) return;
+
+    _removeCustomToast();
+
+    final overlay = Overlay.maybeOf(context);
+
+    if (overlay == null) {
+      return;
+    }
+
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+    final bool isSuccess = type == _CommunityToastType.success;
+
+    final IconData iconData =
+    isSuccess ? Icons.check_rounded : Icons.priority_high_rounded;
+    final Color iconColor = isSuccess ? mainBlue : const Color(0xFFFF8A00);
+    final Color iconBg = isSuccess ? lightBlue : const Color(0xFFFFF3E0);
+    final Color borderColor =
+    isSuccess ? const Color(0xFFD8E4FF) : const Color(0xFFFFD6A6);
+    final Color textColor = isSuccess ? mainBlue : const Color(0xFFE06B00);
+
+    _toastEntry = OverlayEntry(
+      builder: (context) {
+        return Positioned(
+          left: 20,
+          right: 20,
+          bottom: bottomPadding + 26,
+          child: IgnorePointer(
+            ignoring: true,
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0, end: 1),
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOutCubic,
+              builder: (context, value, child) {
+                return Opacity(
+                  opacity: value,
+                  child: Transform.translate(
+                    offset: Offset(0, 16 * (1 - value)),
+                    child: child,
+                  ),
+                );
+              },
+              child: Material(
+                color: Colors.transparent,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 13,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(
+                      color: borderColor,
+                      width: 1.2,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.12),
+                        blurRadius: 14,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 24,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          color: iconBg,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          iconData,
+                          color: iconColor,
+                          size: 17,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          message,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: textColor,
+                            fontSize: 14,
+                            height: 1.35,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
+
+    overlay.insert(_toastEntry!);
+
+    _toastTimer = Timer(const Duration(milliseconds: 2200), () {
+      _removeCustomToast();
+    });
   }
 
   void _showAttachDialog() {
     if (_totalImageCount >= maxImageCount) {
       _showSnackBar(
         _tWithCount('community_image_max_limit', maxImageCount),
+        type: _CommunityToastType.warning,
       );
       return;
     }
@@ -99,6 +239,7 @@ class _CommunityWriteScreenState extends State<CommunityWriteScreen> {
           if (remain <= 0) {
             _showSnackBar(
               _tWithCount('community_image_max_limit', maxImageCount),
+              type: _CommunityToastType.warning,
             );
             return;
           }
@@ -161,6 +302,8 @@ class _CommunityWriteScreenState extends State<CommunityWriteScreen> {
         _isSubmitting = true;
       });
 
+      String successMessage;
+
       if (_isEditMode) {
         await CommunityService().updatePost(
           postId: widget.postId!,
@@ -171,7 +314,7 @@ class _CommunityWriteScreenState extends State<CommunityWriteScreen> {
 
         if (!mounted) return;
 
-        _showSnackBar(AppLanguage.t('community_post_updated'));
+        successMessage = AppLanguage.t('community_post_updated');
       } else {
         await CommunityService().createPost(
           title: title,
@@ -181,8 +324,15 @@ class _CommunityWriteScreenState extends State<CommunityWriteScreen> {
 
         if (!mounted) return;
 
-        _showSnackBar(AppLanguage.t('community_post_created'));
+        successMessage = AppLanguage.t('community_post_created');
       }
+
+      _showSnackBar(successMessage);
+
+      // 커스텀 알림이 보일 시간을 조금 준 뒤 이전 화면 새로고침
+      await Future.delayed(const Duration(milliseconds: 700));
+
+      if (!mounted) return;
 
       // true를 넘겨주면 이전 화면에서 새로고침 가능
       Navigator.pop(context, true);
@@ -190,7 +340,8 @@ class _CommunityWriteScreenState extends State<CommunityWriteScreen> {
       if (!mounted) return;
 
       _showSnackBar(
-        e.toString().replaceFirst('Exception: ', ''),
+        _localizedCommunityErrorMessage(e),
+        type: _CommunityToastType.error,
       );
     } finally {
       if (mounted) {
