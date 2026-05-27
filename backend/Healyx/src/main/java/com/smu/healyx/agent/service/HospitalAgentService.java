@@ -63,7 +63,7 @@ public class HospitalAgentService {
      *   4: 종합병원 ~ 상급종합 [11, 01]
      *   5: 상급종합만 [01]
      */
-    private static final Map<Integer, List<String>> RISK_TO_CL_CDS = Map.of(
+    public static final Map<Integer, List<String>> RISK_TO_CL_CDS = Map.of(
             1, List.of("31", "21", "11", "01"),
             2, List.of("31", "21", "11", "01"),
             3, List.of("21", "11", "01"),
@@ -72,7 +72,7 @@ public class HospitalAgentService {
     );
 
     /** 위험도별 검색 반경 (m): 1~2단계 3km, 3~4단계 10km, 5단계 15km */
-    private static final Map<Integer, Integer> RISK_TO_RADIUS = Map.of(
+    public static final Map<Integer, Integer> RISK_TO_RADIUS = Map.of(
             1, 3000,
             2, 3000,
             3, 10000,
