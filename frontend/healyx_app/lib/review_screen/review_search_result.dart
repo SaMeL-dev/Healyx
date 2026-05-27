@@ -41,9 +41,9 @@ class _ReviewSearchResultScreenState extends State<ReviewSearchResultScreen> {
     });
 
     try {
-      // '지역' 기본값이면 빈 문자열로 전달 (서버에서 전체 검색)
+      // 전체 선택(region_all)이면 빈 문자열로 전달 (서버에서 전체 검색)
       final region =
-          widget.selectedRegion == '지역' ? '' : widget.selectedRegion;
+          widget.selectedRegion == AppLanguage.t('region_all') ? '' : widget.selectedRegion;
 
       final results = await ReviewService.searchHospitals(
         name: widget.searchKeyword.trim(),
@@ -149,8 +149,9 @@ class _ReviewSearchResultScreenState extends State<ReviewSearchResultScreen> {
   }
 
   String _buildSearchLabel() {
+    // 전체 선택(region_all)이면 빈 문자열로 처리
     final region =
-        widget.selectedRegion == '지역' ? '' : widget.selectedRegion;
+        widget.selectedRegion == AppLanguage.t('region_all') ? '' : widget.selectedRegion;
     final keyword = widget.searchKeyword.trim();
     if (region.isEmpty && keyword.isEmpty) return AppLanguage.t('review_search_all'); // '전체 검색'
     if (region.isEmpty) return '"$keyword"';
