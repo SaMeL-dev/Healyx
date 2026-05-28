@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -38,7 +39,22 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     @Query("SELECT COUNT(r) FROM Review r WHERE r.hospital.hospitalId = :hospitalId")
     int countByHospitalId(@Param("hospitalId") Long hospitalId);
 
+    /**
+     * 여러 병원의 리뷰 평균 별점·건수를 한 번에 집계한다.
+     * 반환: [hospitalId(Long), avgRating(Double), reviewCount(Long)] per row.
+     * 리뷰 없는 병원은 결과에 포함되지 않음 → 조회 안 된 병원은 avgRating=null, reviewCount=0 처리.
+     */
+    @Query("SELECT r.hospital.hospitalId, AVG(r.rating), COUNT(r) " +
+           "FROM Review r WHERE r.hospital.hospitalId IN :hospitalIds " +
+           "GROUP BY r.hospital.hospitalId")
+    List<Object[]> findRatingStatsByHospitalIds(
+            @Param("hospitalIds") Collection<Long> hospitalIds);
+
     // ── 신규: 페이징 조회 ───────────────────────────
     Page<Review> findByHospital_HospitalIdOrderByCreatedAtDesc(Long hospitalId, Pageable pageable);
     Page<Review> findByUser_UserIdOrderByCreatedAtDesc(Long userId, Pageable pageable);
+
+    // ── 전체 최신 리뷰 N건 조회 (메인화면 미리보기) — hospital·user JOIN FETCH(N+1 방지) ──
+    @Query("SELECT r FROM Review r JOIN FETCH r.hospital JOIN FETCH r.user ORDER BY r.createdAt DESC")
+    List<Review> findLatestReviewsWithHospital(Pageable pageable);
 }

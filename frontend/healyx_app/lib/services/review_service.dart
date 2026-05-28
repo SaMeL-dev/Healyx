@@ -114,6 +114,33 @@ class HospitalDetailData {
   }
 }
 
+// 메인화면 최신 리뷰 미리보기 항목 모델
+class LatestReviewData {
+  final int reviewId;
+  final String hospitalName;
+  final String nickname;
+  final String content;
+  final int rating;
+
+  LatestReviewData({
+    required this.reviewId,
+    required this.hospitalName,
+    required this.nickname,
+    required this.content,
+    required this.rating,
+  });
+
+  factory LatestReviewData.fromJson(Map<String, dynamic> json) {
+    return LatestReviewData(
+      reviewId: json['reviewId'] ?? 0,
+      hospitalName: json['hospitalName'] ?? '',
+      nickname: json['nickname'] ?? '',
+      content: json['content'] ?? '',
+      rating: json['rating'] ?? 0,
+    );
+  }
+}
+
 // 내 리뷰 항목 모델
 class MyReviewData {
   final int reviewId;
@@ -298,6 +325,30 @@ class ReviewService {
     // 중복 리뷰 등록 시도 (409)
     if (response.statusCode == 409) throw Exception('duplicate_review');
     throw Exception('HTTP ${response.statusCode}');
+  }
+
+  // 메인화면 최신 리뷰 N건 조회 — GET /api/reviews/latest?size=N (게스트 허용)
+  static Future<List<LatestReviewData>> getLatestReviews({int size = 2}) async {
+    try {
+      final uri = Uri.parse('$_baseUrl/api/reviews/latest')
+          .replace(queryParameters: {'size': '$size'});
+
+      final response = await http.get(uri).timeout(const Duration(seconds: 15));
+
+      if (response.statusCode == 200) {
+        final decoded = utf8.decode(response.bodyBytes);
+        final json = jsonDecode(decoded);
+        final List list = (json['data'] ?? []) as List;
+        return list
+            .map((e) => LatestReviewData.fromJson(e as Map<String, dynamic>))
+            .toList();
+      }
+      debugPrint('GET_LATEST_REVIEWS HTTP ${response.statusCode}: ${response.body}');
+      return [];
+    } catch (e) {
+      debugPrint('GET_LATEST_REVIEWS ERROR: $e');
+      return [];
+    }
   }
 
   // 내 리뷰 목록 조회

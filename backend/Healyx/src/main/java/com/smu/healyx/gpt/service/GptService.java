@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.smu.healyx.common.exception.ExternalApiException;
 import com.smu.healyx.gpt.dto.GptChatRequest;
 import com.smu.healyx.gpt.dto.GptChatResponse;
+import com.smu.healyx.gpt.dto.SymptomAnalysisResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -97,6 +98,72 @@ public class GptService {
         }
 
         return parseGptResult(response.getFirstContent());
+    }
+
+    /**
+     * 증상 텍스트 한 번에 진료과 코드 + ICD-10 코드를 동시 추출합니다.
+     * gpt-4o-mini 단일 호출로 Function Calling 왕복을 제거합니다.
+     */
+    public SymptomAnalysisResponse extractSymptomInfo(String symptom) {
+        String systemPrompt = """
+                You are a medical AI for a hospital-finding app in Korea.
+                Analyze the patient's symptoms and return ONLY a valid JSON object.
+
+                Available HIRA department codes:
+                """ + DEPARTMENT_CODES + """
+
+                Response format (JSON only, no explanation):
+                {"dgsbjtCd":"01","departmentName":"내과","icd10Code":"J06.9"}
+
+                If symptoms are unclear, return the most relevant department and best-matching ICD-10 code.
+                """;
+
+        GptChatRequest request = new GptChatRequest(
+                "gpt-4o-mini",
+                List.of(
+                        new GptChatRequest.Message("system", systemPrompt),
+                        new GptChatRequest.Message("user", symptom)
+                ),
+                150,
+                0.0
+        );
+
+        GptChatResponse response = callChatCompletion(request);
+        if (response.getFirstContent() == null) {
+            throw new ExternalApiException("GPT_EMPTY_RESPONSE", "증상 분석 결과를 받지 못했습니다. 다시 시도해 주세요.");
+        }
+        return parseSymptomInfo(response.getFirstContent());
+    }
+
+    private SymptomAnalysisResponse parseSymptomInfo(String content) {
+        try {
+            String cleaned = content.trim()
+                    .replaceAll("(?s)```json\\s*", "")
+                    .replaceAll("(?s)```\\s*", "")
+                    .trim();
+
+            JsonNode node = objectMapper.readTree(cleaned);
+            String dgsbjtCd      = node.path("dgsbjtCd").asText();
+            String departmentName = node.path("departmentName").asText();
+            String icd10Code     = node.path("icd10Code").asText();
+
+            if (dgsbjtCd.isBlank()) {
+                log.warn("GPT 응답에서 dgsbjtCd 파싱 실패. 원본: {}", content);
+                throw new ExternalApiException("GPT_PARSE_ERROR", "증상 분석 결과를 해석할 수 없습니다. 다시 시도해 주세요.");
+            }
+
+            return SymptomAnalysisResponse.builder()
+                    .dgsbjtCd(dgsbjtCd)
+                    .departmentName(departmentName)
+                    .icd10Code(icd10Code.isBlank() ? null : icd10Code)
+                    .build();
+
+        } catch (ExternalApiException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("GPT 응답 파싱 실패. 원본: {}", content);
+            throw new ExternalApiException("GPT_PARSE_ERROR", "증상 분석 결과를 해석할 수 없습니다. 다시 시도해 주세요.");
+        }
     }
 
     /** GPT 응답 JSON에서 dgsbjtCd와 departmentName을 추출합니다. */

@@ -160,5 +160,19 @@ public class ReviewController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
+    // ── 4. 메인화면 최신 리뷰 조회 (게스트 허용) ─────────────────────────
+
+    @Operation(
+            summary = "메인화면 최신 리뷰 조회",
+            description = "전체 리뷰 중 최신 N건을 반환한다. 병원명·마스킹 닉네임·내용·별점 포함. 게스트 허용."
+    )
+    @GetMapping("/latest")
+    public ResponseEntity<ApiResponse<List<LatestReviewItem>>> getLatestReviews(
+            @RequestParam(defaultValue = "2") int size) {
+
+        List<LatestReviewItem> items = reviewService.getLatestReviews(size);
+        return ResponseEntity.ok(ApiResponse.success(items));
+    }
+
     // ── 내 리뷰 조회 / 삭제는 MyReviewController로 일원화 (main 머지 후) ──
 }

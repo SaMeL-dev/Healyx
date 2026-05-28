@@ -240,7 +240,8 @@ class AppLanguage {
       'review_submitted': '리뷰가 등록되었습니다.',
       'review_duplicate_error': '이미 이 병원에 리뷰를 작성하셨습니다.',
       'review_submit_error': '리뷰 등록에 실패했습니다. 다시 시도해주세요.',
-
+      'region_all': '지역',
+      
       // 커뮤니티
       'community_banner_text': '병원 / 약 / 번역 관련해서\n서로 소통해보세요!',
       'community_tab_home': '홈',
@@ -304,6 +305,7 @@ class AppLanguage {
       'community_replying_to_banner': '{nickname}님에게 답글 작성 중',
       'community_post_load_failed': '게시글을 불러오지 못했습니다.',
       'community_no_posts': '아직 등록된 게시글이 없습니다.',
+      'review_no_reviews': '아직 등록된 리뷰가 없습니다.',
       'community_translation_badge': '{lang} 번역',
       'community_no_content_preview': '내용 미리보기가 없습니다.',
 
@@ -609,6 +611,7 @@ class AppLanguage {
       'review_submitted': 'Review has been submitted.',
       'review_duplicate_error': 'You have already written a review for this hospital.',
       'review_submit_error': 'Failed to submit review. Please try again.',
+      'region_all': 'Region',
 
       // 커뮤니티
       'community_banner_text': 'Communicate with others\nabout hospitals, medicine, and translation!',
@@ -673,6 +676,7 @@ class AppLanguage {
       'community_replying_to_banner': 'Replying to {nickname}',
       'community_post_load_failed': 'Failed to load the post.',
       'community_no_posts': 'No posts yet.',
+      'review_no_reviews': 'No reviews yet.',
       'community_translation_badge': '{lang} translation',
       'community_no_content_preview': 'No content preview.',
 
@@ -979,6 +983,7 @@ class AppLanguage {
       'review_submitted': '评价已注册。',
       'review_duplicate_error': '您已经为该医院写过评价了。',
       'review_submit_error': '评价注册失败，请重试。',
+      'region_all': '地区',
 
       // 커뮤니티
       'community_banner_text': '关于医院、药物、翻译\n互相交流吧！',
@@ -1045,6 +1050,7 @@ class AppLanguage {
       'community_replying_to_banner': '正在回复 {nickname}',
       'community_post_load_failed': '无法加载帖子。',
       'community_no_posts': '还没有帖子。',
+      'review_no_reviews': '暂无撰写的评价。',
       'community_translation_badge': '{lang} 翻译',
       'community_no_content_preview': '没有内容预览。',
 
@@ -1354,7 +1360,7 @@ class AppLanguage {
       'review_submitted': 'レビューが登録されました。',
       'review_duplicate_error': 'この病院にはすでにレビューを書いています。',
       'review_submit_error': 'レビューの登録に失敗しました。もう一度お試しください。',
-
+      'region_all': '地域',
       // 커뮤니티
       'community_banner_text': '病院・薬・翻訳について\nお互いに交流しましょう！',
       'community_tab_home': 'ホーム',
@@ -1418,6 +1424,7 @@ class AppLanguage {
       'community_replying_to_banner': '{nickname}さんに返信中',
       'community_post_load_failed': '投稿を読み込めませんでした。',
       'community_no_posts': 'まだ投稿がありません。',
+      'review_no_reviews': '作成したレビューはありません。',
       'community_translation_badge': '{lang} 翻訳',
       'community_no_content_preview': '内容のプレビューがありません。',
 
@@ -1724,6 +1731,7 @@ class AppLanguage {
       'review_submitted': 'Đánh giá đã được đăng.',
       'review_duplicate_error': 'Bạn đã viết đánh giá cho bệnh viện này rồi.',
       'review_submit_error': 'Đăng đánh giá thất bại. Vui lòng thử lại.',
+      'region_all': 'Khu vực',
 
       // 커뮤니티
       'community_banner_text': 'Hãy giao lưu với nhau\nvề bệnh viện, thuốc và dịch thuật!',
@@ -1788,6 +1796,7 @@ class AppLanguage {
       'community_replying_to_banner': 'Đang trả lời {nickname}',
       'community_post_load_failed': 'Không thể tải bài viết.',
       'community_no_posts': 'Chưa có bài viết nào.',
+      'review_no_reviews': 'Chưa có đánh giá nào được viết.',
       'community_translation_badge': 'Bản dịch {lang}',
       'community_no_content_preview': 'Không có bản xem trước nội dung.',
 
@@ -2095,7 +2104,8 @@ class AppLanguage {
       'review_submitted': 'รีวิวได้รับการลงทะเบียนแล้ว',
       'review_duplicate_error': 'คุณได้เขียนรีวิวสำหรับโรงพยาบาลนี้แล้ว',
       'review_submit_error': 'การลงทะเบียนรีวิวล้มเหลว กรุณาลองใหม่อีกครั้ง',
-
+      'region_all': 'ภูมิภาค',
+      
       // 커뮤니티
       'community_banner_text': 'มาพูดคุยกันเกี่ยวกับ\nโรงพยาบาล ยา และการแปล!',
       'community_tab_home': 'หน้าหลัก',
@@ -2159,6 +2169,7 @@ class AppLanguage {
       'community_replying_to_banner': 'กำลังตอบกลับ {nickname}',
       'community_post_load_failed': 'ไม่สามารถโหลดโพสต์ได้',
       'community_no_posts': 'ยังไม่มีโพสต์',
+      'review_no_reviews': 'ยังไม่มีรีวิวที่เขียน',
       'community_translation_badge': 'คำแปล {lang}',
       'community_no_content_preview': 'ไม่มีตัวอย่างเนื้อหา',
 
