@@ -13,4 +13,7 @@ public class SymptomAnalysisResponse {
 
     /** 진료과 이름 (예: "이비인후과") */
     private String departmentName;
+
+    /** ICD-10 코드 (예: "J06.9") */
+    private String icd10Code;
 }
