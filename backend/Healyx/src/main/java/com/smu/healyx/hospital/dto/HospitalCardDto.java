@@ -55,20 +55,37 @@ public class HospitalCardDto {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String costUnavailableReason;
 
+    // ── 추천 스코어링 필드 ────────────────────────────────────────────
+    /** 추천 점수 (0.0~1.0) — sortBy=recommend 정렬 기준 */
+    private double score;
+
+    /** 병원 평균 별점 (1.0~5.0, 리뷰 없으면 null) */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private Double avgRating;
+
+    /** 리뷰 건수 */
+    private int reviewCount;
+
     /**
-     * HospitalDto + 의료비 예측 결과 → HospitalCardDto 조립.
+     * HospitalDto + 의료비 예측 결과 + 스코어링 결과 → HospitalCardDto 조립.
      *
-     * @param hospital   HIRA 응답 병원 정보
-     * @param minCost    최저 예상 비용 (게스트/실패 시 null)
-     * @param maxCost    최고 예상 비용 (게스트/실패 시 null)
-     * @param visitType  방문 유형 (게스트/실패 시 null)
-     * @param reason     예측 미수행 사유 (정상 예측 시 null)
+     * @param hospital     HIRA 응답 병원 정보
+     * @param minCost      최저 예상 비용 (게스트/실패 시 null)
+     * @param maxCost      최고 예상 비용 (게스트/실패 시 null)
+     * @param visitType    방문 유형 (게스트/실패 시 null)
+     * @param reason       예측 미수행 사유 (정상 예측 시 null)
+     * @param score        추천 점수 (0.0~1.0)
+     * @param avgRating    평균 별점 (리뷰 없으면 null)
+     * @param reviewCount  리뷰 건수
      */
     public static HospitalCardDto of(HospitalDto hospital,
                                      Integer minCost,
                                      Integer maxCost,
                                      String  visitType,
-                                     String  reason) {
+                                     String  reason,
+                                     double  score,
+                                     Double  avgRating,
+                                     int     reviewCount) {
         return HospitalCardDto.builder()
                 .ykiho(hospital.getYkiho())
                 .hospitalName(hospital.getHospitalName())
@@ -86,6 +103,9 @@ public class HospitalCardDto {
                 .maxCost(maxCost)
                 .visitType(visitType)
                 .costUnavailableReason(reason)
+                .score(score)
+                .avgRating(avgRating)
+                .reviewCount(reviewCount)
                 .build();
     }
 }

@@ -38,6 +38,7 @@ public class HospitalRecommendService {
     private final HospitalRepository      hospitalRepository;
     private final BodyIconService         bodyIconService;
     private final CostPredictionService   costPredictionService;
+    private final HospitalScoringService  hospitalScoringService;
 
     /**
      * 신체 부위 아이콘 → 증상 키워드 매핑 (HX_H_002, UI-HOS-05).
@@ -88,28 +89,43 @@ public class HospitalRecommendService {
         boolean hasResult = searchResponse != null && !searchResponse.getHospitals().isEmpty();
         List<HospitalDto> hospitals = hasResult ? searchResponse.getHospitals() : List.of();
 
-        // ── 2. 정렬 + 상위 5개 제한 (HOS-008) ─────────────────────────
+        // ── 2. hospitals 테이블 upsert (전체, 스코어링 전에 hospitalId 확보) ──
+        Map<String, Long> ykihoToHospitalId = Map.of();
         if (hasResult) {
+            ykihoToHospitalId = upsertHospitals(hospitals);
+        }
+
+        // ── 3. 스코어링 ────────────────────────────────────────────────
+        Map<String, HospitalScoringService.ScoredHospital> scoredMap = Map.of();
+        if (hasResult) {
+            scoredMap = hospitalScoringService.score(
+                    hospitals, ykihoToHospitalId, request.getEffectiveRiskLevel());
+        }
+
+        // ── 4. 정렬 + 상위 5개 제한 (HOS-008) ─────────────────────────
+        if (hasResult) {
+            final Map<String, HospitalScoringService.ScoredHospital> finalScoredMap = scoredMap;
             if ("distance".equals(request.getEffectiveSortBy())) {
                 hospitals = hospitals.stream()
                         .sorted(Comparator.comparingInt(HospitalDto::getDistance))
                         .limit(5)
                         .collect(Collectors.toList());
             } else {
+                // recommend: score DESC 정렬
                 hospitals = hospitals.stream()
+                        .sorted(Comparator.comparingDouble(
+                                (HospitalDto h) -> {
+                                    HospitalScoringService.ScoredHospital s = finalScoredMap.get(h.getYkiho());
+                                    return s != null ? s.score() : 0.0;
+                                }).reversed())
                         .limit(5)
                         .collect(Collectors.toList());
             }
         }
 
-        // ── 3. hospitals 테이블 upsert (OCR 대조 선행 조건) ──────────
-        if (hasResult) {
-            upsertHospitals(hospitals);
-        }
-
-        // ── 4. 카드별 의료비 예측 + 카드 조립 ─────────────────────────
+        // ── 5. 카드별 의료비 예측 + 카드 조립 ─────────────────────────
         List<HospitalCardDto> cards = hasResult
-                ? buildCards(hospitals, agentResponse, request, userProfile, userId)
+                ? buildCards(hospitals, agentResponse, request, userProfile, userId, scoredMap)
                 : List.of();
 
         String emptyReason = hasResult ? null :
@@ -165,7 +181,8 @@ public class HospitalRecommendService {
                                              HospitalAssistantResponse agent,
                                              HospitalRecommendRequest request,
                                              UserProfileDto userProfile,
-                                             Long userId) {
+                                             Long userId,
+                                             Map<String, HospitalScoringService.ScoredHospital> scoredMap) {
 
         @SuppressWarnings("unchecked")
         CompletableFuture<HospitalCardDto>[] futures =
@@ -174,6 +191,12 @@ public class HospitalRecommendService {
         for (int i = 0; i < hospitals.size(); i++) {
             final HospitalDto h = hospitals.get(i);
             futures[i] = CompletableFuture.supplyAsync(() -> {
+                // 스코어링 결과 조회
+                HospitalScoringService.ScoredHospital scored = scoredMap.get(h.getYkiho());
+                double cardScore      = (scored != null) ? scored.score() : 0.0;
+                Double cardAvgRating  = (scored != null) ? scored.avgRating() : null;
+                int cardReviewCount   = (scored != null) ? scored.reviewCount() : 0;
+
                 try {
                     CostPredictRequest costReq = CostPredictRequest.builder()
                             .icd10Code(agent.getIcd10Code())
@@ -187,7 +210,8 @@ public class HospitalRecommendService {
                             costReq, userProfile, userId);
 
                     return HospitalCardDto.of(
-                            h, cost.getMinCost(), cost.getMaxCost(), cost.getVisitType(), null);
+                            h, cost.getMinCost(), cost.getMaxCost(), cost.getVisitType(), null,
+                            cardScore, cardAvgRating, cardReviewCount);
 
                 } catch (Exception e) {
                     // 단일 카드 예측 실패가 전체 추천 응답을 막지 않도록 graceful degradation.
@@ -199,7 +223,8 @@ public class HospitalRecommendService {
                             ? "COST_REFERENCE_NOT_FOUND"
                             : "COST_PREDICT_ERROR";
 
-                    return HospitalCardDto.of(h, null, null, null, reason);
+                    return HospitalCardDto.of(h, null, null, null, reason,
+                            cardScore, cardAvgRating, cardReviewCount);
                 }
             });
         }
@@ -219,14 +244,16 @@ public class HospitalRecommendService {
      *
      * <p>N+1 제거: findByYkiho 5회 → findAllByYkihoIn 1회 IN 쿼리 후
      * ykiho → Hospital Map 구성. 신규/기존 분기 후 saveAll 일괄 저장.
+     *
+     * @return ykiho → hospitalId 매핑 (스코어링 서비스에서 리뷰 집계 쿼리에 사용)
      */
-    private void upsertHospitals(List<HospitalDto> dtos) {
+    private Map<String, Long> upsertHospitals(List<HospitalDto> dtos) {
         List<String> ykihos = dtos.stream()
                 .map(HospitalDto::getYkiho)
                 .filter(y -> y != null && !y.isBlank())
                 .collect(Collectors.toList());
 
-        if (ykihos.isEmpty()) return;
+        if (ykihos.isEmpty()) return Map.of();
 
         Map<String, Hospital> existing = hospitalRepository.findAllByYkihoIn(ykihos)
                 .stream()
@@ -245,8 +272,12 @@ public class HospitalRecommendService {
             }
         }
 
-        hospitalRepository.saveAll(toSave);
-        log.debug("hospitals upsert 완료: {}건", toSave.size());
+        List<Hospital> saved = hospitalRepository.saveAll(toSave);
+        log.debug("hospitals upsert 완료: {}건", saved.size());
+
+        return saved.stream()
+                .filter(h -> h.getYkiho() != null)
+                .collect(Collectors.toMap(Hospital::getYkiho, Hospital::getHospitalId));
     }
 
     /**
