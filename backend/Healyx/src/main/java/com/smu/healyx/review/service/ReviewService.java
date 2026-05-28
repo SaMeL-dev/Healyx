@@ -80,6 +80,16 @@ public class ReviewService {
         return getByHospital(ykiho, userId, page, size);
     }
 
+    /** 메인화면 최신 리뷰 N건 조회 (게스트 허용) */
+    @Transactional(readOnly = true)
+    public List<LatestReviewItem> getLatestReviews(int size) {
+        PageRequest pageable = PageRequest.of(0, size);
+        return reviewRepository.findLatestReviewsWithHospital(pageable)
+                .stream()
+                .map(LatestReviewItem::of)
+                .toList();
+    }
+
     // ════════════════════════════════════════════════════════════════
     // 내부 구현
     // ════════════════════════════════════════════════════════════════

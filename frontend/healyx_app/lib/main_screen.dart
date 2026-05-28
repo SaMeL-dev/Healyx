@@ -10,6 +10,7 @@ import 'community_screen/community_notification.dart';
 import 'menu_screen/menu_main.dart';
 import 'login_signup_screen/login_screen.dart';
 import 'services/auth_service.dart';
+import 'services/review_service.dart';
 import 'community_screen/services/community_service.dart';
 import 'app_language.dart';
 
@@ -32,6 +33,9 @@ class _MainScreenState extends State<MainScreen> {
   bool _isCommunityLoading = false;
   String? _communityErrorMessage;
 
+  bool _isReviewLoading = false;
+  List<LatestReviewData> _latestReviews = [];
+
   String _selectedLanguageCode = 'ko';
 
   List<_MainCommunityPostViewData> _latestCommunityPosts = [];
@@ -45,6 +49,9 @@ class _MainScreenState extends State<MainScreen> {
 
     // 실제 저장된 accessToken 기준으로 로그인 상태 다시 확인
     _checkLoginStatus();
+
+    // 메인 화면 리뷰 영역 내 최신 리뷰 2개 조회
+    _loadLatestReviews();
 
     // 메인 화면 커뮤니티 영역 최신 게시글 2개 조회
     _loadLatestCommunityPosts();
@@ -60,6 +67,21 @@ class _MainScreenState extends State<MainScreen> {
     });
 
     return result;
+  }
+
+  Future<void> _loadLatestReviews() async {
+    try {
+      setState(() => _isReviewLoading = true);
+      final reviews = await ReviewService.getLatestReviews(size: 2);
+      if (!mounted) return;
+      setState(() {
+        _latestReviews = reviews;
+      });
+    } catch (e) {
+      debugPrint('[MainScreen] _loadLatestReviews failed: $e');
+    } finally {
+      if (mounted) setState(() => _isReviewLoading = false);
+    }
   }
 
   String _normalizeLanguageCode(String? value) {
@@ -630,19 +652,7 @@ class _MainScreenState extends State<MainScreen> {
                             },
                           ),
                           const SizedBox(height: 8),
-                          _buildReviewCard(
-                            title: '서대문 병원',
-                            subtitle: '예약도 잘 되어있고 빠르게 진료됐음',
-                            rating: '5',
-                            comments: '5',
-                          ),
-                          const SizedBox(height: 10),
-                          _buildReviewCard(
-                            title: 'ㅇㅇ의원',
-                            subtitle: '한국어가 가능한 간호사님이 있어서 좋아요',
-                            rating: '4',
-                            comments: '2',
-                          ),
+                          _buildReviewPreviewList(),
                           const SizedBox(height: 18),
                           _buildSectionTitle(
                             title: AppLanguage.t('community'),
@@ -739,11 +749,79 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
+  Widget _buildReviewPreviewList() {
+    if (_isReviewLoading) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 24),
+        child: Center(
+          child: CircularProgressIndicator(
+            color: Color(0xFF4E7CFF),
+            strokeWidth: 2,
+          ),
+        ),
+      );
+    }
+
+    if (_latestReviews.isEmpty) {
+      return _buildReviewInfoCard(
+        message: AppLanguage.t('review_no_reviews'),
+      );
+    }
+
+    return Column(
+      children: List.generate(_latestReviews.length, (index) {
+        final review = _latestReviews[index];
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: index == _latestReviews.length - 1 ? 0 : 10,
+          ),
+          child: _buildReviewCard(
+            title: review.hospitalName,
+            subtitle: review.content.trim().isEmpty
+                ? review.nickname
+                : review.content,
+            rating: review.rating.toString(),
+          ),
+        );
+      }),
+    );
+  }
+
+  Widget _buildReviewInfoCard({required String message}) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFD8E4FF), width: 1.2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Center(
+        child: Text(
+          message,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            fontSize: 12,
+            color: Colors.black54,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildReviewCard({
     required String title,
     required String subtitle,
     required String rating,
-    required String comments,
+    String? comments,
   }) {
     return Container(
       width: double.infinity,
@@ -789,21 +867,23 @@ class _MainScreenState extends State<MainScreen> {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              const SizedBox(width: 14),
-              const Icon(
-                Icons.chat_bubble_outline,
-                size: 14,
-                color: Color(0xFF7C9CFF),
-              ),
-              const SizedBox(width: 4),
-              Text(
-                comments,
-                style: const TextStyle(
-                  fontSize: 11,
+              if (comments != null) ...[
+                const SizedBox(width: 14),
+                const Icon(
+                  Icons.chat_bubble_outline,
+                  size: 14,
                   color: Color(0xFF7C9CFF),
-                  fontWeight: FontWeight.w600,
                 ),
-              ),
+                const SizedBox(width: 4),
+                Text(
+                  comments,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: Color(0xFF7C9CFF),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ],
           ),
         ],
