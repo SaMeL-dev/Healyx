@@ -12,7 +12,7 @@ class FindHospitalIcon extends StatefulWidget {
 }
 
 class _FindHospitalIconState extends State<FindHospitalIcon> {
-  final Set<String> _selectedIconIds = {};
+  String? _selectedIconId;
   bool _isLoading = false;
 
   final List<_SymptomIconItem> _symptomIcons = const [
@@ -66,33 +66,33 @@ class _FindHospitalIconState extends State<FindHospitalIcon> {
     ),
   ];
 
-  void _toggleIcon(String iconId) {
+  void _selectIcon(String iconId) {
     if (_isLoading) return;
 
     setState(() {
-      if (_selectedIconIds.contains(iconId)) {
-        _selectedIconIds.remove(iconId);
+      // 같은 아이콘을 한 번 더 누르면 선택 해제
+      if (_selectedIconId == iconId) {
+        _selectedIconId = null;
       } else {
-        _selectedIconIds.add(iconId);
+        // 다른 아이콘을 누르면 기존 선택을 새 선택으로 교체
+        _selectedIconId = iconId;
       }
     });
   }
 
   Future<void> _goToPainScore() async {
-    if (_selectedIconIds.isEmpty || _isLoading) return;
+    final selectedIconId = _selectedIconId;
+
+    if (selectedIconId == null || _isLoading) return;
 
     setState(() {
       _isLoading = true;
     });
 
     try {
-      final selectedIconIds = _symptomIcons
-          .where((item) => _selectedIconIds.contains(item.iconId))
-          .map((item) => item.iconId)
-          .toList();
-
+      // 아이콘은 1개만 선택하므로 선택된 iconId 하나만 API에 전달
       final symptom = await BodyIconKeywordService.fetchMultipleKeywords(
-        iconIds: selectedIconIds,
+        iconIds: [selectedIconId],
       );
 
       if (!mounted) return;
@@ -132,54 +132,166 @@ class _FindHospitalIconState extends State<FindHospitalIcon> {
   }
 
   String _buildSelectedIconGuideText() {
-    final int count = _selectedIconIds.length;
-    final String langCode = AppLanguage.currentLang.value;
+    final selectedIconId = _selectedIconId;
 
-    if (count == 0) {
-      switch (langCode) {
-        case 'en':
-          return 'Please select at least one icon close to your symptom.';
-        case 'zh':
-          return '请选择至少一个与症状相近的图标。';
-        case 'ja':
-          return '症状に近いアイコンを1つ以上選択してください。';
-        case 'vi':
-          return 'Vui lòng chọn ít nhất một biểu tượng gần với triệu chứng của bạn.';
-        case 'th':
-          return 'โปรดเลือกไอคอนที่ใกล้เคียงกับอาการอย่างน้อย 1 รายการ';
-        case 'ko':
-        default:
-          return '증상과 가까운 아이콘을 하나 이상 선택해주세요.';
-      }
+    if (selectedIconId == null) {
+      return _localizedSelectIconGuide();
     }
 
-    switch (langCode) {
+    final label = _localizedIconLabel(selectedIconId);
+
+    switch (AppLanguage.currentLang.value) {
       case 'en':
-        return count == 1 ? '1 icon selected.' : '$count icons selected.';
+        return 'You selected the $label-related symptom icon.';
       case 'zh':
-        return '已选择 $count 个图标。';
+        return '您选择了与$label相关的症状图标。';
       case 'ja':
-        return '$count個のアイコンが選択されました。';
+        return '$labelに関連する症状アイコンを選択しました。';
       case 'vi':
-        return 'Đã chọn $count biểu tượng.';
+        return 'Bạn đã chọn biểu tượng triệu chứng liên quan đến $label.';
       case 'th':
-        return 'เลือกไอคอนแล้ว $count รายการ';
+        return 'คุณได้เลือกไอคอนอาการที่เกี่ยวข้องกับ$label';
       case 'ko':
       default:
-        return '$count개의 아이콘이 선택되었습니다.';
+        return '$label 관련 증상 아이콘을 선택하셨습니다.';
     }
+  }
+
+  String _localizedSelectIconGuide() {
+    switch (AppLanguage.currentLang.value) {
+      case 'en':
+        return 'Please select one icon close to your symptom.';
+      case 'zh':
+        return '请选择一个与症状相近的图标。';
+      case 'ja':
+        return '症状に近いアイコンを1つ選択してください。';
+      case 'vi':
+        return 'Vui lòng chọn một biểu tượng gần với triệu chứng của bạn.';
+      case 'th':
+        return 'โปรดเลือกไอคอนที่ใกล้เคียงกับอาการของคุณ 1 รายการ';
+      case 'ko':
+      default:
+        return '증상과 가까운 아이콘을 하나 선택해주세요.';
+    }
+  }
+
+  String _localizedIconLabel(String iconId) {
+    final langCode = AppLanguage.currentLang.value;
+
+    final labels = <String, Map<String, String>>{
+      'headache': {
+        'ko': '머리',
+        'en': 'head',
+        'zh': '头部',
+        'ja': '頭',
+        'vi': 'đầu',
+        'th': 'ศีรษะ',
+      },
+      'stomachache': {
+        'ko': '복부',
+        'en': 'stomach',
+        'zh': '腹部',
+        'ja': 'お腹',
+        'vi': 'bụng',
+        'th': 'ท้อง',
+      },
+      'toothache': {
+        'ko': '치아',
+        'en': 'tooth',
+        'zh': '牙齿',
+        'ja': '歯',
+        'vi': 'răng',
+        'th': 'ฟัน',
+      },
+      'droplet': {
+        'ko': '식은땀',
+        'en': 'cold sweat',
+        'zh': '冷汗',
+        'ja': '冷や汗',
+        'vi': 'đổ mồ hôi lạnh',
+        'th': 'เหงื่อเย็น',
+      },
+      'broken-bone': {
+        'ko': '뼈',
+        'en': 'bone',
+        'zh': '骨骼',
+        'ja': '骨',
+        'vi': 'xương',
+        'th': 'กระดูก',
+      },
+      'ear': {
+        'ko': '귀',
+        'en': 'ear',
+        'zh': '耳朵',
+        'ja': '耳',
+        'vi': 'tai',
+        'th': 'หู',
+      },
+      'skin': {
+        'ko': '피부',
+        'en': 'skin',
+        'zh': '皮肤',
+        'ja': '皮膚',
+        'vi': 'da',
+        'th': 'ผิวหนัง',
+      },
+      'head-side-cough': {
+        'ko': '기침',
+        'en': 'cough',
+        'zh': '咳嗽',
+        'ja': '咳',
+        'vi': 'ho',
+        'th': 'ไอ',
+      },
+      'visible': {
+        'ko': '눈',
+        'en': 'eye',
+        'zh': '眼部',
+        'ja': '目',
+        'vi': 'mắt',
+        'th': 'ตา',
+      },
+      'nose': {
+        'ko': '코',
+        'en': 'nose',
+        'zh': '鼻子',
+        'ja': '鼻',
+        'vi': 'mũi',
+        'th': 'จมูก',
+      },
+      'cold': {
+        'ko': '오한/몸살',
+        'en': 'chills/body aches',
+        'zh': '寒战/全身酸痛',
+        'ja': '悪寒・体の痛み',
+        'vi': 'ớn lạnh/đau nhức cơ thể',
+        'th': 'หนาวสั่น/ปวดเมื่อยตัว',
+      },
+      'disk': {
+        'ko': '허리',
+        'en': 'back',
+        'zh': '腰部',
+        'ja': '腰',
+        'vi': 'lưng',
+        'th': 'หลัง',
+      },
+    };
+
+    return labels[iconId]?[langCode] ??
+        labels[iconId]?['ko'] ??
+        iconId;
   }
 
   String _localizedNoKeywordMessage() {
     switch (AppLanguage.currentLang.value) {
       case 'en':
-        return 'No symptom keywords were found for the selected icons.';
+        return 'No symptom keyword was found for the selected icon.';
       case 'zh':
         return '未找到所选图标对应的症状关键词。';
       case 'ja':
         return '選択したアイコンに対応する症状キーワードが見つかりません。';
       case 'vi':
-        return 'Không tìm thấy từ khóa triệu chứng cho các biểu tượng đã chọn.';
+        return 'Không tìm thấy từ khóa triệu chứng cho biểu tượng đã chọn.';
       case 'th':
         return 'ไม่พบคำสำคัญของอาการสำหรับไอคอนที่เลือก';
       case 'ko':
@@ -190,7 +302,7 @@ class _FindHospitalIconState extends State<FindHospitalIcon> {
 
   @override
   Widget build(BuildContext context) {
-    final bool isConfirmEnabled = _selectedIconIds.isNotEmpty && !_isLoading;
+    final bool isConfirmEnabled = _selectedIconId != null && !_isLoading;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF3F4F8),
@@ -242,13 +354,16 @@ class _FindHospitalIconState extends State<FindHospitalIcon> {
 
             const SizedBox(height: 10),
 
-            Text(
-              _buildSelectedIconGuideText(),
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: Colors.black54,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Text(
+                _buildSelectedIconGuideText(),
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black54,
+                ),
               ),
             ),
 
@@ -267,11 +382,10 @@ class _FindHospitalIconState extends State<FindHospitalIcon> {
                   ),
                   itemBuilder: (context, index) {
                     final item = _symptomIcons[index];
-                    final bool isSelected =
-                    _selectedIconIds.contains(item.iconId);
+                    final bool isSelected = _selectedIconId == item.iconId;
 
                     return GestureDetector(
-                      onTap: () => _toggleIcon(item.iconId),
+                      onTap: () => _selectIcon(item.iconId),
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 160),
                         curve: Curves.easeOut,
@@ -287,8 +401,8 @@ class _FindHospitalIconState extends State<FindHospitalIcon> {
                           boxShadow: isSelected
                               ? [
                             BoxShadow(
-                              color:
-                              const Color(0xFF2260FF).withAlpha(38),
+                              color: const Color(0xFF2260FF)
+                                  .withAlpha(38),
                               blurRadius: 8,
                               offset: const Offset(0, 3),
                             ),
