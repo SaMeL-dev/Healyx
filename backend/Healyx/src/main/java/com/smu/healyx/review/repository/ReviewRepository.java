@@ -53,4 +53,8 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     // ── 신규: 페이징 조회 ───────────────────────────
     Page<Review> findByHospital_HospitalIdOrderByCreatedAtDesc(Long hospitalId, Pageable pageable);
     Page<Review> findByUser_UserIdOrderByCreatedAtDesc(Long userId, Pageable pageable);
+
+    // ── 전체 최신 리뷰 N건 조회 (메인화면 미리보기) — hospital·user JOIN FETCH(N+1 방지) ──
+    @Query("SELECT r FROM Review r JOIN FETCH r.hospital JOIN FETCH r.user ORDER BY r.createdAt DESC")
+    List<Review> findLatestReviewsWithHospital(Pageable pageable);
 }

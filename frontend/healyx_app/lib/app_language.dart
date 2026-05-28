@@ -302,6 +302,7 @@ class AppLanguage {
       'community_replying_to_banner': '{nickname}님에게 답글 작성 중',
       'community_post_load_failed': '게시글을 불러오지 못했습니다.',
       'community_no_posts': '아직 등록된 게시글이 없습니다.',
+      'review_no_reviews': '아직 등록된 리뷰가 없습니다.',
       'community_translation_badge': '{lang} 번역',
       'community_no_content_preview': '내용 미리보기가 없습니다.',
 
@@ -666,6 +667,7 @@ class AppLanguage {
       'community_replying_to_banner': 'Replying to {nickname}',
       'community_post_load_failed': 'Failed to load the post.',
       'community_no_posts': 'No posts yet.',
+      'review_no_reviews': 'No reviews yet.',
       'community_translation_badge': '{lang} translation',
       'community_no_content_preview': 'No content preview.',
 
@@ -1033,6 +1035,7 @@ class AppLanguage {
       'community_replying_to_banner': '正在回复 {nickname}',
       'community_post_load_failed': '无法加载帖子。',
       'community_no_posts': '还没有帖子。',
+      'review_no_reviews': '暂无撰写的评价。',
       'community_translation_badge': '{lang} 翻译',
       'community_no_content_preview': '没有内容预览。',
 
@@ -1397,6 +1400,7 @@ class AppLanguage {
       'community_replying_to_banner': '{nickname}さんに返信中',
       'community_post_load_failed': '投稿を読み込めませんでした。',
       'community_no_posts': 'まだ投稿がありません。',
+      'review_no_reviews': '作成したレビューはありません。',
       'community_translation_badge': '{lang} 翻訳',
       'community_no_content_preview': '内容のプレビューがありません。',
 
@@ -1762,6 +1766,7 @@ class AppLanguage {
       'community_replying_to_banner': 'Đang trả lời {nickname}',
       'community_post_load_failed': 'Không thể tải bài viết.',
       'community_no_posts': 'Chưa có bài viết nào.',
+      'review_no_reviews': 'Chưa có đánh giá nào được viết.',
       'community_translation_badge': 'Bản dịch {lang}',
       'community_no_content_preview': 'Không có bản xem trước nội dung.',
 
@@ -2129,6 +2134,7 @@ class AppLanguage {
       'community_replying_to_banner': 'กำลังตอบกลับ {nickname}',
       'community_post_load_failed': 'ไม่สามารถโหลดโพสต์ได้',
       'community_no_posts': 'ยังไม่มีโพสต์',
+      'review_no_reviews': 'ยังไม่มีรีวิวที่เขียน',
       'community_translation_badge': 'คำแปล {lang}',
       'community_no_content_preview': 'ไม่มีตัวอย่างเนื้อหา',
 
