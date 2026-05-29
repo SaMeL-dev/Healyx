@@ -52,7 +52,7 @@ class HospitalRecommendService {
         headers: headers,
         body: jsonEncode(body),
       )
-          .timeout(const Duration(seconds: 60));
+          .timeout(const Duration(seconds: 100));
 
       final decodedBody = utf8.decode(response.bodyBytes);
 
@@ -60,13 +60,24 @@ class HospitalRecommendService {
       debugPrint('StatusCode: ${response.statusCode}');
       debugPrint('ResponseBody: $decodedBody');
 
+      // 504 Gateway Time-out은 서버에서 HTML로 내려오는 경우가 많으므로
+      // JSON 파싱 전에 먼저 처리해야 함
+      if (response.statusCode == 504) {
+        throw HospitalRecommendException(
+          message: 'gateway_timeout',
+          statusCode: response.statusCode,
+        );
+      }
+
       Map<String, dynamic> jsonBody;
 
       try {
         jsonBody = jsonDecode(decodedBody) as Map<String, dynamic>;
       } catch (e) {
+        debugPrint('병원 추천 API JSON 파싱 실패: $e');
+
         throw HospitalRecommendException(
-          message: '서버 응답이 JSON 형식이 아닙니다. 응답: $decodedBody',
+          message: 'server_response_parse_error',
           statusCode: response.statusCode,
         );
       }
@@ -76,12 +87,12 @@ class HospitalRecommendService {
       }
 
       throw HospitalRecommendException(
-        message: jsonBody['message']?.toString() ?? '병원 추천 요청에 실패했습니다.',
+        message: jsonBody['message']?.toString() ?? 'hospital_recommend_failed',
         statusCode: response.statusCode,
       );
     } on TimeoutException {
       throw HospitalRecommendException(
-        message: '병원 추천 API 요청 시간이 초과되었습니다.',
+        message: 'timeout',
       );
     } catch (e) {
       debugPrint('===== 병원 추천 API 실제 오류 =====');
@@ -92,7 +103,7 @@ class HospitalRecommendService {
       }
 
       throw HospitalRecommendException(
-        message: '병원 추천 요청 중 오류가 발생했습니다. 원인: $e',
+        message: 'hospital_recommend_failed',
       );
     }
   }

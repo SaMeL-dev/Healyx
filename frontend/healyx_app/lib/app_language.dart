@@ -208,6 +208,10 @@ class AppLanguage {
       'hospital_write_review': '리뷰쓰기',
       'hospital_review_count': '{count}개의 리뷰',
       'hospital_first_review_prompt': '첫번째 리뷰를 써보세요.',
+      'hospital_recommend_timeout': '병원 추천 요청 시간이 초과되었습니다.\n잠시 후 다시 시도해주세요.',
+      'hospital_recommend_delayed': '병원 추천 요청이 지연되고 있습니다.\n잠시 후 다시 시도해주세요.',
+      'hospital_recommend_failed': '병원 추천에 실패했습니다.\n잠시 후 다시 시도해주세요.',
+      'hospital_location_error': '현재 위치를 가져올 수 없습니다.\n위치 권한을 확인해주세요.',
 
       // 리뷰
       'review_recognition_failed': '인식에\n실패하였습니다.',
@@ -219,7 +223,7 @@ class AppLanguage {
       'review_receipt_check_image': '인증할 영수증 이미지를 확인해주세요.',
       'review_receipt_verifying': '영수증을 확인중입니다...',
       'session_expired_title': '세션이 만료되었습니다',
-      'session_expired_message': '로그인 세션이 만료되었습니다. 다시 로그인해 주세요.',
+      'session_expired_message': '로그인 세션이 만료되었습니다.\n 다시 로그인해 주세요.',
       'review_receipt_select_method': '영수증 인증 방식을 선택해주세요.',
       'review_upload_camera_title': '카메라 촬영',
       'review_upload_camera_subtitle': '영수증을 촬영하세요',
@@ -236,7 +240,7 @@ class AppLanguage {
       'review_submit': '등록',
       'review_submitted': '리뷰가 등록되었습니다.',
       'review_duplicate_error': '이미 이 병원에 리뷰를 작성하셨습니다.',
-      'review_submit_error': '리뷰 등록에 실패했습니다. 다시 시도해주세요.',
+      'review_submit_error': '리뷰 등록에 실패했습니다.\n 다시 시도해주세요.',
       'region_all': '지역',
       
       // 커뮤니티
@@ -392,6 +396,9 @@ class AppLanguage {
       'pw_request_success': '요청이 성공했습니다.',
       'pw_request_fail': '요청에 실패했습니다.',
       'pw_response_parse_error': '서버 응답을 처리하는 중 오류가 발생했습니다.',
+
+      'pw_invalid_verification_code': '인증 코드가 올바르지 않습니다.',
+      'pw_verification_failed': '인증에 실패했습니다.',
 
       // 리뷰 병원 검색
       'review_search_all': '전체 검색',
@@ -573,6 +580,11 @@ class AppLanguage {
       'hospital_write_review': 'Write Review',
       'hospital_review_count': '{count} reviews',
       'hospital_first_review_prompt': 'Be the first to write a review.',
+      'hospital_recommend_timeout': 'The hospital recommendation request timed out. Please try again later.',
+      'hospital_recommend_delayed': 'The hospital recommendation request is taking longer than expected. Please try again later.',
+      'hospital_recommend_failed': 'Hospital recommendation failed. Please try again later.',
+      'hospital_location_error': 'Unable to get your current location. Please check your location permission.',
+
 
       // 리뷰
       'review_recognition_failed': 'Recognition\nfailed.',
@@ -759,6 +771,9 @@ class AppLanguage {
       'pw_request_fail': 'Request failed.',
       'pw_response_parse_error': 'An error occurred while processing the server response.',
 
+      'pw_invalid_verification_code': 'The verification code is incorrect.',
+      'pw_verification_failed': 'Verification failed.',
+
       // 리뷰 병원 검색
       'review_search_all': 'Search All',
       'review_search_no_result': 'No results found.',
@@ -939,6 +954,11 @@ class AppLanguage {
       'hospital_write_review': '写评价',
       'hospital_review_count': '{count}条评价',
       'hospital_first_review_prompt': '来写第一条评价吧。',
+      'hospital_recommend_timeout': '医院推荐请求超时。请稍后再试。',
+      'hospital_recommend_delayed': '医院推荐请求处理时间较长。请稍后再试。',
+      'hospital_recommend_failed': '医院推荐失败。请稍后再试。',
+      'hospital_location_error': '无法获取当前位置。请检查位置权限。',
+
 
       // 리뷰
       'review_recognition_failed': '识别\n失败了。',
@@ -1127,6 +1147,9 @@ class AppLanguage {
       'pw_request_fail': '请求失败。',
       'pw_response_parse_error': '处理服务器响应时出现错误。',
 
+      'pw_invalid_verification_code': '验证码不正确。',
+      'pw_verification_failed': '验证失败。',
+
       // 리뷰 병원 검색
       'review_search_all': '全部搜索',
       'review_search_no_result': '未找到搜索结果。',
@@ -1199,6 +1222,9 @@ class AppLanguage {
       'pw_change_complete': 'パスワード変更完了！',
       'pw_change_desc': '入力されたパスワードに変更が完了しました。',
       'go_to_login': 'ログインへ',
+
+      'pw_invalid_verification_code': '認証コードが正しくありません。',
+      'pw_verification_failed': '認証に失敗しました。',
 
       // 아이디/비밀번호 찾기
       'find_id_title': 'ID確認',
@@ -1307,6 +1333,11 @@ class AppLanguage {
       'hospital_write_review': 'レビューを書く',
       'hospital_review_count': '{count}件のレビュー',
       'hospital_first_review_prompt': '最初のレビューを書いてみましょう。',
+      'hospital_recommend_timeout': '病院推薦リクエストがタイムアウトしました。しばらくしてからもう一度お試しください。',
+      'hospital_recommend_delayed': '病院推薦リクエストに時間がかかっています。しばらくしてからもう一度お試しください。',
+      'hospital_recommend_failed': '病院推薦に失敗しました。しばらくしてからもう一度お試しください。',
+      'hospital_location_error': '現在地を取得できません。位置情報の権限を確認してください。',
+
 
       // 리뷰
       'review_recognition_failed': '認識に\n失敗しました。',
@@ -1566,6 +1597,9 @@ class AppLanguage {
       'pw_change_desc': 'Mật khẩu của bạn đã được thay đổi thành công.',
       'go_to_login': 'Đến trang đăng nhập',
 
+      'pw_invalid_verification_code': 'Mã xác minh không chính xác.',
+      'pw_verification_failed': 'Xác minh thất bại.',
+
       // 아이디/비밀번호 찾기
       'find_id_title': 'Tìm tên đăng nhập',
       'find_password': 'Tìm mật khẩu',
@@ -1672,6 +1706,11 @@ class AppLanguage {
       'hospital_write_review': 'Viết đánh giá',
       'hospital_review_count': '{count} đánh giá',
       'hospital_first_review_prompt': 'Hãy viết đánh giá đầu tiên.',
+      'hospital_recommend_timeout': 'Yêu cầu đề xuất bệnh viện đã hết thời gian chờ. Vui lòng thử lại sau.',
+      'hospital_recommend_delayed': 'Yêu cầu đề xuất bệnh viện đang mất nhiều thời gian hơn dự kiến. Vui lòng thử lại sau.',
+      'hospital_recommend_failed': 'Không thể đề xuất bệnh viện. Vui lòng thử lại sau.',
+      'hospital_location_error': 'Không thể lấy vị trí hiện tại. Vui lòng kiểm tra quyền vị trí.',
+
 
       // 리뷰
       'review_recognition_failed': 'Nhận dạng\nthất bại.',
@@ -1930,6 +1969,8 @@ class AppLanguage {
       'pw_change_complete': 'เปลี่ยนรหัสผ่านสำเร็จ!',
       'pw_change_desc': 'รหัสผ่านของคุณได้รับการเปลี่ยนแปลงเรียบร้อยแล้ว',
       'go_to_login': 'ไปที่หน้าเข้าสู่ระบบ',
+      'pw_invalid_verification_code': 'รหัสยืนยันไม่ถูกต้อง',
+      'pw_verification_failed': 'การยืนยันล้มเหลว',
 
       // 아이디/비밀번호 찾기
       'find_id_title': 'ค้นหาชื่อผู้ใช้',
@@ -2040,6 +2081,11 @@ class AppLanguage {
       'hospital_write_review': 'เขียนรีวิว',
       'hospital_review_count': '{count} รีวิว',
       'hospital_first_review_prompt': 'เป็นคนแรกที่เขียนรีวิว',
+      'hospital_recommend_timeout': 'คำขอแนะนำโรงพยาบาลหมดเวลา โปรดลองอีกครั้งภายหลัง',
+      'hospital_recommend_delayed': 'คำขอแนะนำโรงพยาบาลใช้เวลานานกว่าปกติ โปรดลองอีกครั้งภายหลัง',
+      'hospital_recommend_failed': 'ไม่สามารถแนะนำโรงพยาบาลได้ โปรดลองอีกครั้งภายหลัง',
+      'hospital_location_error': 'ไม่สามารถรับตำแหน่งปัจจุบันได้ กรุณาตรวจสอบสิทธิ์การเข้าถึงตำแหน่ง',
+
 
       // 리뷰
       'review_recognition_failed': 'การรับรู้\nล้มเหลว',
