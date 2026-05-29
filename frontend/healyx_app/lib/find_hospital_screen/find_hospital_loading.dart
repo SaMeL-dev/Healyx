@@ -46,7 +46,9 @@ class _FindHospitalLoadingState extends State<FindHospitalLoading>
 
       // 1. 현재 위치 가져오기
       debugPrint('2. 위치 조회 시작');
-      final position = await LocationService.getCurrentPosition();
+
+      final position = await _getCurrentPositionSafely();
+
       debugPrint('3. 위치 조회 완료: ${position.latitude}, ${position.longitude}');
 
       // 2. 로그인 토큰 가져오기
@@ -104,13 +106,31 @@ class _FindHospitalLoadingState extends State<FindHospitalLoading>
     }
   }
 
+  Future<dynamic> _getCurrentPositionSafely() async {
+    try {
+      return await LocationService.getCurrentPosition();
+    } catch (e) {
+      debugPrint('위치 조회 오류: $e');
+      throw _HospitalLocationException(e);
+    }
+  }
+
   String _buildLocalizedErrorMessage(Object error) {
+    // 위치 권한 꺼짐 / 위치 서비스 꺼짐 / 위치 조회 실패
+    if (error is _HospitalLocationException) {
+      return AppLanguage.t('hospital_location_error');
+    }
+
     if (error is HospitalRecommendException) {
       if (error.statusCode == 504) {
         return AppLanguage.t('hospital_recommend_delayed');
       }
 
       final message = error.message.toLowerCase();
+
+      if (_isLocationErrorText(message)) {
+        return AppLanguage.t('hospital_location_error');
+      }
 
       if (_isTimeoutText(message)) {
         return AppLanguage.t('hospital_recommend_timeout');
@@ -123,6 +143,10 @@ class _FindHospitalLoadingState extends State<FindHospitalLoading>
 
     final errorText = error.toString().toLowerCase();
 
+    if (_isLocationErrorText(errorText)) {
+      return AppLanguage.t('hospital_location_error');
+    }
+
     if (_isGatewayTimeoutText(errorText)) {
       return AppLanguage.t('hospital_recommend_delayed');
     }
@@ -132,6 +156,16 @@ class _FindHospitalLoadingState extends State<FindHospitalLoading>
     }
 
     return AppLanguage.t('hospital_recommend_failed');
+  }
+
+  bool _isLocationErrorText(String text) {
+    return text.contains('location') ||
+        text.contains('permission') ||
+        text.contains('denied') ||
+        text.contains('service') ||
+        text.contains('위치') ||
+        text.contains('권한') ||
+        text.contains('거부');
   }
 
   bool _isTimeoutText(String text) {
@@ -251,8 +285,10 @@ class _FindHospitalLoadingState extends State<FindHospitalLoading>
             Column(
               children: [
                 Padding(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
                   child: Row(
                     children: [
                       IconButton(
@@ -339,5 +375,16 @@ class _FindHospitalLoadingState extends State<FindHospitalLoading>
         ),
       ),
     );
+  }
+}
+
+class _HospitalLocationException implements Exception {
+  final Object originalError;
+
+  const _HospitalLocationException(this.originalError);
+
+  @override
+  String toString() {
+    return originalError.toString();
   }
 }

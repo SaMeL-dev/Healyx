@@ -208,9 +208,10 @@ class AppLanguage {
       'hospital_write_review': '리뷰쓰기',
       'hospital_review_count': '{count}개의 리뷰',
       'hospital_first_review_prompt': '첫번째 리뷰를 써보세요.',
-      'hospital_recommend_timeout': '병원 추천 요청 시간이 초과되었습니다. 잠시 후 다시 시도해주세요.',
-      'hospital_recommend_delayed': '병원 추천 요청이 지연되고 있습니다. 잠시 후 다시 시도해주세요.',
-      'hospital_recommend_failed': '병원 추천에 실패했습니다. 잠시 후 다시 시도해주세요.',
+      'hospital_recommend_timeout': '병원 추천 요청 시간이 초과되었습니다.\n잠시 후 다시 시도해주세요.',
+      'hospital_recommend_delayed': '병원 추천 요청이 지연되고 있습니다.\n잠시 후 다시 시도해주세요.',
+      'hospital_recommend_failed': '병원 추천에 실패했습니다.\n잠시 후 다시 시도해주세요.',
+      'hospital_location_error': '현재 위치를 가져올 수 없습니다.\n위치 권한을 확인해주세요.',
 
       // 리뷰
       'review_recognition_failed': '인식에\n실패하였습니다.',
@@ -222,7 +223,7 @@ class AppLanguage {
       'review_receipt_check_image': '인증할 영수증 이미지를 확인해주세요.',
       'review_receipt_verifying': '영수증을 확인중입니다...',
       'session_expired_title': '세션이 만료되었습니다',
-      'session_expired_message': '로그인 세션이 만료되었습니다. 다시 로그인해 주세요.',
+      'session_expired_message': '로그인 세션이 만료되었습니다.\n 다시 로그인해 주세요.',
       'review_receipt_select_method': '영수증 인증 방식을 선택해주세요.',
       'review_upload_camera_title': '카메라 촬영',
       'review_upload_camera_subtitle': '영수증을 촬영하세요',
@@ -239,7 +240,7 @@ class AppLanguage {
       'review_submit': '등록',
       'review_submitted': '리뷰가 등록되었습니다.',
       'review_duplicate_error': '이미 이 병원에 리뷰를 작성하셨습니다.',
-      'review_submit_error': '리뷰 등록에 실패했습니다. 다시 시도해주세요.',
+      'review_submit_error': '리뷰 등록에 실패했습니다.\n 다시 시도해주세요.',
       'region_all': '지역',
       
       // 커뮤니티
@@ -582,6 +583,8 @@ class AppLanguage {
       'hospital_recommend_timeout': 'The hospital recommendation request timed out. Please try again later.',
       'hospital_recommend_delayed': 'The hospital recommendation request is taking longer than expected. Please try again later.',
       'hospital_recommend_failed': 'Hospital recommendation failed. Please try again later.',
+      'hospital_location_error': 'Unable to get your current location. Please check your location permission.',
+
 
       // 리뷰
       'review_recognition_failed': 'Recognition\nfailed.',
@@ -954,6 +957,8 @@ class AppLanguage {
       'hospital_recommend_timeout': '医院推荐请求超时。请稍后再试。',
       'hospital_recommend_delayed': '医院推荐请求处理时间较长。请稍后再试。',
       'hospital_recommend_failed': '医院推荐失败。请稍后再试。',
+      'hospital_location_error': '无法获取当前位置。请检查位置权限。',
+
 
       // 리뷰
       'review_recognition_failed': '识别\n失败了。',
@@ -1331,6 +1336,8 @@ class AppLanguage {
       'hospital_recommend_timeout': '病院推薦リクエストがタイムアウトしました。しばらくしてからもう一度お試しください。',
       'hospital_recommend_delayed': '病院推薦リクエストに時間がかかっています。しばらくしてからもう一度お試しください。',
       'hospital_recommend_failed': '病院推薦に失敗しました。しばらくしてからもう一度お試しください。',
+      'hospital_location_error': '現在地を取得できません。位置情報の権限を確認してください。',
+
 
       // 리뷰
       'review_recognition_failed': '認識に\n失敗しました。',
@@ -1702,6 +1709,8 @@ class AppLanguage {
       'hospital_recommend_timeout': 'Yêu cầu đề xuất bệnh viện đã hết thời gian chờ. Vui lòng thử lại sau.',
       'hospital_recommend_delayed': 'Yêu cầu đề xuất bệnh viện đang mất nhiều thời gian hơn dự kiến. Vui lòng thử lại sau.',
       'hospital_recommend_failed': 'Không thể đề xuất bệnh viện. Vui lòng thử lại sau.',
+      'hospital_location_error': 'Không thể lấy vị trí hiện tại. Vui lòng kiểm tra quyền vị trí.',
+
 
       // 리뷰
       'review_recognition_failed': 'Nhận dạng\nthất bại.',
@@ -2075,6 +2084,8 @@ class AppLanguage {
       'hospital_recommend_timeout': 'คำขอแนะนำโรงพยาบาลหมดเวลา โปรดลองอีกครั้งภายหลัง',
       'hospital_recommend_delayed': 'คำขอแนะนำโรงพยาบาลใช้เวลานานกว่าปกติ โปรดลองอีกครั้งภายหลัง',
       'hospital_recommend_failed': 'ไม่สามารถแนะนำโรงพยาบาลได้ โปรดลองอีกครั้งภายหลัง',
+      'hospital_location_error': 'ไม่สามารถรับตำแหน่งปัจจุบันได้ กรุณาตรวจสอบสิทธิ์การเข้าถึงตำแหน่ง',
+
 
       // 리뷰
       'review_recognition_failed': 'การรับรู้\nล้มเหลว',
