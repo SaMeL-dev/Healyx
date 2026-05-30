@@ -43,7 +43,6 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     super.dispose();
   }
 
-  // 이메일 형식 검사 함수
   bool _isValidEmail(String email) {
     final emailRegex = RegExp(
       r'^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$',
@@ -139,7 +138,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       final token = await AuthService.getAccessToken();
 
       if (token == null || token.isEmpty) {
-        _showSnackBar(AppLanguage.t('profile_login_required'));
+        _showAppNotification(AppLanguage.t('profile_login_required'));
         setState(() {
           _isSaving = false;
         });
@@ -178,14 +177,14 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
         if (!mounted) return;
 
-        _showSnackBar(AppLanguage.t('profile_update_success'));
+        _showAppNotification(AppLanguage.t('profile_update_success'));
 
         Navigator.pop(context, true);
       } else {
-        _showSnackBar(AppLanguage.t('profile_update_failed'));
+        _showAppNotification(AppLanguage.t('profile_update_failed'));
       }
     } catch (e) {
-      _showSnackBar(AppLanguage.t('server_connection_failed'));
+      _showAppNotification(AppLanguage.t('server_connection_failed'));
     } finally {
       if (mounted) {
         setState(() {
@@ -209,7 +208,6 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     await prefs.setBool('insuranceStatus', insuranceStatus);
   }
 
-  // 입력 검증 실패 시 하단에 잠깐 표시되는 커스텀 안내 SnackBar
   void _showProfileGuide(String message) {
     if (!mounted) return;
 
@@ -232,16 +230,24 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       );
   }
 
-  // 저장 성공/서버 오류 등 일반 알림 SnackBar
-  void _showSnackBar(String message) {
+  void _showAppNotification(String message) {
     if (!mounted) return;
 
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          content: Text(message),
           duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          margin: const EdgeInsets.only(
+            left: 28,
+            right: 28,
+            bottom: 42,
+          ),
+          padding: EdgeInsets.zero,
+          content: _buildAppNotificationContent(message),
         ),
       );
   }
@@ -545,6 +551,57 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
                 height: 1.35,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAppNotificationContent(String message) {
+    return Container(
+      width: double.infinity,
+      constraints: const BoxConstraints(
+        minHeight: 58,
+      ),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 12,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: const Color(0xFFE1E9FF),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            decoration: const BoxDecoration(
+              color: Color(0xFFF1F5FF),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.check,
+              color: Color(0xFF2260FF),
+              size: 18,
+            ),
+          ),
+          const SizedBox(width: 13),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(
+                color: Color(0xFF2260FF),
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                height: 1.25,
               ),
             ),
           ),
