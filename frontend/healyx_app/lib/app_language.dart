@@ -226,6 +226,8 @@ class AppLanguage {
       'hospital_recommend_delayed': '병원 추천 요청이 지연되고 있습니다.\n잠시 후 다시 시도해주세요.',
       'hospital_recommend_failed': '병원 추천에 실패했습니다.\n잠시 후 다시 시도해주세요.',
       'hospital_location_error': '현재 위치를 가져올 수 없습니다.\n위치 권한을 확인해주세요.',
+      'hospital_map_location_empty': '지도에 표시할 병원 위치 정보가 없습니다.',
+      'hospital_result_empty': '병원을 찾을 수 없습니다. 증상을 다시 확인해주세요.',
 
       // 리뷰
       'review_recognition_failed': '인식에\n실패하였습니다.',
@@ -612,6 +614,8 @@ class AppLanguage {
       'hospital_recommend_delayed': 'The hospital recommendation request is taking longer than expected. Please try again later.',
       'hospital_recommend_failed': 'Hospital recommendation failed. Please try again later.',
       'hospital_location_error': 'Unable to get your current location. Please check your location permission.',
+      'hospital_map_location_empty': 'No hospital location information is available to display on the map.',
+      'hospital_result_empty': 'No hospitals were found. Please check your symptoms again.',
 
 
       // 리뷰
@@ -1000,6 +1004,8 @@ class AppLanguage {
       'hospital_recommend_delayed': '医院推荐请求处理时间较长。请稍后再试。',
       'hospital_recommend_failed': '医院推荐失败。请稍后再试。',
       'hospital_location_error': '无法获取当前位置。请检查位置权限。',
+      'hospital_map_location_empty': '没有可在地图上显示的医院位置信息。',
+      'hospital_result_empty': '未找到医院。请再次确认您的症状。',
 
 
       // 리뷰
@@ -1393,6 +1399,8 @@ class AppLanguage {
       'hospital_recommend_delayed': '病院推薦リクエストに時間がかかっています。しばらくしてからもう一度お試しください。',
       'hospital_recommend_failed': '病院推薦に失敗しました。しばらくしてからもう一度お試しください。',
       'hospital_location_error': '現在地を取得できません。位置情報の権限を確認してください。',
+      'hospital_map_location_empty': '地図に表示できる病院の位置情報がありません。',
+      'hospital_result_empty': '病院が見つかりませんでした。症状をもう一度確認してください。',
 
 
       // 리뷰
@@ -1780,6 +1788,8 @@ class AppLanguage {
       'hospital_recommend_delayed': 'Yêu cầu đề xuất bệnh viện đang mất nhiều thời gian hơn dự kiến. Vui lòng thử lại sau.',
       'hospital_recommend_failed': 'Không thể đề xuất bệnh viện. Vui lòng thử lại sau.',
       'hospital_location_error': 'Không thể lấy vị trí hiện tại. Vui lòng kiểm tra quyền vị trí.',
+      'hospital_map_location_empty': 'Không có thông tin vị trí bệnh viện để hiển thị trên bản đồ.',
+      'hospital_result_empty': 'Không tìm thấy bệnh viện. Vui lòng kiểm tra lại triệu chứng của bạn.',
 
 
       // 리뷰
@@ -2169,6 +2179,8 @@ class AppLanguage {
       'hospital_recommend_delayed': 'คำขอแนะนำโรงพยาบาลใช้เวลานานกว่าปกติ โปรดลองอีกครั้งภายหลัง',
       'hospital_recommend_failed': 'ไม่สามารถแนะนำโรงพยาบาลได้ โปรดลองอีกครั้งภายหลัง',
       'hospital_location_error': 'ไม่สามารถรับตำแหน่งปัจจุบันได้ กรุณาตรวจสอบสิทธิ์การเข้าถึงตำแหน่ง',
+      'hospital_map_location_empty': 'ไม่มีข้อมูลตำแหน่งโรงพยาบาลที่จะแสดงบนแผนที่',
+      'hospital_result_empty': 'ไม่พบโรงพยาบาล กรุณาตรวจสอบอาการของคุณอีกครั้ง',
 
 
       // 리뷰
