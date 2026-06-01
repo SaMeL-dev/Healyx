@@ -146,6 +146,20 @@ class AppLanguage {
       'profile_email': '이메일',
       'profile_nickname': '닉네임',
       'profile_insurance': '건강보험 여부',
+      'profile_name_hint': '실명을 입력해주세요',
+      'profile_email_hint': '이메일을 입력해주세요',
+      'profile_nickname_hint': '닉네임을 입력해주세요',
+      'profile_insured': '가입',
+      'profile_uninsured': '미가입',
+      'profile_error_name_empty': '실명을 입력해주세요.',
+      'profile_error_email_empty': '이메일을 입력해주세요.',
+      'profile_error_email_invalid': '이메일 형식으로 작성해주세요.',
+      'profile_error_nickname_empty': '닉네임을 입력해주세요.',
+      'profile_login_required': '로그인이 필요한 기능입니다.',
+      'profile_load_failed': '프로필 정보를 불러오지 못했습니다.',
+      'server_connection_failed': '서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.',
+      'profile_update_success': '프로필이 수정되었습니다.',
+      'profile_update_failed': '프로필 수정에 실패했습니다.',
 
       //다이얼로그 (팝업)
       'logout_confirm': '로그아웃 하시겠습니까?',
@@ -212,6 +226,8 @@ class AppLanguage {
       'hospital_recommend_delayed': '병원 추천 요청이 지연되고 있습니다.\n잠시 후 다시 시도해주세요.',
       'hospital_recommend_failed': '병원 추천에 실패했습니다.\n잠시 후 다시 시도해주세요.',
       'hospital_location_error': '현재 위치를 가져올 수 없습니다.\n위치 권한을 확인해주세요.',
+      'hospital_map_location_empty': '지도에 표시할 병원 위치 정보가 없습니다.',
+      'hospital_result_empty': '병원을 찾을 수 없습니다. 증상을 다시 확인해주세요.',
 
       // 리뷰
       'review_recognition_failed': '인식에\n실패하였습니다.',
@@ -518,6 +534,20 @@ class AppLanguage {
       'profile_email': 'Email',
       'profile_nickname': 'Nickname',
       'profile_insurance': 'Health Insurance',
+      'profile_name_hint': 'Enter your name',
+      'profile_email_hint': 'Enter your email',
+      'profile_nickname_hint': 'Enter your nickname',
+      'profile_insured': 'Insured',
+      'profile_uninsured': 'Uninsured',
+      'profile_error_name_empty': 'Please enter your name.',
+      'profile_error_email_empty': 'Please enter your email.',
+      'profile_error_email_invalid': 'Please enter a valid email address.',
+      'profile_error_nickname_empty': 'Please enter your nickname.',
+      'profile_login_required': 'Login is required.',
+      'profile_load_failed': 'Failed to load profile information.',
+      'server_connection_failed': 'Failed to connect to the server. Please try again later.',
+      'profile_update_success': 'Profile has been updated.',
+      'profile_update_failed': 'Failed to update profile.',
 
       // 다이얼로그(팝업)
       'logout_confirm': 'Are you sure you want to logout?',
@@ -584,6 +614,8 @@ class AppLanguage {
       'hospital_recommend_delayed': 'The hospital recommendation request is taking longer than expected. Please try again later.',
       'hospital_recommend_failed': 'Hospital recommendation failed. Please try again later.',
       'hospital_location_error': 'Unable to get your current location. Please check your location permission.',
+      'hospital_map_location_empty': 'No hospital location information is available to display on the map.',
+      'hospital_result_empty': 'No hospitals were found. Please check your symptoms again.',
 
 
       // 리뷰
@@ -892,6 +924,20 @@ class AppLanguage {
       'profile_email': '电子邮件',
       'profile_nickname': '昵称',
       'profile_insurance': '医疗保险',
+      'profile_name_hint': '请输入姓名',
+      'profile_email_hint': '请输入电子邮件',
+      'profile_nickname_hint': '请输入昵称',
+      'profile_insured': '已加入',
+      'profile_uninsured': '未加入',
+      'profile_error_name_empty': '请输入姓名。',
+      'profile_error_email_empty': '请输入电子邮件。',
+      'profile_error_email_invalid': '请输入正确的电子邮件格式。',
+      'profile_error_nickname_empty': '请输入昵称。',
+      'profile_login_required': '此功能需要登录。',
+      'profile_load_failed': '无法加载个人资料信息。',
+      'server_connection_failed': '服务器连接失败。请稍后再试。',
+      'profile_update_success': '个人资料已修改。',
+      'profile_update_failed': '个人资料修改失败。',
 
       // 다이얼로그(팝업)
       'logout_confirm': '确定要退出登录吗？',
@@ -958,6 +1004,8 @@ class AppLanguage {
       'hospital_recommend_delayed': '医院推荐请求处理时间较长。请稍后再试。',
       'hospital_recommend_failed': '医院推荐失败。请稍后再试。',
       'hospital_location_error': '无法获取当前位置。请检查位置权限。',
+      'hospital_map_location_empty': '没有可在地图上显示的医院位置信息。',
+      'hospital_result_empty': '未找到医院。请再次确认您的症状。',
 
 
       // 리뷰
@@ -1271,6 +1319,20 @@ class AppLanguage {
       'profile_email': 'メールアドレス',
       'profile_nickname': 'ニックネーム',
       'profile_insurance': '健康保険',
+      'profile_name_hint': '氏名を入力してください',
+      'profile_email_hint': 'メールアドレスを入力してください',
+      'profile_nickname_hint': 'ニックネームを入力してください',
+      'profile_insured': '加入済み',
+      'profile_uninsured': '未加入',
+      'profile_error_name_empty': '氏名を入力してください。',
+      'profile_error_email_empty': 'メールアドレスを入力してください。',
+      'profile_error_email_invalid': '正しいメールアドレス形式で入力してください。',
+      'profile_error_nickname_empty': 'ニックネームを入力してください。',
+      'profile_login_required': 'ログインが必要な機能です。',
+      'profile_load_failed': 'プロフィール情報を読み込めませんでした。',
+      'server_connection_failed': 'サーバー接続に失敗しました。しばらくしてからもう一度お試しください。',
+      'profile_update_success': 'プロフィールが更新されました。',
+      'profile_update_failed': 'プロフィールの更新に失敗しました。',
 
       // 다이얼로그(팝업)
       'logout_confirm': 'ログアウトしますか？',
@@ -1337,6 +1399,8 @@ class AppLanguage {
       'hospital_recommend_delayed': '病院推薦リクエストに時間がかかっています。しばらくしてからもう一度お試しください。',
       'hospital_recommend_failed': '病院推薦に失敗しました。しばらくしてからもう一度お試しください。',
       'hospital_location_error': '現在地を取得できません。位置情報の権限を確認してください。',
+      'hospital_map_location_empty': '地図に表示できる病院の位置情報がありません。',
+      'hospital_result_empty': '病院が見つかりませんでした。症状をもう一度確認してください。',
 
 
       // 리뷰
@@ -1645,6 +1709,20 @@ class AppLanguage {
       'profile_email': 'Email',
       'profile_nickname': 'Biệt danh',
       'profile_insurance': 'Bảo hiểm y tế',
+      'profile_name_hint': 'Nhập họ và tên',
+      'profile_email_hint': 'Nhập email',
+      'profile_nickname_hint': 'Nhập biệt danh',
+      'profile_insured': 'Đã tham gia',
+      'profile_uninsured': 'Chưa tham gia',
+      'profile_error_name_empty': 'Vui lòng nhập họ và tên.',
+      'profile_error_email_empty': 'Vui lòng nhập email.',
+      'profile_error_email_invalid': 'Vui lòng nhập đúng định dạng email.',
+      'profile_error_nickname_empty': 'Vui lòng nhập biệt danh.',
+      'profile_login_required': 'Chức năng này yêu cầu đăng nhập.',
+      'profile_load_failed': 'Không thể tải thông tin hồ sơ.',
+      'server_connection_failed': 'Không thể kết nối đến máy chủ. Vui lòng thử lại sau.',
+      'profile_update_success': 'Hồ sơ đã được cập nhật.',
+      'profile_update_failed': 'Cập nhật hồ sơ thất bại.',
 
       // 다이얼로그(팝업)
       'logout_confirm': 'Bạn có chắc muốn đăng xuất không?',
@@ -1710,6 +1788,8 @@ class AppLanguage {
       'hospital_recommend_delayed': 'Yêu cầu đề xuất bệnh viện đang mất nhiều thời gian hơn dự kiến. Vui lòng thử lại sau.',
       'hospital_recommend_failed': 'Không thể đề xuất bệnh viện. Vui lòng thử lại sau.',
       'hospital_location_error': 'Không thể lấy vị trí hiện tại. Vui lòng kiểm tra quyền vị trí.',
+      'hospital_map_location_empty': 'Không có thông tin vị trí bệnh viện để hiển thị trên bản đồ.',
+      'hospital_result_empty': 'Không tìm thấy bệnh viện. Vui lòng kiểm tra lại triệu chứng của bạn.',
 
 
       // 리뷰
@@ -2017,6 +2097,20 @@ class AppLanguage {
       'profile_email': 'อีเมล',
       'profile_nickname': 'ชื่อเล่น',
       'profile_insurance': 'ประกันสุขภาพ',
+      'profile_name_hint': 'กรุณาใส่ชื่อจริง',
+      'profile_email_hint': 'กรุณาใส่อีเมล',
+      'profile_nickname_hint': 'กรุณาใส่ชื่อเล่น',
+      'profile_insured': 'สมัครแล้ว',
+      'profile_uninsured': 'ยังไม่ได้สมัคร',
+      'profile_error_name_empty': 'กรุณาใส่ชื่อจริง',
+      'profile_error_email_empty': 'กรุณาใส่อีเมล',
+      'profile_error_email_invalid': 'กรุณาใส่อีเมลให้ถูกต้อง',
+      'profile_error_nickname_empty': 'กรุณาใส่ชื่อเล่น',
+      'profile_login_required': 'ฟังก์ชันนี้ต้องเข้าสู่ระบบ',
+      'profile_load_failed': 'ไม่สามารถโหลดข้อมูลโปรไฟล์ได้',
+      'server_connection_failed': 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้งภายหลัง',
+      'profile_update_success': 'อัปเดตโปรไฟล์เรียบร้อยแล้ว',
+      'profile_update_failed': 'อัปเดตโปรไฟล์ไม่สำเร็จ',
 
       // 로그아웃 다이얼로그
       'logout_confirm': 'คุณต้องการออกจากระบบหรือไม่?',
@@ -2085,6 +2179,8 @@ class AppLanguage {
       'hospital_recommend_delayed': 'คำขอแนะนำโรงพยาบาลใช้เวลานานกว่าปกติ โปรดลองอีกครั้งภายหลัง',
       'hospital_recommend_failed': 'ไม่สามารถแนะนำโรงพยาบาลได้ โปรดลองอีกครั้งภายหลัง',
       'hospital_location_error': 'ไม่สามารถรับตำแหน่งปัจจุบันได้ กรุณาตรวจสอบสิทธิ์การเข้าถึงตำแหน่ง',
+      'hospital_map_location_empty': 'ไม่มีข้อมูลตำแหน่งโรงพยาบาลที่จะแสดงบนแผนที่',
+      'hospital_result_empty': 'ไม่พบโรงพยาบาล กรุณาตรวจสอบอาการของคุณอีกครั้ง',
 
 
       // 리뷰

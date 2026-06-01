@@ -161,7 +161,7 @@ class _FindHospitalDetailScreenState extends State<FindHospitalDetailScreen> {
     final trimmed = value?.trim() ?? '';
 
     if (trimmed.isEmpty || trimmed == 'null') {
-      return '정보 없음';
+      return _localizedNoInfoText();
     }
 
     return trimmed;
@@ -169,12 +169,13 @@ class _FindHospitalDetailScreenState extends State<FindHospitalDetailScreen> {
 
   String get _displayHospitalType {
     final detailType = _detail?.hospitalType;
+    final fallbackType = widget.hospitalType;
 
-    if (detailType != null && detailType.trim().isNotEmpty) {
-      return _displayValue(detailType);
-    }
+    final rawType = detailType != null && detailType.trim().isNotEmpty
+        ? detailType
+        : fallbackType;
 
-    return _displayValue(widget.hospitalType);
+    return _localizedHospitalType(rawType);
   }
 
   String get _displayTelephone {
@@ -185,6 +186,96 @@ class _FindHospitalDetailScreenState extends State<FindHospitalDetailScreen> {
     }
 
     return _displayValue(widget.telephone);
+  }
+
+  String _localizedHospitalType(String? hospitalType) {
+    final type = hospitalType?.trim() ?? '';
+
+    if (type.isEmpty || type == 'null') {
+      return _localizedNoInfoText();
+    }
+
+    final normalizedType = _normalizeHospitalType(type);
+    final langCode = AppLanguage.currentLang.value;
+
+    final labels = <String, Map<String, String>>{
+      'clinic': {
+        'ko': '의원',
+        'en': 'Clinic',
+        'zh': '诊所',
+        'ja': 'クリニック',
+        'vi': 'Phòng khám',
+        'th': 'คลินิก',
+      },
+      'hospital': {
+        'ko': '병원',
+        'en': 'Hospital',
+        'zh': '医院',
+        'ja': '病院',
+        'vi': 'Bệnh viện',
+        'th': 'โรงพยาบาล',
+      },
+      'general_hospital': {
+        'ko': '종합병원',
+        'en': 'General Hospital',
+        'zh': '综合医院',
+        'ja': '総合病院',
+        'vi': 'Bệnh viện đa khoa',
+        'th': 'โรงพยาบาลทั่วไป',
+      },
+      'tertiary_general_hospital': {
+        'ko': '상급종합',
+        'en': 'Tertiary General Hospital',
+        'zh': '上级综合医院',
+        'ja': '上級総合病院',
+        'vi': 'Bệnh viện đa khoa tuyến trên',
+        'th': 'โรงพยาบาลทั่วไปขั้นสูง',
+      },
+    };
+
+    return labels[normalizedType]?[langCode] ??
+        labels[normalizedType]?['ko'] ??
+        type;
+  }
+
+  String _normalizeHospitalType(String type) {
+    final normalized = type.trim();
+
+    switch (normalized) {
+      case '의원':
+        return 'clinic';
+
+      case '병원':
+        return 'hospital';
+
+      case '종합병원':
+        return 'general_hospital';
+
+      case '상급종합':
+      case '상급종합병원':
+        return 'tertiary_general_hospital';
+
+      default:
+        return normalized;
+    }
+  }
+
+  String _localizedNoInfoText() {
+    switch (AppLanguage.currentLang.value) {
+      case 'en':
+        return 'No information';
+      case 'zh':
+        return '暂无信息';
+      case 'ja':
+        return '情報なし';
+      case 'vi':
+        return 'Không có thông tin';
+      case 'th':
+        return 'ไม่มีข้อมูล';
+      case 'ko':
+      default:
+        return '정보 없음';
+    }
   }
 
   @override
@@ -442,17 +533,16 @@ class _FindHospitalDetailScreenState extends State<FindHospitalDetailScreen> {
   }
 
   // API 리뷰 목록 → ReviewCard에 필요한 ReviewData로 변환
-  List<ReviewData> get _reviewDataList =>
-      (_detail?.reviews ?? [])
-          .map(
-            (item) => ReviewData(
-          nickname: item.nickname,
-          content: item.content,
-          rating: item.rating,
-          imageUrls: item.imageUrls,
-        ),
-      )
-          .toList();
+  List<ReviewData> get _reviewDataList => (_detail?.reviews ?? [])
+      .map(
+        (item) => ReviewData(
+      nickname: item.nickname,
+      content: item.content,
+      rating: item.rating,
+      imageUrls: item.imageUrls,
+    ),
+  )
+      .toList();
 
   bool get _hasReviews => _detail != null && _detail!.reviews.isNotEmpty;
 

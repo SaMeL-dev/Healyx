@@ -136,11 +136,11 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
         ),
       );
     } finally {
-      if (!mounted) return;
-
-      setState(() {
-        isRefreshingSort = false;
-      });
+      if (mounted) {
+        setState(() {
+          isRefreshingSort = false;
+        });
+      }
     }
   }
 
@@ -366,7 +366,7 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
                   ],
                 ),
                 child: Text(
-                  '지도에 표시할 병원 위치 정보가 없습니다.',
+                  AppLanguage.t('hospital_map_location_empty'),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: grayText,
@@ -461,7 +461,9 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
                   if (hospitals.isEmpty)
                     _buildEmptyResult()
                   else
-                    ...hospitals.map((hospital) => _buildHospitalCard(hospital)),
+                    ...hospitals.map(
+                          (hospital) => _buildHospitalCard(hospital),
+                    ),
                 ],
               ),
               if (!isLoggedIn && showLoginGuide)
@@ -575,8 +577,6 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
   }
 
   Widget _buildEmptyResult() {
-    final emptyReason = recommendResponse.data?.emptyReason;
-
     return Container(
       margin: const EdgeInsets.only(top: 20),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 24),
@@ -586,9 +586,7 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
       ),
       child: Center(
         child: Text(
-          emptyReason != null && emptyReason.isNotEmpty
-              ? emptyReason
-              : '조건에 맞는 병원을 찾지 못했습니다.',
+          AppLanguage.t('hospital_result_empty'),
           textAlign: TextAlign.center,
           style: TextStyle(
             color: mainBlue,
@@ -839,7 +837,7 @@ class _FindHospitalResultScreenState extends State<FindHospitalResultScreen> {
         return 'Khoảng cách $value ${isKm ? 'km' : 'm'}';
 
       case 'th':
-        return 'ระยะทาง $value ${isKm ? 'กม.' : 'ม.'}';
+        return 'ระยะทาง $value ${isKm ? 'กม.' : 'ม'}';
 
       case 'ko':
       default:

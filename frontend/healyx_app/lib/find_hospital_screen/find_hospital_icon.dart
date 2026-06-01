@@ -204,12 +204,12 @@ class _FindHospitalIconState extends State<FindHospitalIcon> {
         'th': 'ฟัน',
       },
       'droplet': {
-        'ko': '식은땀',
-        'en': 'cold sweat',
-        'zh': '冷汗',
-        'ja': '冷や汗',
-        'vi': 'đổ mồ hôi lạnh',
-        'th': 'เหงื่อเย็น',
+        'ko': '출혈',
+        'en': 'bleeding',
+        'zh': '出血',
+        'ja': '出血',
+        'vi': 'chảy máu',
+        'th': 'เลือดออก',
       },
       'broken-bone': {
         'ko': '뼈',

@@ -43,7 +43,6 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     super.dispose();
   }
 
-  // 이메일 형식 검사 함수
   bool _isValidEmail(String email) {
     final emailRegex = RegExp(
       r'^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$',
@@ -64,7 +63,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       if (token == null || token.isEmpty) {
         setState(() {
           _isLoading = false;
-          _errorMessage = '로그인이 필요한 기능입니다.';
+          _errorMessage = AppLanguage.t('profile_login_required');
         });
         return;
       }
@@ -95,13 +94,13 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       } else {
         setState(() {
           _isLoading = false;
-          _errorMessage = responseData['message'] ?? '프로필 정보를 불러오지 못했습니다.';
+          _errorMessage = AppLanguage.t('profile_load_failed');
         });
       }
     } catch (e) {
       setState(() {
         _isLoading = false;
-        _errorMessage = '서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.';
+        _errorMessage = AppLanguage.t('server_connection_failed');
       });
     }
   }
@@ -112,22 +111,22 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     final nickname = _nicknameController.text.trim();
 
     if (realName.isEmpty) {
-      _showSnackBar('실명을 입력해주세요.');
+      _showProfileGuide(AppLanguage.t('profile_error_name_empty'));
       return;
     }
 
     if (email.isEmpty) {
-      _showSnackBar('이메일을 입력해주세요.');
+      _showProfileGuide(AppLanguage.t('profile_error_email_empty'));
       return;
     }
 
     if (!_isValidEmail(email)) {
-      _showSnackBar('이메일 형식으로 작성해주세요.');
+      _showProfileGuide(AppLanguage.t('profile_error_email_invalid'));
       return;
     }
 
     if (nickname.isEmpty) {
-      _showSnackBar('닉네임을 입력해주세요.');
+      _showProfileGuide(AppLanguage.t('profile_error_nickname_empty'));
       return;
     }
 
@@ -139,7 +138,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       final token = await AuthService.getAccessToken();
 
       if (token == null || token.isEmpty) {
-        _showSnackBar('로그인이 필요한 기능입니다.');
+        _showAppNotification(AppLanguage.t('profile_login_required'));
         setState(() {
           _isSaving = false;
         });
@@ -178,14 +177,14 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
         if (!mounted) return;
 
-        _showSnackBar(responseData['message'] ?? '프로필이 수정되었습니다.');
+        _showAppNotification(AppLanguage.t('profile_update_success'));
 
         Navigator.pop(context, true);
       } else {
-        _showSnackBar(responseData['message'] ?? '프로필 수정에 실패했습니다.');
+        _showAppNotification(AppLanguage.t('profile_update_failed'));
       }
     } catch (e) {
-      _showSnackBar('서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.');
+      _showAppNotification(AppLanguage.t('server_connection_failed'));
     } finally {
       if (mounted) {
         setState(() {
@@ -209,15 +208,48 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     await prefs.setBool('insuranceStatus', insuranceStatus);
   }
 
-  void _showSnackBar(String message) {
+  void _showProfileGuide(String message) {
     if (!mounted) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        duration: const Duration(seconds: 2),
-      ),
-    );
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          margin: const EdgeInsets.only(
+            left: 24,
+            right: 24,
+            bottom: 24,
+          ),
+          padding: EdgeInsets.zero,
+          content: _buildProfileGuideContent(message),
+        ),
+      );
+  }
+
+  void _showAppNotification(String message) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          margin: const EdgeInsets.only(
+            left: 28,
+            right: 28,
+            bottom: 42,
+          ),
+          padding: EdgeInsets.zero,
+          content: _buildAppNotificationContent(message),
+        ),
+      );
   }
 
   @override
@@ -234,7 +266,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         ),
         centerTitle: true,
         title: Text(
-          AppLanguage.t('profile_title'), // '프로필 설정'
+          AppLanguage.t('profile_title'),
           style: const TextStyle(
             color: Color(0xFF2260FF),
             fontSize: 20,
@@ -279,7 +311,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                   foregroundColor: Colors.white,
                   elevation: 0,
                 ),
-                child: const Text('다시 시도'),
+                child: Text(AppLanguage.t('retry')),
               ),
             ],
           ),
@@ -316,7 +348,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           const SizedBox(height: 8),
           _buildEditableField(
             controller: _nameController,
-            hintText: '실명을 입력해주세요',
+            hintText: AppLanguage.t('profile_name_hint'),
           ),
 
           const SizedBox(height: 20),
@@ -325,7 +357,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           const SizedBox(height: 8),
           _buildEditableField(
             controller: _emailController,
-            hintText: '이메일을 입력해주세요',
+            hintText: AppLanguage.t('profile_email_hint'),
             keyboardType: TextInputType.emailAddress,
           ),
 
@@ -335,7 +367,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           const SizedBox(height: 8),
           _buildEditableField(
             controller: _nicknameController,
-            hintText: '닉네임을 입력해주세요',
+            hintText: AppLanguage.t('profile_nickname_hint'),
           ),
 
           const SizedBox(height: 8),
@@ -365,7 +397,9 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
               ),
               const SizedBox(width: 8),
               Text(
-                _hasInsurance ? '가입' : '미가입',
+                _hasInsurance
+                    ? AppLanguage.t('profile_insured')
+                    : AppLanguage.t('profile_uninsured'),
                 style: const TextStyle(
                   fontSize: 14,
                   color: Colors.black87,
@@ -461,6 +495,117 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
             width: 1.5,
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildProfileGuideContent(String message) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 14,
+      ),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF8F1),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: const Color(0xFFFFB066),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            width: 26,
+            height: 26,
+            decoration: const BoxDecoration(
+              color: Color(0xFFFFE8CC),
+              shape: BoxShape.circle,
+            ),
+            child: const Center(
+              child: Text(
+                '!',
+                style: TextStyle(
+                  color: Color(0xFFF26A21),
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(
+                color: Color(0xFFF26A21),
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                height: 1.35,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAppNotificationContent(String message) {
+    return Container(
+      width: double.infinity,
+      constraints: const BoxConstraints(
+        minHeight: 58,
+      ),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 12,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: const Color(0xFFE1E9FF),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            decoration: const BoxDecoration(
+              color: Color(0xFFF1F5FF),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.check,
+              color: Color(0xFF2260FF),
+              size: 18,
+            ),
+          ),
+          const SizedBox(width: 13),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(
+                color: Color(0xFF2260FF),
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                height: 1.25,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
