@@ -2,8 +2,9 @@
 // 게시글 상세 조회 API를 통해 제목, 작성자, 작성일, 본문, 이미지, 좋아요, 북마크, 댓글을 표시하는 화면
 // 게시글 원문보기 기능:
 // - 선택 언어 기준으로 게시글 제목/본문 번역 API 호출
-// - 원문보기 클릭 시 게시글 제목/본문만 원문으로 전환
-// - 댓글은 원문보기 대상에서 제외
+// - 원문보기 클릭 시 게시글 제목/본문과 댓글/대댓글을 모두 원문으로 전환
+// - 기본 상태에서는 다른 사람이 작성한 댓글/대댓글을 선택 언어 기준으로 번역 표시
+// - 내가 작성한 댓글/대댓글은 원문 그대로 표시
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -67,6 +68,9 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
 
   // 선택 언어 기준 게시글 번역 데이터
   CommunityPostTranslation? _postTranslation;
+
+  // 선택 언어 기준 댓글/대댓글 번역 데이터
+  final Map<int, CommunityCommentTranslation> _commentTranslations = {};
 
   // 현재 선택된 언어 코드
   String _selectedLanguageCode = 'ko';
@@ -201,6 +205,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
       final translation = await CommunityService().getPostTranslation(
         postId: postId,
         lang: lang,
+        acceptLanguage: lang,
       );
 
       return translation;
@@ -218,6 +223,94 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
     }
   }
 
+  List<CommunityComment> _flattenComments(List<CommunityComment> comments) {
+    final result = <CommunityComment>[];
+
+    void collect(CommunityComment comment) {
+      result.add(comment);
+
+      for (final reply in comment.replies) {
+        collect(reply);
+      }
+    }
+
+    for (final comment in comments) {
+      collect(comment);
+    }
+
+    return result;
+  }
+
+  Future<Map<int, CommunityCommentTranslation>> _fetchCommentTranslations({
+    required List<CommunityComment> comments,
+    required String lang,
+    required int? currentUserId,
+  }) async {
+    final translations = <int, CommunityCommentTranslation>{};
+    final allComments = _flattenComments(comments);
+
+    final targets = allComments.where((comment) {
+      if (comment.deleted) {
+        return false;
+      }
+
+      if (currentUserId != null && comment.authorId == currentUserId) {
+        return false;
+      }
+
+      return true;
+    }).toList();
+
+    if (targets.isEmpty) {
+      return translations;
+    }
+
+    await Future.wait(
+      targets.map((comment) async {
+        try {
+          final translation = await CommunityService().getCommentTranslation(
+            commentId: comment.commentId,
+            lang: lang,
+            acceptLanguage: lang,
+          );
+
+          translations[comment.commentId] = translation;
+        } catch (e) {
+          debugPrint(
+            '[Community] getCommentTranslation failed commentId=${comment.commentId}: $e',
+          );
+        }
+      }),
+    );
+
+    return translations;
+  }
+
+  String _displayCommentContent(CommunityComment comment) {
+    if (comment.deleted) {
+      return AppLanguage.t('community_deleted_comment');
+    }
+
+    if (_isOriginalMode) {
+      return comment.content;
+    }
+
+    final isMyComment = _myUserId != null && comment.authorId == _myUserId;
+
+    if (isMyComment) {
+      return comment.content;
+    }
+
+    final translation = _commentTranslations[comment.commentId];
+    final translatedContent = translation?.translatedContent.trim() ?? '';
+
+    if (translatedContent.isNotEmpty) {
+      return translatedContent;
+    }
+
+    return comment.content;
+  }
+
   Future<void> _loadPostDetail() async {
     try {
       setState(() {
@@ -225,6 +318,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
         _errorMessage = null;
         _isOriginalMode = false;
         _postTranslation = null;
+        _commentTranslations.clear();
       });
 
       final prefs = await SharedPreferences.getInstance();
@@ -238,6 +332,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
       final isMyPost = currentUserId != null && result.authorId == currentUserId;
 
       CommunityPostTranslation? translation;
+      Map<int, CommunityCommentTranslation> commentTranslations = {};
 
       // 내가 작성한 게시글은 이미 이해할 수 있으므로 원문 그대로 표시한다.
       // 다른 사람이 작성한 게시글만 선택 언어 기준으로 번역한다.
@@ -248,12 +343,21 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
         );
       }
 
+      commentTranslations = await _fetchCommentTranslations(
+        comments: result.comments,
+        lang: selectedLanguageCode,
+        currentUserId: currentUserId,
+      );
+
       if (!mounted) return;
 
       setState(() {
         _myUserId = currentUserId;
         _post = result;
         _postTranslation = translation;
+        _commentTranslations
+          ..clear()
+          ..addAll(commentTranslations);
         _selectedLanguageCode = selectedLanguageCode;
       });
     } catch (e) {
@@ -1450,9 +1554,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
           ? AppLanguage.t('community_anonymous')
           : comment.authorNickname,
       mentionNickname: mentionNickname,
-      content: comment.deleted
-          ? AppLanguage.t('community_deleted_comment')
-          : comment.content,
+      content: _displayCommentContent(comment),
       date: _formatDate(comment.createdAt),
       isMyComment: isMyComment && !comment.deleted,
       isDeleted: comment.deleted,
