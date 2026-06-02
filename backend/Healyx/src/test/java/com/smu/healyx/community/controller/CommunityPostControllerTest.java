@@ -288,7 +288,7 @@ class CommunityPostControllerTest {
     @DisplayName("D9: 본인 JWT로 게시글 수정 → 200 OK")
     void updatePost_owner_returns200() throws Exception {
         willDoNothing().given(communityPostService)
-                .updatePost(eq(USER_ID_1), eq(1L), eq("수정 제목"), eq("수정 본문"), any());
+                .updatePost(eq(USER_ID_1), eq(1L), eq("수정 제목"), eq("수정 본문"), any(), any());
 
         MockMultipartFile titlePart = new MockMultipartFile(
                 "title", "", MediaType.TEXT_PLAIN_VALUE, "수정 제목".getBytes());
@@ -311,7 +311,7 @@ class CommunityPostControllerTest {
         willThrow(new AuthException("FORBIDDEN",
                 "해당 게시글을 수정할 권한이 없습니다.", HttpStatus.FORBIDDEN))
                 .given(communityPostService)
-                .updatePost(eq(USER_ID_2), eq(1L), anyString(), anyString(), any());
+                .updatePost(eq(USER_ID_2), eq(1L), anyString(), anyString(), any(), any());
 
         MockMultipartFile titlePart = new MockMultipartFile(
                 "title", "", MediaType.TEXT_PLAIN_VALUE, "수정 시도".getBytes());

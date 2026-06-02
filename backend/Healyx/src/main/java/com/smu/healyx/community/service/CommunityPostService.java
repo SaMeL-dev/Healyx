@@ -155,9 +155,10 @@ public class CommunityPostService {
                 .build();
     }
 
-    /** HX_COM_004 — 게시글 수정 */
+    /** HX_COM_004 — 게시글 수정 (유지할 기존 이미지 URL + 새 업로드 이미지로 부분 갱신) */
     @Transactional
-    public void updatePost(Long userId, Long postId, String title, String content, List<MultipartFile> images) {
+    public void updatePost(Long userId, Long postId, String title, String content,
+                           List<String> keepImageUrls, List<MultipartFile> newImages) {
         CommunityPost post = postRepository.findById(postId)
                 .orElseThrow(() -> new AuthException("POST_NOT_FOUND", "게시글을 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
 
@@ -165,29 +166,40 @@ public class CommunityPostService {
             throw new AuthException("FORBIDDEN", "해당 게시글을 수정할 권한이 없습니다.", HttpStatus.FORBIDDEN);
         }
 
-        if (images != null && images.size() > 5) {
+        int keepCount = (keepImageUrls != null) ? keepImageUrls.size() : 0;
+        int newCount = (newImages != null) ? newImages.size() : 0;
+        if (keepCount + newCount > 5) {
             throw new AuthException("TOO_MANY_IMAGES", "이미지는 최대 5장까지 첨부할 수 있습니다.", HttpStatus.BAD_REQUEST);
         }
 
-        // 기존 이미지 S3 삭제 후 DB 삭제
+        // 기존 이미지 조회 후 삭제 대상(=keepImageUrls에 없는 URL)만 S3·DB에서 제거
         List<PostImage> existingImages = postImageRepository.findByPost_PostIdOrderBySortOrderAsc(postId);
-        existingImages.forEach(img -> deleteS3Quietly(img.getImageUrl()));
-        postImageRepository.deleteAll(existingImages);
+        List<PostImage> toDelete = new ArrayList<>();
+        for (PostImage img : existingImages) {
+            boolean keep = keepImageUrls != null && keepImageUrls.contains(img.getImageUrl());
+            if (!keep) {
+                deleteS3Quietly(img.getImageUrl());
+                toDelete.add(img);
+            }
+        }
+        if (!toDelete.isEmpty()) {
+            postImageRepository.deleteAll(toDelete);
+        }
 
-        // 새 이미지 업로드
-        if (images != null && !images.isEmpty()) {
-            List<PostImage> newImages = new ArrayList<>();
-            for (int i = 0; i < images.size(); i++) {
-                MultipartFile file = images.get(i);
+        // 신규 이미지 업로드: sort_order는 유지된 장 수(keepCount) 이후부터 부여
+        if (newImages != null && !newImages.isEmpty()) {
+            List<PostImage> toInsert = new ArrayList<>();
+            for (int i = 0; i < newImages.size(); i++) {
+                MultipartFile file = newImages.get(i);
                 try {
                     String url = s3UploadService.upload(file.getBytes(), "community/posts", file.getContentType());
-                    newImages.add(PostImage.builder()
-                            .post(post).imageUrl(url).sortOrder(i).build());
+                    toInsert.add(PostImage.builder()
+                            .post(post).imageUrl(url).sortOrder(keepCount + i).build());
                 } catch (IOException e) {
                     throw new RuntimeException("이미지 업로드 중 오류가 발생했습니다.", e);
                 }
             }
-            postImageRepository.saveAll(newImages);
+            postImageRepository.saveAll(toInsert);
         }
 
         contentFilterService.filterWithLLM(title, content);
