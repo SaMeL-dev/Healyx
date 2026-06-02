@@ -62,6 +62,11 @@ jobs:
               --restart always \
               --memory="512m" \
               --memory-swap="1g" \
+              --log-driver awslogs \
+              --log-opt awslogs-region=ap-northeast-2 \
+              --log-opt awslogs-group=healyx-backend \
+              --log-opt awslogs-stream=healyx-app \
+              --log-opt awslogs-create-group=true \
               -v /home/ubuntu/firebase:/app/firebase \
               -e SPRING_PROFILES_ACTIVE=prod \
               -e DB_URL="${{ secrets.DB_URL }}" \

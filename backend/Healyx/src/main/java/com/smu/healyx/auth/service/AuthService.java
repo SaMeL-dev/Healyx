@@ -61,7 +61,7 @@ public class AuthService {
                 .gender(request.getGender())
                 .birthDate(request.getBirthDate())
                 .age(age)
-                .hasHealthInsurance(request.isHasHealthInsurance())
+                .hasHealthInsurance(request.getHasHealthInsurance())
                 .preferredLanguage(request.getPreferredLanguage())
                 .pushEnabled(true)
                 .loginFailedCount(0)
