@@ -368,35 +368,54 @@ class CommunityService {
   // PUT /api/community/posts/{postId}
   // multipart/form-data
   // 본인 게시글만 수정 가능
-  // 이미지 전체 교체 방식
+  //
+  // 수정된 Swagger 기준:
+  // - keepImageUrls(query): 유지할 기존 이미지 URL 목록
+  // - title(form-data): 제목
+  // - content(form-data): 내용
+  // - newImages(form-data): 새로 추가할 이미지 파일 목록
+  //
+  // 기존 이미지 중 keepImageUrls에 포함되지 않은 URL은 서버에서 삭제됩니다.
   // =========================
   Future<http.Response> _sendUpdatePostRequest({
     required String token,
     required int postId,
     required String title,
     required String content,
-    required List<XFile> images,
+    required List<String> keepImageUrls,
+    required List<XFile> newImages,
+    String acceptLanguage = 'ko',
   }) async {
-    final uri = Uri.parse('$baseUrl/api/community/posts/$postId');
+    final queryParameters = <String, dynamic>{};
+
+    if (keepImageUrls.isNotEmpty) {
+      queryParameters['keepImageUrls'] = keepImageUrls;
+    }
+
+    final uri = Uri.parse('$baseUrl/api/community/posts/$postId').replace(
+      queryParameters: queryParameters.isEmpty ? null : queryParameters,
+    );
 
     final request = http.MultipartRequest('PUT', uri);
 
     request.headers.addAll({
       'Authorization': _bearerToken(token),
       'Accept': 'application/json',
+      'Accept-Language': acceptLanguage,
     });
 
     request.fields['title'] = title;
     request.fields['content'] = content;
 
-    for (final image in images) {
+    for (final image in newImages) {
       request.files.add(
         await http.MultipartFile.fromPath(
-          'images',
+          'newImages',
           image.path,
         ),
       );
     }
+
 
     final streamedResponse = await request.send();
     return http.Response.fromStream(streamedResponse);
@@ -406,7 +425,15 @@ class CommunityService {
     required int postId,
     required String title,
     required String content,
-    required List<XFile> images,
+
+    // 이전 community_write.dart 호출 방식과의 임시 호환용입니다.
+    // 새 코드에서는 newImages를 사용하는 것을 권장합니다.
+    List<XFile> images = const [],
+
+    // 수정된 API 기준 신규 파라미터
+    List<String> keepImageUrls = const [],
+    List<XFile>? newImages,
+    String acceptLanguage = 'ko',
   }) async {
     String? token = await AuthService.getAccessToken();
 
@@ -414,12 +441,17 @@ class CommunityService {
       throw Exception('로그인이 필요한 기능입니다.');
     }
 
+    final uploadImages = newImages ?? images;
+
+
     http.Response response = await _sendUpdatePostRequest(
       token: token,
       postId: postId,
       title: title,
       content: content,
-      images: images,
+      keepImageUrls: keepImageUrls,
+      newImages: uploadImages,
+      acceptLanguage: acceptLanguage,
     );
 
     if (response.statusCode == 401) {
@@ -436,14 +468,15 @@ class CommunityService {
         postId: postId,
         title: title,
         content: content,
-        images: images,
+        keepImageUrls: keepImageUrls,
+        newImages: uploadImages,
+        acceptLanguage: acceptLanguage,
       );
     }
 
     final responseBody = utf8.decode(response.bodyBytes);
 
     debugPrint('[Community] updatePost status: ${response.statusCode}');
-    debugPrint('[Community] updatePost body: $responseBody');
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
       if (responseBody.isEmpty) return;
