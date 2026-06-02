@@ -205,39 +205,61 @@ class _CommunityNotificationScreenState
     });
   }
 
-  String _formatRelativeTime(String value) {
-    final dateTime = DateTime.tryParse(value);
+  DateTime? _parseNotificationDateTime(String value) {
+    final trimmed = value.trim();
 
-    if (dateTime == null) {
+    if (trimmed.isEmpty) {
+      return null;
+    }
+
+    final hasTimezone = trimmed.toUpperCase().endsWith('Z') ||
+        RegExp(r'[+-]\d{2}:\d{2}$').hasMatch(trimmed);
+
+    // 백엔드가 나중에 Z 또는 +09:00을 붙여주면 그대로 정상 처리
+    if (hasTimezone) {
+      return DateTime.tryParse(trimmed)?.toLocal();
+    }
+
+    // 현재 백엔드는 UTC 시간을 timezone 없이 내려주고 있으므로
+    // 프론트에서 UTC로 간주한 뒤 로컬 시간으로 변환
+    return DateTime.tryParse('${trimmed}Z')?.toLocal();
+  }
+
+  String _formatRelativeTime(String value) {
+    final local = _parseNotificationDateTime(value);
+
+    if (local == null) {
       return '';
     }
 
-    final local = dateTime.toLocal();
     final now = DateTime.now();
     final difference = now.difference(local);
 
-    if (difference.inSeconds < 60) {
+    // 기기 시간/서버 시간 오차로 미래 시간이 되는 경우 방어
+    final safeDifference = difference.isNegative ? Duration.zero : difference;
+
+    if (safeDifference.inSeconds < 60) {
       return AppLanguage.t('time_just_now');
     }
 
-    if (difference.inMinutes < 60) {
+    if (safeDifference.inMinutes < 60) {
       return AppLanguage.t('time_minutes_ago').replaceAll(
         '{count}',
-        difference.inMinutes.toString(),
+        safeDifference.inMinutes.toString(),
       );
     }
 
-    if (difference.inHours < 24) {
+    if (safeDifference.inHours < 24) {
       return AppLanguage.t('time_hours_ago').replaceAll(
         '{count}',
-        difference.inHours.toString(),
+        safeDifference.inHours.toString(),
       );
     }
 
-    if (difference.inDays < 7) {
+    if (safeDifference.inDays < 7) {
       return AppLanguage.t('time_days_ago').replaceAll(
         '{count}',
-        difference.inDays.toString(),
+        safeDifference.inDays.toString(),
       );
     }
 

@@ -347,6 +347,7 @@ class AppLanguage {
       'community_comment_edit_cancel': '수정 취소',
 
       'community_cleanbot_blocked': '커뮤니티 가이드라인에 위반되는 내용입니다.',
+      'community_server_error': '서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
 
 
       // 알림창
@@ -737,6 +738,7 @@ class AppLanguage {
       'community_comment_edit_cancel': 'Cancel editing',
 
       'community_cleanbot_blocked': 'This content violates community guidelines.',
+      'community_server_error': 'A server error occurred. Please try again later.',
 
 
       // 알림창
@@ -1129,6 +1131,7 @@ class AppLanguage {
       'community_comment_edit_cancel': '取消修改',
 
       'community_cleanbot_blocked': 'コミュニティガイドラインに違反する内容です。',
+      'community_server_error': '服务器内部发生错误。请稍后重试。',
 
 
       // 알림창
@@ -1521,6 +1524,7 @@ class AppLanguage {
       'community_comment_edit_cancel': '修正をキャンセル',
 
       'community_cleanbot_blocked': '该内容违反了社区准则。',
+      'community_server_error': 'サーバー内部エラーが発生しました。しばらくしてからもう一度お試しください。',
 
 
       // 알림창
@@ -1911,6 +1915,7 @@ class AppLanguage {
       'community_comment_edit_cancel': 'Hủy chỉnh sửa',
 
       'community_cleanbot_blocked': 'Nội dung này vi phạm nguyên tắc cộng đồng.',
+      'community_server_error': 'Đã xảy ra lỗi máy chủ. Vui lòng thử lại sau.',
 
 
       // 알림창
@@ -2302,6 +2307,7 @@ class AppLanguage {
       'community_comment_edit_cancel': 'ยกเลิกการแก้ไข',
 
       'community_cleanbot_blocked': 'เนื้อหานี้ละเมิดหลักเกณฑ์ของชุมชน',
+      'community_server_error': 'เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์ กรุณาลองใหม่อีกครั้งภายหลัง',
 
 
       // 알림창

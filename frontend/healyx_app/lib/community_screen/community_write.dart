@@ -88,11 +88,21 @@ class _CommunityWriteScreenState extends State<CommunityWriteScreen> {
     final message = error.toString().replaceFirst('Exception: ', '').trim();
     final lowerMessage = message.toLowerCase();
 
+    // 클린봇 422 에러 다국어 처리
     if (lowerMessage.contains('community guidelines') ||
         lowerMessage.contains('violates community') ||
+        lowerMessage.contains('content violates') ||
         lowerMessage.contains('cleanbot') ||
-        lowerMessage.contains('(422)')) {
+        message.contains('(422)')) {
       return AppLanguage.t('community_cleanbot_blocked');
+    }
+
+    // 서버 500 에러 다국어 처리
+    if (message.contains('(500)') ||
+        lowerMessage.contains('internal server error') ||
+        lowerMessage.contains('server error') ||
+        message.contains('서버 내부 오류')) {
+      return AppLanguage.t('community_server_error');
     }
 
     return message;
