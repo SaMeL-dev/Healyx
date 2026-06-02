@@ -61,6 +61,7 @@ class AppLanguage {
       'auto_login': '자동 로그인',
       'required_field': '필수 항목입니다.',
       'login_error': '아이디 및 비밀번호가 일치하지 않습니다.',
+      'login_locked_message': '로그인 5회 이상 실패하여 로그인 기능이 잠겼습니다.',
       'password_confirm_label': '비밀번호 확인',
       'nickname_hint': '닉네임을 입력하세요',
       'birthdate_label': '생년월일:',
@@ -160,6 +161,8 @@ class AppLanguage {
       'server_connection_failed': '서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.',
       'profile_update_success': '프로필이 수정되었습니다.',
       'profile_update_failed': '프로필 수정에 실패했습니다.',
+      'profile_error_name_contains_number': '실명에는 숫자를 입력할 수 없습니다.',
+      'profile_error_name_contains_special': '실명에는 특수문자를 입력할 수 없습니다.',
 
       //다이얼로그 (팝업)
       'logout_confirm': '로그아웃 하시겠습니까?',
@@ -228,6 +231,8 @@ class AppLanguage {
       'hospital_location_error': '현재 위치를 가져올 수 없습니다.\n위치 권한을 확인해주세요.',
       'hospital_map_location_empty': '지도에 표시할 병원 위치 정보가 없습니다.',
       'hospital_result_empty': '병원을 찾을 수 없습니다. 증상을 다시 확인해주세요.',
+      'pain_score_guide': '1~2는 가까운 의원이나 일반 병원을 추천드립니다.\n3~5는 종합병원이나 대학병원을 추천드립니다.',
+
 
       // 리뷰
       'review_recognition_failed': '인식에\n실패하였습니다.',
@@ -450,6 +455,7 @@ class AppLanguage {
       'auto_login': 'Auto Login',
       'required_field': 'This field is required.',
       'login_error': 'Username or password is incorrect.',
+      'login_locked_message': 'Login has been locked due to 5 or more failed attempts.',
       'password_confirm_label': 'Confirm Password',
       'nickname_hint': 'Enter your nickname',
       'birthdate_label': 'Date of Birth:',
@@ -549,6 +555,8 @@ class AppLanguage {
       'server_connection_failed': 'Failed to connect to the server. Please try again later.',
       'profile_update_success': 'Profile has been updated.',
       'profile_update_failed': 'Failed to update profile.',
+      'profile_error_name_contains_number': 'Numbers cannot be entered in your real name.',
+      'profile_error_name_contains_special': 'Special characters cannot be entered in your real name.',
 
       // 다이얼로그(팝업)
       'logout_confirm': 'Are you sure you want to logout?',
@@ -617,6 +625,7 @@ class AppLanguage {
       'hospital_location_error': 'Unable to get your current location. Please check your location permission.',
       'hospital_map_location_empty': 'No hospital location information is available to display on the map.',
       'hospital_result_empty': 'No hospitals were found. Please check your symptoms again.',
+      'pain_score_guide': 'For levels 1–2, we recommend a nearby clinic or general hospital.\nFor levels 3–5, we recommend a general hospital or university hospital.',
 
 
       // 리뷰
@@ -841,6 +850,7 @@ class AppLanguage {
       'auto_login': '自动登录',
       'required_field': '此项为必填项。',
       'login_error': '账号或密码不正确。',
+      'login_locked_message': '登录失败超过5次，登录功能已被锁定。',
       'password_confirm_label': '确认密码',
       'nickname_hint': '请输入昵称',
       'birthdate_label': '出生日期：',
@@ -940,6 +950,8 @@ class AppLanguage {
       'server_connection_failed': '服务器连接失败。请稍后再试。',
       'profile_update_success': '个人资料已修改。',
       'profile_update_failed': '个人资料修改失败。',
+      'profile_error_name_contains_number': '真实姓名中不能输入数字。',
+      'profile_error_name_contains_special': '真实姓名中不能输入特殊字符。',
 
       // 다이얼로그(팝업)
       'logout_confirm': '确定要退出登录吗？',
@@ -1008,6 +1020,7 @@ class AppLanguage {
       'hospital_location_error': '无法获取当前位置。请检查位置权限。',
       'hospital_map_location_empty': '没有可在地图上显示的医院位置信息。',
       'hospital_result_empty': '未找到医院。请再次确认您的症状。',
+      'pain_score_guide': '1~2级建议前往附近的诊所或普通医院。\n3~5级建议前往综合医院或大学医院。',
 
 
       // 리뷰
@@ -1234,6 +1247,7 @@ class AppLanguage {
       'auto_login': '自動ログイン',
       'required_field': '必須項目です。',
       'login_error': 'IDまたはパスワードが一致しません。',
+      'login_locked_message': 'ログインに5回以上失敗したため、ログイン機能がロックされました。',
       'password_confirm_label': 'パスワード確認',
       'nickname_hint': 'ニックネームを入力してください',
       'birthdate_label': '生年月日：',
@@ -1336,6 +1350,8 @@ class AppLanguage {
       'server_connection_failed': 'サーバー接続に失敗しました。しばらくしてからもう一度お試しください。',
       'profile_update_success': 'プロフィールが更新されました。',
       'profile_update_failed': 'プロフィールの更新に失敗しました。',
+      'profile_error_name_contains_number': '実名には数字を入力できません。',
+      'profile_error_name_contains_special': '実名には特殊文字を入力できません。',
 
       // 다이얼로그(팝업)
       'logout_confirm': 'ログアウトしますか？',
@@ -1404,6 +1420,7 @@ class AppLanguage {
       'hospital_location_error': '現在地を取得できません。位置情報の権限を確認してください。',
       'hospital_map_location_empty': '地図に表示できる病院の位置情報がありません。',
       'hospital_result_empty': '病院が見つかりませんでした。症状をもう一度確認してください。',
+      'pain_score_guide': '1〜2は近くのクリニックまたは一般病院の受診をおすすめします。\n3〜5は総合病院または大学病院の受診をおすすめします。',
 
 
       // 리뷰
@@ -1625,6 +1642,7 @@ class AppLanguage {
       'auto_login': 'Tự động đăng nhập',
       'required_field': 'Trường này là bắt buộc.',
       'login_error': 'Tên đăng nhập hoặc mật khẩu không đúng.',
+      'login_locked_message': 'Chức năng đăng nhập đã bị khóa do đăng nhập thất bại từ 5 lần trở lên.',
       'password_confirm_label': 'Xác nhận mật khẩu',
       'nickname_hint': 'Nhập biệt danh',
       'birthdate_label': 'Ngày sinh:',
@@ -1727,6 +1745,8 @@ class AppLanguage {
       'server_connection_failed': 'Không thể kết nối đến máy chủ. Vui lòng thử lại sau.',
       'profile_update_success': 'Hồ sơ đã được cập nhật.',
       'profile_update_failed': 'Cập nhật hồ sơ thất bại.',
+      'profile_error_name_contains_number': 'Không được nhập số trong họ tên thật.',
+      'profile_error_name_contains_special': 'Không được nhập ký tự đặc biệt trong họ tên thật.',
 
       // 다이얼로그(팝업)
       'logout_confirm': 'Bạn có chắc muốn đăng xuất không?',
@@ -1794,6 +1814,7 @@ class AppLanguage {
       'hospital_location_error': 'Không thể lấy vị trí hiện tại. Vui lòng kiểm tra quyền vị trí.',
       'hospital_map_location_empty': 'Không có thông tin vị trí bệnh viện để hiển thị trên bản đồ.',
       'hospital_result_empty': 'Không tìm thấy bệnh viện. Vui lòng kiểm tra lại triệu chứng của bạn.',
+      'pain_score_guide': 'Mức 1–2: nên đến phòng khám gần nhất hoặc bệnh viện thông thường.\nMức 3–5: nên đến bệnh viện đa khoa hoặc bệnh viện đại học.',
 
 
       // 리뷰
@@ -2015,6 +2036,7 @@ class AppLanguage {
       'auto_login': 'เข้าสู่ระบบอัตโนมัติ',
       'required_field': 'จำเป็นต้องกรอกข้อมูลนี้',
       'login_error': 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง',
+      'login_locked_message': 'ฟังก์ชันเข้าสู่ระบบถูกล็อกเนื่องจากเข้าสู่ระบบล้มเหลว 5 ครั้งขึ้นไป',
       'password_confirm_label': 'ยืนยันรหัสผ่าน',
       'nickname_hint': 'กรุณาใส่ชื่อเล่น',
       'birthdate_label': 'วันเกิด:',
@@ -2116,6 +2138,8 @@ class AppLanguage {
       'server_connection_failed': 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้งภายหลัง',
       'profile_update_success': 'อัปเดตโปรไฟล์เรียบร้อยแล้ว',
       'profile_update_failed': 'อัปเดตโปรไฟล์ไม่สำเร็จ',
+      'profile_error_name_contains_number': 'ไม่สามารถกรอกตัวเลขในชื่อจริงได้',
+      'profile_error_name_contains_special': 'ไม่สามารถกรอกอักขระพิเศษในชื่อจริงได้',
 
       // 로그아웃 다이얼로그
       'logout_confirm': 'คุณต้องการออกจากระบบหรือไม่?',
@@ -2186,6 +2210,7 @@ class AppLanguage {
       'hospital_location_error': 'ไม่สามารถรับตำแหน่งปัจจุบันได้ กรุณาตรวจสอบสิทธิ์การเข้าถึงตำแหน่ง',
       'hospital_map_location_empty': 'ไม่มีข้อมูลตำแหน่งโรงพยาบาลที่จะแสดงบนแผนที่',
       'hospital_result_empty': 'ไม่พบโรงพยาบาล กรุณาตรวจสอบอาการของคุณอีกครั้ง',
+      'pain_score_guide': 'ระดับ 1–2 แนะนำให้ไปคลินิกใกล้บ้านหรือโรงพยาบาลทั่วไป\nระดับ 3–5 แนะนำให้ไปโรงพยาบาลทั่วไปหรือโรงพยาบาลมหาวิทยาลัย',
 
 
       // 리뷰
