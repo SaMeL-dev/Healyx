@@ -18,4 +18,7 @@ public class EmailSendRequest {
     @NotBlank(message = "인증 목적 입력")
     @Pattern(regexp = "^(register|find-id|reset-pw)$", message = "지원하지 않는 인증 목적")
     private String purpose;
+
+    // find-id 전용: 실명
+    private String name;
 }

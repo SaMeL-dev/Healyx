@@ -31,6 +31,11 @@ public class NotificationService {
             return;
         }
 
+        if (!receiver.isPushEnabled()) {
+            log.debug("알림 OFF 사용자 → 알림 생성 스킵: userId={}, type={}", receiverId, type);
+            return;
+        }
+
         notificationRepository.save(Notification.builder()
                 .user(receiver)
                 .type(type)

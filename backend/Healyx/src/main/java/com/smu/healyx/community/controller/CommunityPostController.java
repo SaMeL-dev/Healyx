@@ -70,16 +70,19 @@ public class CommunityPostController {
     }
 
     /** HX_COM_004 — 게시글 수정 */
-    @Operation(summary = "게시글 수정", description = "본인 게시글만 수정 가능. 이미지 전체 교체. JWT 필요.")
+    @Operation(summary = "게시글 수정",
+            description = "본인 게시글만 수정 가능. 유지할 기존 이미지 URL(keepImageUrls)과 새로 업로드할 이미지(newImages)로 부분 갱신합니다. " +
+                    "기존 이미지 중 keepImageUrls에 포함되지 않은 URL은 S3·DB에서 삭제됩니다. 총 이미지 수 최대 5장. JWT 필요.")
     @PutMapping(value = "/{postId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<Void>> updatePost(
             @PathVariable Long postId,
             @RequestPart("title") String title,
             @RequestPart("content") String content,
-            @RequestPart(value = "images", required = false) List<MultipartFile> images,
+            @RequestParam(value = "keepImageUrls", required = false) List<String> keepImageUrls,
+            @RequestPart(value = "newImages", required = false) List<MultipartFile> newImages,
             Authentication authentication) {
         Long userId = SecurityUtils.extractUserId(authentication);
-        communityPostService.updatePost(userId, postId, title, content, images);
+        communityPostService.updatePost(userId, postId, title, content, keepImageUrls, newImages);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
