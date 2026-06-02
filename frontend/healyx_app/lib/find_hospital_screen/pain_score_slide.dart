@@ -18,13 +18,15 @@ class PainScoreSlide extends StatefulWidget {
 class _PainScoreSlideState extends State<PainScoreSlide> {
   double _painLevel = 3;
 
+  int get _selectedPainLevel => _painLevel.round();
+
   void _goToLoading() {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => FindHospitalLoading(
           symptom: widget.symptom,
-          riskLevel: _painLevel.round(),
+          riskLevel: _selectedPainLevel,
           sortBy: 'recommend',
         ),
       ),
@@ -69,7 +71,7 @@ class _PainScoreSlideState extends State<PainScoreSlide> {
               ),
             ),
 
-            const SizedBox(height: 120),
+            const SizedBox(height: 105),
 
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -84,7 +86,23 @@ class _PainScoreSlideState extends State<PainScoreSlide> {
               ),
             ),
 
-            const SizedBox(height: 170),
+            const SizedBox(height: 12),
+
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 34),
+              child: Text(
+                AppLanguage.t('pain_score_guide'),
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xFF777777),
+                  height: 1.45,
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 120),
 
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 22),
