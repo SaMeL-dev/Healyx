@@ -12,6 +12,7 @@ public class RegisterRequest {
 
     @NotBlank
     @Size(max = 50)
+    @Pattern(regexp = "^[가-힣a-zA-Z ]+$", message = "이름에는 숫자나 특수문자를 포함할 수 없습니다.")
     private String realName;
 
     @NotBlank
@@ -36,12 +37,15 @@ public class RegisterRequest {
     @Size(max = 10)
     private String nickname;
 
+    @NotNull(message = "생년월일은 필수입니다.")
     private LocalDate birthDate;
 
+    @NotNull(message = "성별은 필수입니다.")
     @Pattern(regexp = "^[MF]$", message = "성별은 M 또는 F여야 합니다.")
     private String gender;
 
-    private boolean hasHealthInsurance;
+    @NotNull(message = "건강보험 가입 여부는 필수입니다.")
+    private Boolean hasHealthInsurance;
 
     @NotBlank
     private String preferredLanguage;
