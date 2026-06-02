@@ -352,7 +352,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
                   // 닉네임
                   Text(
-                     AppLanguage.t('profile_email'), // '닉네임'
+                     AppLanguage.t('profile_nickname'), // '닉네임'
                     style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
