@@ -55,8 +55,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     _toastEntry = null;
   }
 
-  // 커뮤니티 글쓰기 화면과 동일한 스타일의 경고 토스트
-  void _showNameTooLongToast(String message) {
+  // 커뮤니티 글쓰기 화면과 동일한 스타일의 토스트 (isWarning=true: 주황, false: 파랑)
+  void _showCustomToast(String message, {bool isWarning = true}) {
     if (!mounted) return;
 
     _removeCustomToast();
@@ -65,6 +65,12 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     if (overlay == null) return;
 
     final bottomPadding = MediaQuery.of(context).padding.bottom;
+
+    final Color borderColor = isWarning ? const Color(0xFFFFD6A6) : const Color(0xFFD8E4FF);
+    final Color iconBg = isWarning ? const Color(0xFFFFF3E0) : const Color(0xFFEFF2FF);
+    final Color iconColor = isWarning ? const Color(0xFFFF8A00) : const Color(0xFF2260FF);
+    final Color textColor = isWarning ? const Color(0xFFE06B00) : const Color(0xFF2260FF);
+    final IconData iconData = isWarning ? Icons.priority_high_rounded : Icons.check_rounded;
 
     _toastEntry = OverlayEntry(
       builder: (context) {
@@ -98,7 +104,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(18),
                     border: Border.all(
-                      color: const Color(0xFFFFD6A6),
+                      color: borderColor,
                       width: 1.2,
                     ),
                     boxShadow: [
@@ -115,13 +121,13 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                       Container(
                         width: 24,
                         height: 24,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFFFFF3E0),
+                        decoration: BoxDecoration(
+                          color: iconBg,
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(
-                          Icons.priority_high_rounded,
-                          color: Color(0xFFFF8A00),
+                        child: Icon(
+                          iconData,
+                          color: iconColor,
                           size: 17,
                         ),
                       ),
@@ -131,8 +137,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                           message,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: Color(0xFFE06B00),
+                          style: TextStyle(
+                            color: textColor,
                             fontSize: 14,
                             height: 1.35,
                             fontWeight: FontWeight.w700,
@@ -229,7 +235,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     }
 
     if (realName.length > 50) {
-      _showNameTooLongToast(AppLanguage.t('name_too_long'));
+      _showCustomToast(AppLanguage.t('name_too_long'));
       return;
     }
 
