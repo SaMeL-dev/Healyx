@@ -1,4 +1,6 @@
 ﻿// 로그인 화면 구현
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:healyx_app/app_language.dart';
 
@@ -27,7 +29,20 @@ class _LoginScreenState extends State<LoginScreen> {
   String? passwordErrorText;
   String? loginErrorText;
 
+  // 로그인 실패 잠금 관련 상태값
+  int loginFailCount = 0;
+  bool isLoginLocked = false;
+  int lockRemainingSeconds = 0;
+  Timer? lockTimer;
+
   Future<void> _handleLogin() async {
+    if (isLoginLocked) {
+      setState(() {
+        loginErrorText = _getLoginLockedMessage();
+      });
+      return;
+    }
+
     final String id = idController.text.trim();
     final String password = passwordController.text.trim();
 
@@ -71,6 +86,8 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     if (result.success) {
+      _resetLoginFailState();
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -80,15 +97,103 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       );
     } else {
+      final bool shouldCountFailure = _shouldCountLoginFailure(result.message);
+
+      if (shouldCountFailure) {
+        loginFailCount++;
+
+        if (loginFailCount >= 5) {
+          _startLoginLock();
+          return;
+        }
+      }
+
       setState(() {
-        loginErrorText =
-            result.message ?? AppLanguage.t('login_error'); // '아이디 및 비밀번호가 일치하지 않습니다.'
+        loginErrorText = _getLoginErrorMessage(result.message);
       });
     }
   }
 
+  bool _shouldCountLoginFailure(String? message) {
+    final String? trimmedMessage = message?.trim();
+
+    // 서버 연결 실패나 토큰 오류는 사용자의 로그인 정보 오입력으로 보지 않음
+    if (trimmedMessage == AppLanguage.t('server_error') ||
+        trimmedMessage == AppLanguage.t('auth_token_error')) {
+      return false;
+    }
+
+    return true;
+  }
+
+  void _startLoginLock() {
+    lockTimer?.cancel();
+
+    setState(() {
+      isLoginLocked = true;
+      lockRemainingSeconds = 30;
+      loginErrorText = _getLoginLockedMessage();
+    });
+
+    lockTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+
+      if (lockRemainingSeconds <= 1) {
+        timer.cancel();
+
+        setState(() {
+          isLoginLocked = false;
+          lockRemainingSeconds = 0;
+          loginFailCount = 0;
+          loginErrorText = null;
+        });
+
+        return;
+      }
+
+      setState(() {
+        lockRemainingSeconds--;
+      });
+    });
+  }
+
+  void _resetLoginFailState() {
+    lockTimer?.cancel();
+    lockTimer = null;
+    loginFailCount = 0;
+    isLoginLocked = false;
+    lockRemainingSeconds = 0;
+    loginErrorText = null;
+  }
+
+  String _getLoginErrorMessage(String? message) {
+    final String? trimmedMessage = message?.trim();
+
+    // 서버 연결 실패, 토큰 오류처럼 로그인 정보 불일치가 아닌 경우는 기존 메시지 유지
+    if (trimmedMessage == AppLanguage.t('server_error') ||
+        trimmedMessage == AppLanguage.t('auth_token_error')) {
+      return trimmedMessage!;
+    }
+
+    // 아이디가 없거나, 비밀번호가 틀렸거나, 서버에서 User not found를 내려줘도
+    // 화면에는 다국어 처리된 공통 로그인 실패 문구만 표시
+    return AppLanguage.t('login_error');
+  }
+
+  String _getLoginLockedMessage() {
+    return AppLanguage.t('login_locked_message');
+  }
+
+  String _formatLockTimer() {
+    return '$lockRemainingSeconds초';
+  }
+
   @override
   void dispose() {
+    lockTimer?.cancel();
     idController.dispose();
     passwordController.dispose();
     super.dispose();
@@ -96,6 +201,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isLoginButtonDisabled = isLoading || isLoginLocked;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF6F7FB),
       body: SafeArea(
@@ -211,7 +318,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           height: 20,
                           child: Checkbox(
                             value: isAutoLogin,
-                            onChanged: (value) {
+                            onChanged: isLoginLocked
+                                ? null
+                                : (value) {
                               setState(() {
                                 isAutoLogin = value ?? false;
                               });
@@ -243,33 +352,57 @@ class _LoginScreenState extends State<LoginScreen> {
                     SizedBox(
                       width: double.infinity,
                       height: 56,
-                      child: ElevatedButton(
-                        onPressed: isLoading ? null : _handleLogin,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF2260FF),
-                          disabledBackgroundColor: const Color(0xFF9AA7E8),
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(28),
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          Positioned.fill(
+                            child: ElevatedButton(
+                              onPressed: isLoginButtonDisabled
+                                  ? null
+                                  : _handleLogin,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF2260FF),
+                                disabledBackgroundColor:
+                                const Color(0xFF9AA7E8),
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(28),
+                                ),
+                              ),
+                              child: isLoading
+                                  ? const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.5,
+                                  color: Colors.white,
+                                ),
+                              )
+                                  : Text(
+                                AppLanguage.t('login_title'), // '로그인'
+                                style: const TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
-                        child: isLoading
-                            ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2.5,
-                            color: Colors.white,
-                          ),
-                        )
-                            : Text(
-                          AppLanguage.t('login_title'), // '로그인'
-                          style: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                        ),
+
+                          if (isLoginLocked)
+                            Positioned(
+                              right: 4,
+                              top: -24,
+                              child: Text(
+                                _formatLockTimer(),
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.red,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                     ),
 
@@ -278,6 +411,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       Center(
                         child: Text(
                           loginErrorText!,
+                          textAlign: TextAlign.center,
                           style: const TextStyle(
                             fontSize: 13,
                             color: Colors.red,
@@ -409,6 +543,10 @@ class _LoginScreenState extends State<LoginScreen> {
               color: Colors.black87,
             ),
             onChanged: (_) {
+              if (isLoginLocked) {
+                return;
+              }
+
               if (errorText != null || loginErrorText != null) {
                 setState(() {
                   if (controller == idController) {
