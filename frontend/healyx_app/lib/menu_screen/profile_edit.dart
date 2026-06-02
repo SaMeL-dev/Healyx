@@ -51,6 +51,18 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     return emailRegex.hasMatch(email);
   }
 
+  bool _containsNumber(String value) {
+    final numberRegex = RegExp(r'[0-9]');
+    return numberRegex.hasMatch(value);
+  }
+
+  bool _containsSpecialCharacter(String value) {
+    final specialRegex = RegExp(
+      r"""[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\;/~`']""",
+    );
+    return specialRegex.hasMatch(value);
+  }
+
   Future<void> _fetchMyProfile() async {
     setState(() {
       _isLoading = true;
@@ -112,6 +124,16 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
     if (realName.isEmpty) {
       _showProfileGuide(AppLanguage.t('profile_error_name_empty'));
+      return;
+    }
+
+    if (_containsNumber(realName)) {
+      _showProfileGuide(AppLanguage.t('profile_error_name_contains_number'));
+      return;
+    }
+
+    if (_containsSpecialCharacter(realName)) {
+      _showProfileGuide(AppLanguage.t('profile_error_name_contains_special'));
       return;
     }
 
