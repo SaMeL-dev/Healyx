@@ -1,8 +1,10 @@
 ﻿// 회원가입 화면 구현
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/auth_service.dart';
-import '../app_language.dart'; 
+import '../app_language.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -40,6 +42,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _isEmailChecked = false;
   bool _isUsernameChecked = false;
 
+  OverlayEntry? _toastEntry;
+  Timer? _toastTimer;
+
   @override
   void initState() {
     super.initState();
@@ -59,6 +64,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   @override
   void dispose() {
+    _removeCustomToast();
     nameController.dispose();
     emailController.dispose();
     idController.dispose();
@@ -66,6 +72,114 @@ class _SignUpScreenState extends State<SignUpScreen> {
     passwordCheckController.dispose();
     nicknameController.dispose();
     super.dispose();
+  }
+
+  void _removeCustomToast() {
+    _toastTimer?.cancel();
+    _toastTimer = null;
+    _toastEntry?.remove();
+    _toastEntry = null;
+  }
+
+  // 커뮤니티 글쓰기 화면과 동일한 스타일의 경고 토스트
+  void _showNameTooLongToast(String message) {
+    if (!mounted) return;
+
+    _removeCustomToast();
+
+    final overlay = Overlay.maybeOf(context);
+    if (overlay == null) return;
+
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+
+    _toastEntry = OverlayEntry(
+      builder: (context) {
+        return Positioned(
+          left: 20,
+          right: 20,
+          bottom: bottomPadding + 26,
+          child: IgnorePointer(
+            ignoring: true,
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0, end: 1),
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOutCubic,
+              builder: (context, value, child) {
+                return Opacity(
+                  opacity: value,
+                  child: Transform.translate(
+                    offset: Offset(0, 16 * (1 - value)),
+                    child: child,
+                  ),
+                );
+              },
+              child: Material(
+                color: Colors.transparent,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 13,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(
+                      color: const Color(0xFFFFD6A6),
+                      width: 1.2,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.12),
+                        blurRadius: 14,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 24,
+                        height: 24,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFFFF3E0),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.priority_high_rounded,
+                          color: Color(0xFFFF8A00),
+                          size: 17,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          message,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Color(0xFFE06B00),
+                            fontSize: 14,
+                            height: 1.35,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+
+    overlay.insert(_toastEntry!);
+
+    _toastTimer = Timer(const Duration(milliseconds: 2200), () {
+      _removeCustomToast();
+    });
   }
 
   void _showMessage(String message) {
@@ -127,6 +241,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
   Future<void> _handleRegister() async {
     if (nameController.text.trim().isEmpty) {
       _showMessage(AppLanguage.t('signup_error_name')); // '이름을 입력해주세요.'
+      return;
+    }
+    if (nameController.text.trim().length > 50) {
+      _showNameTooLongToast(AppLanguage.t('name_too_long'));
       return;
     }
     if (!_isEmailChecked) {
