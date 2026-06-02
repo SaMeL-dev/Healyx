@@ -66,11 +66,16 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
     final bottomPadding = MediaQuery.of(context).padding.bottom;
 
-    final Color borderColor = isWarning ? const Color(0xFFFFD6A6) : const Color(0xFFD8E4FF);
-    final Color iconBg = isWarning ? const Color(0xFFFFF3E0) : const Color(0xFFEFF2FF);
-    final Color iconColor = isWarning ? const Color(0xFFFF8A00) : const Color(0xFF2260FF);
-    final Color textColor = isWarning ? const Color(0xFFE06B00) : const Color(0xFF2260FF);
-    final IconData iconData = isWarning ? Icons.priority_high_rounded : Icons.check_rounded;
+    final Color borderColor =
+    isWarning ? const Color(0xFFFFD6A6) : const Color(0xFFD8E4FF);
+    final Color iconBg =
+    isWarning ? const Color(0xFFFFF3E0) : const Color(0xFFEFF2FF);
+    final Color iconColor =
+    isWarning ? const Color(0xFFFF8A00) : const Color(0xFF2260FF);
+    final Color textColor =
+    isWarning ? const Color(0xFFE06B00) : const Color(0xFF2260FF);
+    final IconData iconData =
+    isWarning ? Icons.priority_high_rounded : Icons.check_rounded;
 
     _toastEntry = OverlayEntry(
       builder: (context) {
@@ -109,7 +114,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.12),
+                        color: Colors.black.withAlpha(31),
                         blurRadius: 14,
                         offset: const Offset(0, 5),
                       ),
@@ -168,6 +173,18 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     );
 
     return emailRegex.hasMatch(email);
+  }
+
+  bool _containsNumber(String value) {
+    final numberRegex = RegExp(r'[0-9]');
+    return numberRegex.hasMatch(value);
+  }
+
+  bool _containsSpecialCharacter(String value) {
+    final specialRegex = RegExp(
+      r"""[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\;/~`']""",
+    );
+    return specialRegex.hasMatch(value);
   }
 
   Future<void> _fetchMyProfile() async {
@@ -231,6 +248,16 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
     if (realName.isEmpty) {
       _showProfileGuide(AppLanguage.t('profile_error_name_empty'));
+      return;
+    }
+
+    if (_containsNumber(realName)) {
+      _showProfileGuide(AppLanguage.t('profile_error_name_contains_number'));
+      return;
+    }
+
+    if (_containsSpecialCharacter(realName)) {
+      _showProfileGuide(AppLanguage.t('profile_error_name_contains_special'));
       return;
     }
 
@@ -380,7 +407,6 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -398,7 +424,6 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           ),
         ),
       ),
-
       body: _buildBody(),
     );
   }
@@ -639,7 +664,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withAlpha(20),
             blurRadius: 14,
             offset: const Offset(0, 6),
           ),
