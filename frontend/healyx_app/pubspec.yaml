@@ -40,6 +40,8 @@ dependencies:
   # 이미지 선택 기능 (카메라 촬영 및 갤러리 업로드)
   # → 처방전 촬영 기능 구현을 위해 사용
   image_picker: ^1.1.2
+  # EXIF 방향 보정 (세로 사진이 가로로 뒤집히는 문제 해결)
+  image: ^4.5.4
 
   http: ^1.6.0 # Flutter에서 로그인 API를 호출하기 위함
   geolocator: ^14.0.2
