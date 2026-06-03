@@ -14,6 +14,7 @@ public class ProfileUpdateRequest {
 
     @NotBlank(message = "실명은 필수입니다.")
     @Size(max = 50, message = "실명은 50자 이하여야 합니다.")
+    @Pattern(regexp = "^[가-힣a-zA-Z ]+$", message = "이름에는 숫자나 특수문자를 포함할 수 없습니다.")
     private String realName;
 
     @NotBlank(message = "이메일은 필수입니다.")
