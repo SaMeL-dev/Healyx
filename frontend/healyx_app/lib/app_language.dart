@@ -81,6 +81,9 @@ class AppLanguage {
       'signup_error_id_check': '아이디 중복확인을 완료해주세요.',
       'signup_error_password': '비밀번호를 입력해주세요.',
       'signup_error_nickname': '닉네임을 입력해주세요.',
+      'signup_error_password_rule': '비밀번호는 영문, 숫자, 특수기호를 포함하여 7~12자로 입력해주세요.',
+      'signup_error_nickname_too_long': '닉네임은 10자를 초과할 수 없습니다.',
+      'signup_error_gender_birth_required': '성별과 생년월일을 입력해주세요.',
       'signup_success': '회원가입이 완료되었습니다.',
       'signup_failed': '회원가입에 실패했습니다.',
 
@@ -476,6 +479,9 @@ class AppLanguage {
       'signup_error_id_check': 'Please complete username verification.',
       'signup_error_password': 'Please enter your password.',
       'signup_error_nickname': 'Please enter your nickname.',
+      'signup_error_password_rule': 'Password must be 7–12 characters and include letters, numbers, and special characters.',
+      'signup_error_nickname_too_long': 'Nickname cannot exceed 10 characters.',
+      'signup_error_gender_birth_required': 'Please enter your gender and date of birth.',
       'signup_success': 'Registration complete.',
       'signup_failed': 'Registration failed.',
 
@@ -872,6 +878,9 @@ class AppLanguage {
       'signup_error_id_check': '请完成账号重复确认。',
       'signup_error_password': '请输入密码。',
       'signup_error_nickname': '请输入昵称。',
+      'signup_error_password_rule': '密码必须包含英文、数字和特殊字符，且为7~12位。',
+      'signup_error_nickname_too_long': '昵称不能超过10个字符。',
+      'signup_error_gender_birth_required': '请输入性别和出生日期。',
       'signup_success': '注册完成。',
       'signup_failed': '注册失败。',
 
@@ -1270,6 +1279,9 @@ class AppLanguage {
       'signup_error_id_check': 'IDの重複確認を完了してください。',
       'signup_error_password': 'パスワードを入力してください。',
       'signup_error_nickname': 'ニックネームを入力してください。',
+      'signup_error_password_rule': 'パスワードは英字・数字・特殊文字を含む7〜12文字で入力してください。',
+      'signup_error_nickname_too_long': 'ニックネームは10文字を超えることはできません。',
+      'signup_error_gender_birth_required': '性別と生年月日を入力してください。',
       'signup_success': '会員登録が完了しました。',
       'signup_failed': '会員登録に失敗しました。',
 
@@ -1666,6 +1678,9 @@ class AppLanguage {
       'signup_error_id_check': 'Vui lòng hoàn tất xác nhận tên đăng nhập.',
       'signup_error_password': 'Vui lòng nhập mật khẩu.',
       'signup_error_nickname': 'Vui lòng nhập biệt danh.',
+      'signup_error_password_rule': 'Mật khẩu phải gồm 7–12 ký tự, bao gồm chữ cái, số và ký tự đặc biệt.',
+      'signup_error_nickname_too_long': 'Biệt danh không được vượt quá 10 ký tự.',
+      'signup_error_gender_birth_required': 'Vui lòng nhập giới tính và ngày sinh.',
       'signup_success': 'Đăng ký hoàn tất.',
       'signup_failed': 'Đăng ký thất bại.',
 
@@ -2061,6 +2076,9 @@ class AppLanguage {
       'signup_error_id_check': 'กรุณายืนยันชื่อผู้ใช้ให้เสร็จสิ้น',
       'signup_error_password': 'กรุณาใส่รหัสผ่าน',
       'signup_error_nickname': 'กรุณาใส่ชื่อเล่น',
+      'signup_error_password_rule': 'รหัสผ่านต้องมี 7–12 ตัวอักษร และประกอบด้วยตัวอักษร ตัวเลข และอักขระพิเศษ',
+      'signup_error_nickname_too_long': 'ชื่อเล่นต้องไม่เกิน 10 ตัวอักษร',
+      'signup_error_gender_birth_required': 'กรุณาระบุเพศและวันเกิดของคุณ',
       'signup_success': 'สมัครสมาชิกเสร็จสิ้น',
       'signup_failed': 'สมัครสมาชิกไม่สำเร็จ',
 
