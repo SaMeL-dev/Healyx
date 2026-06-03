@@ -2113,7 +2113,7 @@ class _CommentCard extends StatelessWidget {
                   ),
                 ),
                 const Spacer(),
-                if (!isDeleted)
+                if (!isDeleted && !isReply)
                   GestureDetector(
                     onTap: onReply,
                     child: Container(

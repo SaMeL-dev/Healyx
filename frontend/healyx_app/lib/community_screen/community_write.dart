@@ -52,7 +52,7 @@ class _CommunityWriteScreenState extends State<CommunityWriteScreen> {
   // 새로 선택한 이미지
   final List<XFile> selectedImages = [];
 
-  // 수정 모드에서 기존 이미지 URL 표시용
+  // 수정 모드에서 기존 이미지 URL 표시 및 유지 목록 전송용
   late List<String> existingImageUrls;
 
   bool _titleError = false;
@@ -82,6 +82,13 @@ class _CommunityWriteScreenState extends State<CommunityWriteScreen> {
 
   String _tWithCount(String key, int count) {
     return AppLanguage.t(key).replaceAll('{count}', count.toString());
+  }
+
+  List<String> _normalizeKeepImageUrls(List<String> urls) {
+    return urls
+        .map((url) => url.split('?').first.trim())
+        .where((url) => url.isNotEmpty)
+        .toList();
   }
 
   String _localizedCommunityErrorMessage(Object error) {
@@ -319,7 +326,8 @@ class _CommunityWriteScreenState extends State<CommunityWriteScreen> {
           postId: widget.postId!,
           title: title,
           content: content,
-          images: selectedImages,
+          keepImageUrls: _normalizeKeepImageUrls(existingImageUrls),
+          newImages: selectedImages,
         );
 
         if (!mounted) return;
