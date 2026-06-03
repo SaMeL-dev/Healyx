@@ -21,4 +21,7 @@ public class EmailSendRequest {
 
     // find-id 전용: 실명
     private String name;
+
+    // reset-pw 전용: 아이디
+    private String username;
 }

@@ -21,6 +21,9 @@ class _FindIdScreenState extends State<FindIdScreen> {
   bool _isSendingCode = false;
   bool _isLoading = false;
 
+  OverlayEntry? _toastEntry;
+  Timer? _toastTimer;
+
   // 인증번호 타이머
   Timer? _timer;
   int _remainingSeconds = 0;
@@ -33,20 +36,130 @@ class _FindIdScreenState extends State<FindIdScreen> {
     return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
 
-  bool get isEmailFilled => emailController.text.trim().isNotEmpty;
-
-  void _showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        duration: const Duration(seconds: 2),
-      ),
-    );
+  void _removeCustomToast() {
+    _toastTimer?.cancel();
+    _toastTimer = null;
+    _toastEntry?.remove();
+    _toastEntry = null;
   }
+
+  void _showCustomToast(String message, {bool isWarning = true}) {
+    if (!mounted) return;
+
+    _removeCustomToast();
+
+    final overlay = Overlay.maybeOf(context);
+    if (overlay == null) return;
+
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+
+    final Color borderColor = isWarning ? const Color(0xFFFFD6A6) : const Color(0xFFD8E4FF);
+    final Color iconBg = isWarning ? const Color(0xFFFFF3E0) : const Color(0xFFEFF2FF);
+    final Color iconColor = isWarning ? const Color(0xFFFF8A00) : const Color(0xFF2260FF);
+    final Color textColor = isWarning ? const Color(0xFFE06B00) : const Color(0xFF2260FF);
+    final IconData iconData = isWarning ? Icons.priority_high_rounded : Icons.check_rounded;
+
+    _toastEntry = OverlayEntry(
+      builder: (context) {
+        return Positioned(
+          left: 20,
+          right: 20,
+          bottom: bottomPadding + 26,
+          child: IgnorePointer(
+            ignoring: true,
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0, end: 1),
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOutCubic,
+              builder: (context, value, child) {
+                return Opacity(
+                  opacity: value,
+                  child: Transform.translate(
+                    offset: Offset(0, 16 * (1 - value)),
+                    child: child,
+                  ),
+                );
+              },
+              child: Material(
+                color: Colors.transparent,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 13,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(
+                      color: borderColor,
+                      width: 1.2,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.12),
+                        blurRadius: 14,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 24,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          color: iconBg,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          iconData,
+                          color: iconColor,
+                          size: 17,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          message,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: textColor,
+                            fontSize: 14,
+                            height: 1.35,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+
+    overlay.insert(_toastEntry!);
+
+    _toastTimer = Timer(const Duration(milliseconds: 2200), () {
+      _removeCustomToast();
+    });
+  }
+
+  bool get isEmailFilled =>
+      nameController.text.trim().isNotEmpty &&
+      emailController.text.trim().isNotEmpty;
 
   @override
   void initState() {
     super.initState();
+
+    nameController.addListener(() {
+      setState(() {});
+    });
 
     emailController.addListener(() {
       setState(() {});
@@ -61,7 +174,7 @@ class _FindIdScreenState extends State<FindIdScreen> {
       if (_remainingSeconds <= 1) {
         timer.cancel();
         setState(() => _remainingSeconds = 0);
-        _showMessage(AppLanguage.t('verification_expired'), ); // '인증번호가 만료되었습니다. 다시 요청해주세요.'
+        _showCustomToast(AppLanguage.t('verification_expired')); // '인증번호가 만료되었습니다. 다시 요청해주세요.'
       } else {
         setState(() => _remainingSeconds--);
       }
@@ -70,6 +183,7 @@ class _FindIdScreenState extends State<FindIdScreen> {
 
   @override
   void dispose() {
+    _removeCustomToast();
     _timer?.cancel();
     nameController.dispose();
     emailController.dispose();
@@ -79,22 +193,24 @@ class _FindIdScreenState extends State<FindIdScreen> {
 
   // 인증 코드 발송 — POST /api/email/send
   Future<void> _requestVerification() async {
+    final name = nameController.text.trim();
     final email = emailController.text.trim();
-    if (email.isEmpty) return;
+    if (name.isEmpty || email.isEmpty) return;
 
     setState(() => _isSendingCode = true);
     final result = await AuthService.sendEmailVerification(
       email: email,
       purpose: 'find-id',
+      name: name,
     );
     if (!mounted) return;
     setState(() => _isSendingCode = false);
 
     if (result.success) {
       _startTimer();
-      _showMessage(AppLanguage.t('verification_sent'),); // '인증번호가 이메일로 발송되었습니다.'
+      _showCustomToast(AppLanguage.t('verification_sent'), isWarning: false); // '인증번호가 이메일로 발송되었습니다.'
     } else {
-      _showMessage(result.message ?? AppLanguage.t('verification_send_failed'), ); // '인증 코드 발송에 실패했습니다.'
+      _showCustomToast(result.message ?? AppLanguage.t('verification_send_failed')); // '인증 코드 발송에 실패했습니다.'
     }
   }
 
@@ -105,7 +221,7 @@ class _FindIdScreenState extends State<FindIdScreen> {
     final code = codeController.text.trim();
 
     if (name.isEmpty || email.isEmpty || code.isEmpty) {
-      _showMessage(AppLanguage.t('find_id_empty_fields'),); // '이름, 이메일, 인증번호를 모두 입력해주세요.'
+      _showCustomToast(AppLanguage.t('find_id_empty_fields')); // '이름, 이메일, 인증번호를 모두 입력해주세요.'
       return;
     }
 
@@ -128,7 +244,7 @@ class _FindIdScreenState extends State<FindIdScreen> {
         ),
       );
     } else {
-      _showMessage(result.message ?? AppLanguage.t('find_id_not_found'), ); // '아이디를 찾을 수 없습니다.'
+      _showCustomToast(result.message ?? AppLanguage.t('find_id_not_found')); // '아이디를 찾을 수 없습니다.'
     }
   }
 

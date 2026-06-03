@@ -42,6 +42,16 @@ public class EmailController {
                             "입력하신 정보와 일치하는 계정이 없습니다.", HttpStatus.NOT_FOUND));
         }
 
+        if ("reset-pw".equals(request.getPurpose())) {
+            String username = request.getUsername();
+            if (username == null || username.isBlank()) {
+                throw new AuthException("INVALID_INPUT", "아이디를 입력해 주세요.", HttpStatus.BAD_REQUEST);
+            }
+            userRepository.findByUsernameAndEmail(username, request.getEmail())
+                    .orElseThrow(() -> new AuthException("USER_NOT_FOUND",
+                            "입력하신 정보와 일치하는 계정이 없습니다.", HttpStatus.NOT_FOUND));
+        }
+
         emailService.sendVerificationCode(request.getEmail(), request.getPurpose());
 
         return ResponseEntity.ok(ApiResponse.success(null));
