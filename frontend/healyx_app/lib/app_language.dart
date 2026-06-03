@@ -127,6 +127,8 @@ class AppLanguage {
       'verification_request_sent': '인증요청이 전송되었습니다.',
       'pw_new_input_hint': '새 비밀번호 입력',
       'pw_confirm_input_hint': '새 비밀번호 확인',
+      'pw_invalid_account_info': '아이디 혹은 이메일이 올바르지 않습니다.',
+      'pw_enter_username_email': '아이디와 이메일을 입력해주세요.',
 
       // 메뉴 화면
       'menu_title': '메뉴',
@@ -522,6 +524,9 @@ class AppLanguage {
       'verification_request_sent': 'Verification request has been sent.',
       'pw_new_input_hint': 'Enter new password',
       'pw_confirm_input_hint': 'Confirm new password',
+      'pw_invalid_account_info': 'Username or email is invalid.',
+      'pw_enter_username_email': 'Please enter your username and email.',
+
 
       // 메뉴 화면
       'menu_title': 'Menu',
@@ -918,6 +923,8 @@ class AppLanguage {
       'verification_request_sent': '验证请求已发送。',
       'pw_new_input_hint': '输入新密码',
       'pw_confirm_input_hint': '确认新密码',
+      'pw_invalid_account_info': '账号或电子邮件不正确。',
+      'pw_enter_username_email': '请输入账号和电子邮件。',
 
       // 메뉴 화면
       'menu_title': '菜单',
@@ -1319,6 +1326,8 @@ class AppLanguage {
       'verification_request_sent': '認証リクエストが送信されました。',
       'pw_new_input_hint': '新しいパスワードを入力',
       'pw_confirm_input_hint': '新しいパスワードを確認',
+      'pw_invalid_account_info': 'IDまたはメールアドレスが正しくありません。',
+      'pw_enter_username_email': 'IDとメールアドレスを入力してください。',
 
       // 메뉴 화면
       'menu_title': 'メニュー',
@@ -1715,6 +1724,8 @@ class AppLanguage {
       'verification_request_sent': 'Yêu cầu xác nhận đã được gửi.',
       'pw_new_input_hint': 'Nhập mật khẩu mới',
       'pw_confirm_input_hint': 'Xác nhận mật khẩu mới',
+      'pw_invalid_account_info': 'Tên đăng nhập hoặc email không hợp lệ.',
+      'pw_enter_username_email': 'Vui lòng nhập tên đăng nhập và email.',
 
       // 메뉴 화면
       'menu_title': 'Menu',
@@ -2008,6 +2019,7 @@ class AppLanguage {
      'pw_request_fail': 'Yêu cầu thất bại.',
      'pw_response_parse_error': 'Đã xảy ra lỗi khi xử lý phản hồi máy chủ.',
 
+
       // 리뷰 병원 검색
       'review_search_all': 'Tìm kiếm tất cả',
       'review_search_no_result': 'Không tìm thấy kết quả.',
@@ -2109,6 +2121,8 @@ class AppLanguage {
       'verification_request_sent': 'ส่งคำขอยืนยันแล้ว',
       'pw_new_input_hint': 'ใส่รหัสผ่านใหม่',
       'pw_confirm_input_hint': 'ยืนยันรหัสผ่านใหม่',
+      'pw_invalid_account_info': 'ชื่อผู้ใช้หรืออีเมลไม่ถูกต้อง',
+      'pw_enter_username_email': 'กรุณาใส่ชื่อผู้ใช้และอีเมล',
 
       // 메뉴 화면
       'menu_title': 'เมนู',

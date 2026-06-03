@@ -32,6 +32,7 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
   @override
   void initState() {
     super.initState();
+
     _emailController.addListener(() {
       setState(() {});
     });
@@ -93,9 +94,10 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         duration: const Duration(seconds: 2),
-        margin: const EdgeInsets.fromLTRB(28, 0, 28, 28),
+        margin: const EdgeInsets.fromLTRB(18, 0, 18, 28),
         content: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(18),
@@ -110,8 +112,8 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
           child: Row(
             children: [
               Container(
-                width: 34,
-                height: 34,
+                width: 30,
+                height: 30,
                 decoration: BoxDecoration(
                   color: isSuccess
                       ? const Color(0xFFEAF0FF)
@@ -125,15 +127,19 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
                   color: isSuccess
                       ? const Color(0xFF2260FF)
                       : const Color(0xFFE5484D),
-                  size: 22,
+                  size: 20,
                 ),
               ),
-              const SizedBox(width: 14),
+              const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   message,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  softWrap: false,
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 14,
+                    height: 1.1,
                     fontWeight: FontWeight.w700,
                     color: isSuccess
                         ? const Color(0xFF2260FF)
@@ -188,7 +194,18 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
   }
 
   Future<void> _requestVerification() async {
+    final username = _idController.text.trim();
     final email = _emailController.text.trim();
+
+    if (username.isEmpty && email.isEmpty) {
+      _showErrorMessage(AppLanguage.t('pw_enter_username_email'));
+      return;
+    }
+
+    if (username.isEmpty) {
+      _showErrorMessage(AppLanguage.t('pw_enter_username'));
+      return;
+    }
 
     if (email.isEmpty) {
       _showErrorMessage(AppLanguage.t('pw_enter_email'));
@@ -205,6 +222,7 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
     });
 
     final result = await PasswordResetService.sendResetPasswordEmailCode(
+      username: username,
       email: email,
     );
 
@@ -217,15 +235,27 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
     if (result.success) {
       _startVerificationCountdown();
       _showSuccessMessage(AppLanguage.t('pw_request_success'));
-    } else {
-      _showErrorMessage(AppLanguage.t('pw_request_fail'));
+      return;
     }
+
+    if (result.errorCode == 'INVALID_INPUT' ||
+        result.errorCode == 'USER_NOT_FOUND') {
+      _showErrorMessage(AppLanguage.t('pw_invalid_account_info'));
+      return;
+    }
+
+    _showErrorMessage(AppLanguage.t('pw_request_fail'));
   }
 
   Future<void> _confirmAction() async {
     final username = _idController.text.trim();
     final email = _emailController.text.trim();
     final verificationCode = _codeController.text.trim();
+
+    if (username.isEmpty && email.isEmpty) {
+      _showErrorMessage(AppLanguage.t('pw_enter_username_email'));
+      return;
+    }
 
     if (username.isEmpty) {
       _showErrorMessage(AppLanguage.t('pw_enter_username'));
@@ -399,10 +429,8 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
                       buttonText: _isSendingCode
                           ? AppLanguage.t('pw_sending')
                           : AppLanguage.t('request_verification'),
-                      enabled:
-                      _isEmailEntered && !_isSendingCode && !_isTimerRunning,
-                      onPressed:
-                      _isEmailEntered && !_isSendingCode && !_isTimerRunning
+                      enabled: _isEmailEntered && !_isSendingCode,
+                      onPressed: _isEmailEntered && !_isSendingCode
                           ? _requestVerification
                           : null,
                     ),
@@ -666,6 +694,7 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
               ),
               child: Text(
                 buttonText,
+                textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,

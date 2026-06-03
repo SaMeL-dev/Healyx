@@ -2,16 +2,18 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
-import 'package:healyx_app/app_language.dart'; 
+import 'package:healyx_app/app_language.dart';
 
 /// API 호출 결과를 화면에서 사용하기 쉽게 담는 클래스
 class PasswordResetResult {
   final bool success;
   final String message;
+  final String? errorCode;
 
   PasswordResetResult({
     required this.success,
     required this.message,
+    this.errorCode,
   });
 }
 
@@ -21,6 +23,12 @@ class PasswordResetService {
   /// static const String baseUrl = 'https://서버주소';
   static const String baseUrl = 'https://jwejweiya.com';
 
+  static Map<String, String> get _headers => {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    'Accept-Language': AppLanguage.currentLang.value,
+  };
+
   /// 1. 비밀번호 재설정 이메일 인증번호 발송
   ///
   /// POST /api/email/send
@@ -28,9 +36,11 @@ class PasswordResetService {
   /// body:
   /// {
   ///   "email": "사용자 이메일",
-  ///   "purpose": "reset-pw"
+  ///   "purpose": "reset-pw",
+  ///   "username": "사용자 아이디"
   /// }
   static Future<PasswordResetResult> sendResetPasswordEmailCode({
+    required String username,
     required String email,
   }) async {
     try {
@@ -39,12 +49,11 @@ class PasswordResetService {
       final response = await http
           .post(
         url,
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: _headers,
         body: jsonEncode({
           'email': email,
           'purpose': 'reset-pw',
+          'username': username,
         }),
       )
           .timeout(const Duration(seconds: 10));
@@ -53,12 +62,12 @@ class PasswordResetService {
     } on TimeoutException {
       return PasswordResetResult(
         success: false,
-        message: AppLanguage.t('pw_request_timeout'), // '요청 시간이 초과되었습니다. 다시 시도해주세요.'
+        message: AppLanguage.t('pw_request_timeout'),
       );
     } catch (e) {
       return PasswordResetResult(
         success: false,
-        message: AppLanguage.t('pw_send_code_error'), // '인증번호 발송 중 오류가 발생했습니다.'
+        message: AppLanguage.t('pw_send_code_error'),
       );
     }
   }
@@ -84,9 +93,7 @@ class PasswordResetService {
       final response = await http
           .post(
         url,
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: _headers,
         body: jsonEncode({
           'username': username,
           'email': email,
@@ -99,12 +106,12 @@ class PasswordResetService {
     } on TimeoutException {
       return PasswordResetResult(
         success: false,
-        message: AppLanguage.t('pw_request_timeout'), // '요청 시간이 초과되었습니다. 다시 시도해주세요.'
+        message: AppLanguage.t('pw_request_timeout'),
       );
     } catch (e) {
       return PasswordResetResult(
         success: false,
-        message: AppLanguage.t('pw_verify_error'), // '본인 인증 중 오류가 발생했습니다.'
+        message: AppLanguage.t('pw_verify_error'),
       );
     }
   }
@@ -130,9 +137,7 @@ class PasswordResetService {
       final response = await http
           .put(
         url,
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: _headers,
         body: jsonEncode({
           'username': username,
           'newPassword': newPassword,
@@ -145,12 +150,12 @@ class PasswordResetService {
     } on TimeoutException {
       return PasswordResetResult(
         success: false,
-        message: AppLanguage.t('pw_request_timeout'), // '요청 시간이 초과되었습니다. 다시 시도해주세요.'
+        message: AppLanguage.t('pw_request_timeout'),
       );
     } catch (e) {
       return PasswordResetResult(
         success: false,
-        message: AppLanguage.t('pw_change_error'), // '비밀번호 변경 중 오류가 발생했습니다.'
+        message: AppLanguage.t('pw_change_error'),
       );
     }
   }
@@ -167,24 +172,30 @@ class PasswordResetService {
 
       final bool isApiSuccess = data['success'] == true;
 
+      final String? errorCode = data['errorCode']?.toString();
+
       final String message = data['message']?.toString() ??
-          (isHttpSuccess ? AppLanguage.t('pw_request_success') : AppLanguage.t('pw_request_fail')); // '요청이 성공했습니다.' : '요청에 실패했습니다.'
+          (isHttpSuccess
+              ? AppLanguage.t('pw_request_success')
+              : AppLanguage.t('pw_request_fail'));
 
       if (isHttpSuccess && isApiSuccess) {
         return PasswordResetResult(
           success: true,
           message: message,
+          errorCode: errorCode,
         );
       }
 
       return PasswordResetResult(
         success: false,
         message: message,
+        errorCode: errorCode,
       );
     } catch (e) {
       return PasswordResetResult(
         success: false,
-        message: AppLanguage.t('pw_response_parse_error'), // '서버 응답을 처리하는 중 오류가 발생했습니다.'
+        message: AppLanguage.t('pw_response_parse_error'),
       );
     }
   }
