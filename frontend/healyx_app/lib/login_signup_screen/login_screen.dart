@@ -188,7 +188,13 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   String _formatLockTimer() {
-    return '$lockRemainingSeconds초';
+    final int minutes = lockRemainingSeconds ~/ 60;
+    final int seconds = lockRemainingSeconds % 60;
+
+    final String minuteText = minutes.toString().padLeft(2, '0');
+    final String secondText = seconds.toString().padLeft(2, '0');
+
+    return '$minuteText:$secondText';
   }
 
   @override
@@ -357,9 +363,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         children: [
                           Positioned.fill(
                             child: ElevatedButton(
-                              onPressed: isLoginButtonDisabled
-                                  ? null
-                                  : _handleLogin,
+                              onPressed:
+                              isLoginButtonDisabled ? null : _handleLogin,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF2260FF),
                                 disabledBackgroundColor:
