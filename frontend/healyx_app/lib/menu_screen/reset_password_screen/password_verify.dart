@@ -39,7 +39,7 @@ class _PasswordVerifyScreenState extends State<PasswordVerifyScreen> {
     if (password.isEmpty) {
       setState(() {
         _hasError = true;
-        _errorMessage = AppLanguage.t('pw_enter_new'); // '비밀번호를 입력해주세요.'
+        _errorMessage = AppLanguage.t('signup_error_password'); // '비밀번호를 입력해주세요.'
       });
       return;
     }
