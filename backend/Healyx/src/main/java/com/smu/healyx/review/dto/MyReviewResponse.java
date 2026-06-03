@@ -11,15 +11,21 @@ import java.time.LocalDateTime;
 public class MyReviewResponse {
 
     private Long reviewId;
-    private String hospitalName;    // 병원 이름
+    private String ykiho;           // 병원 요양기호 — 상세 화면 이동에 필요
+    private String hospitalName;
+    private String address;
+    private boolean foreignCertified;
     private String contentPreview;  // 후기 최대 20자, 초과 시 "..." 처리
-    private int rating;             // 별점
+    private int rating;
     private LocalDateTime createdAt;
 
     public static MyReviewResponse from(Review review) {
         return MyReviewResponse.builder()
                 .reviewId(review.getReviewId())
+                .ykiho(review.getHospital().getYkiho())
                 .hospitalName(review.getHospital().getName())
+                .address(review.getHospital().getAddress())
+                .foreignCertified(review.getHospital().isForeignCertified())
                 .contentPreview(preview(review.getContent()))
                 .rating(review.getRating())
                 .createdAt(review.getCreatedAt())

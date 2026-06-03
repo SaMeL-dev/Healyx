@@ -19,18 +19,10 @@ import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
-/**
- * 리뷰 작성 전 진입 화면(UI-REV-01, UI-REV-02)에서 병원을 직접 검색한다.
- *
- * <p>병원 추천(HOS) 플로우와 달리 GPT 진료과 분석을 거치지 않고
- * HIRA Open API의 병원명 검색(yadmNm)으로 단순 호출하며,
- * 결과는 OCR 인증 선행 조건(ykiho ↔ 병원명 대조)을 만족시키기 위해
- * hospitals 테이블에 upsert한다.
- *
- * <p>책임 범위가 좁아 ReviewService(OCR/CRUD/S3)와 분리하여 응집도를 유지한다.
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -42,48 +34,38 @@ public class ReviewHospitalSearchService {
 
     private static final int MAX_NUM_OF_ROWS = 100;
     private static final int MIN_NAME_LENGTH = 1;
+    private static final int MAX_HIRA_PAGES = 5;
 
-    /**
-     * 병원명 + (선택)지역으로 HIRA 검색 후 평균 별점·리뷰 수 포함 카드 리스트 반환.
-     *
-     * @param name   병원명 키워드 (필수, 공백 비허용)
-     * @param region 시도 단위 지역 prefix (선택, 예: "서울", "부산")
-     * @param page   0-base 페이지 (HIRA pageNo는 1-base이므로 +1 변환)
-     * @param size   페이지 크기 (1~100)
-     */
     @Transactional
     public ReviewHospitalSearchResponse search(String name, String region, int page, int size) {
 
         validate(name, page, size);
 
-        // 1. HIRA API 호출 (yadmNm 기준)
-        HospitalSearchRequest request = new HospitalSearchRequest();
-        request.setYadmNm(name.trim());
-        request.setPageNo(page + 1); // HIRA는 1-base
-        request.setNumOfRows(size);
-        HospitalSearchResponse hiraResponse = hiraApiService.searchHospitals(request);
+        List<HospitalDto> pageHospitals;
+        int totalCount;
 
-        // 2. region 후처리 필터 (addr startsWith)
-        List<HospitalDto> hospitals = hiraResponse.getHospitals();
         if (StringUtils.hasText(region)) {
-            String prefix = region.trim();
-            hospitals = hospitals.stream()
-                    .filter(h -> h.getAddress() != null && h.getAddress().startsWith(prefix))
+            pageHospitals = fetchAllFromHiraParallel(name.trim()).stream()
+                    .filter(h -> h.getAddress() != null && h.getAddress().startsWith(region.trim()))
                     .toList();
+            totalCount = pageHospitals.size();
+        } else {
+            HospitalSearchRequest request = new HospitalSearchRequest();
+            request.setYadmNm(name.trim());
+            request.setPageNo(page + 1);
+            request.setNumOfRows(size);
+            HospitalSearchResponse resp = hiraApiService.searchHospitals(request);
+            pageHospitals = resp.getHospitals();
+            totalCount = resp.getTotalCount();
         }
 
-        // 3. hospitals 테이블 upsert — OCR 인증·리뷰 등록 선행 조건
-        upsertHospitals(hospitals);
+        List<ReviewHospitalItem> items = upsertAndBuildItems(pageHospitals);
 
-        // 4. 별점·리뷰 수 집계하여 카드 변환
-        List<ReviewHospitalItem> items = hospitals.stream()
-                .map(this::toItem)
-                .toList();
-
-        log.debug("리뷰 병원 검색 완료: name={}, region={}, count={}", name, region, items.size());
+        log.debug("리뷰 병원 검색 완료: name={}, region={}, total={}, returned={}",
+                name, region, totalCount, items.size());
 
         return ReviewHospitalSearchResponse.builder()
-                .totalCount(items.size())
+                .totalCount(totalCount)
                 .hospitals(items)
                 .build();
     }
@@ -91,44 +73,120 @@ public class ReviewHospitalSearchService {
     // ── 내부 ─────────────────────────────────────────────────────────
 
     /**
-     * HIRA DTO를 응답 카드로 변환하면서 평균 별점·리뷰 수를 집계한다.
-     * upsert 직후라 hospital 행은 항상 존재해야 정상이지만, 방어적으로 0.0/0 처리.
+     * upsert + 별점/리뷰 수 집계를 배치 쿼리로 처리.
+     * 기존 toItem(N+1) + upsertHospitals(N+1) → 쿼리 3회로 대체.
      */
-    private ReviewHospitalItem toItem(HospitalDto dto) {
-        Hospital hospital = hospitalRepository.findByYkiho(dto.getYkiho()).orElse(null);
+    private List<ReviewHospitalItem> upsertAndBuildItems(List<HospitalDto> dtos) {
+        if (dtos.isEmpty()) return List.of();
 
-        double averageRating = 0.0;
-        int reviewCount = 0;
-        if (hospital != null) {
-            Double avgRaw = reviewRepository.findAvgRatingByHospitalId(hospital.getHospitalId());
-            averageRating = avgRaw == null ? 0.0
-                    : BigDecimal.valueOf(avgRaw).setScale(1, RoundingMode.HALF_UP).doubleValue();
-            reviewCount = reviewRepository.countByHospitalId(hospital.getHospitalId());
+        List<String> ykihos = dtos.stream()
+                .map(HospitalDto::getYkiho)
+                .filter(y -> y != null && !y.isBlank())
+                .toList();
+
+        // 1 query: 기존 병원 일괄 조회
+        Map<String, Hospital> hospitalMap = new HashMap<>(
+                hospitalRepository.findAllByYkihoIn(ykihos).stream()
+                        .collect(Collectors.toMap(Hospital::getYkiho, h -> h))
+        );
+
+        // upsert: 신규는 saveAll, 기존은 updateFromHira
+        List<Hospital> toSave = new ArrayList<>();
+        for (HospitalDto dto : dtos) {
+            if (dto.getYkiho() == null || dto.getYkiho().isBlank()) continue;
+            Hospital existing = hospitalMap.get(dto.getYkiho());
+            if (existing != null) {
+                existing.updateFromHira(dto);
+            } else {
+                toSave.add(Hospital.fromHiraDto(dto));
+            }
+        }
+        if (!toSave.isEmpty()) {
+            hospitalRepository.saveAll(toSave)
+                    .forEach(h -> hospitalMap.put(h.getYkiho(), h));
         }
 
-        return ReviewHospitalItem.builder()
-                .ykiho(dto.getYkiho())
-                .name(dto.getHospitalName())
-                .address(dto.getAddress())
-                .averageRating(averageRating)
-                .reviewCount(reviewCount)
-                .build();
+        // 1 query: 별점·리뷰 수 일괄 집계
+        List<Long> hospitalIds = hospitalMap.values().stream()
+                .map(Hospital::getHospitalId)
+                .filter(Objects::nonNull)
+                .toList();
+
+        Map<Long, double[]> statsMap = new HashMap<>();
+        if (!hospitalIds.isEmpty()) {
+            reviewRepository.findRatingStatsByHospitalIds(hospitalIds).forEach(row -> {
+                Long hid = (Long) row[0];
+                Double avg = (Double) row[1];
+                Long cnt = (Long) row[2];
+                statsMap.put(hid, new double[]{avg == null ? 0.0 : avg, cnt == null ? 0 : cnt});
+            });
+        }
+
+        return dtos.stream().map(dto -> {
+            Hospital hospital = hospitalMap.get(dto.getYkiho());
+            double averageRating = 0.0;
+            int reviewCount = 0;
+            if (hospital != null) {
+                double[] stats = statsMap.get(hospital.getHospitalId());
+                if (stats != null) {
+                    averageRating = BigDecimal.valueOf(stats[0])
+                            .setScale(1, RoundingMode.HALF_UP).doubleValue();
+                    reviewCount = (int) stats[1];
+                }
+            }
+            return ReviewHospitalItem.builder()
+                    .ykiho(dto.getYkiho())
+                    .name(dto.getHospitalName())
+                    .address(dto.getAddress())
+                    .averageRating(averageRating)
+                    .reviewCount(reviewCount)
+                    .build();
+        }).toList();
     }
 
     /**
-     * HIRA 응답 병원 목록을 ykiho 기준으로 hospitals 테이블에 upsert.
-     * HospitalRecommendService.upsertHospitals와 동일 패턴.
+     * 첫 페이지로 totalCount를 확인한 뒤 나머지 페이지를 CompletableFuture로 병렬 호출.
+     * RestTemplate은 스레드 안전하므로 병렬 호출 가능.
      */
-    private void upsertHospitals(List<HospitalDto> dtos) {
-        for (HospitalDto dto : dtos) {
-            if (dto.getYkiho() == null || dto.getYkiho().isBlank()) continue;
+    private List<HospitalDto> fetchAllFromHiraParallel(String name) {
+        HospitalSearchRequest firstReq = new HospitalSearchRequest();
+        firstReq.setYadmNm(name);
+        firstReq.setPageNo(1);
+        firstReq.setNumOfRows(MAX_NUM_OF_ROWS);
+        HospitalSearchResponse firstResp = hiraApiService.searchHospitals(firstReq);
 
-            hospitalRepository.findByYkiho(dto.getYkiho())
-                    .ifPresentOrElse(
-                            existing -> existing.updateFromHira(dto),
-                            () -> hospitalRepository.save(Hospital.fromHiraDto(dto))
-                    );
+        List<HospitalDto> all = new ArrayList<>(firstResp.getHospitals());
+        if (all.size() >= firstResp.getTotalCount()) return all;
+
+        int totalPages = Math.min(
+                (int) Math.ceil((double) firstResp.getTotalCount() / MAX_NUM_OF_ROWS),
+                MAX_HIRA_PAGES
+        );
+        if (totalPages <= 1) return all;
+
+        List<CompletableFuture<List<HospitalDto>>> futures = new ArrayList<>();
+        for (int p = 2; p <= totalPages; p++) {
+            final int pageNum = p;
+            futures.add(CompletableFuture.supplyAsync(() -> {
+                HospitalSearchRequest req = new HospitalSearchRequest();
+                req.setYadmNm(name);
+                req.setPageNo(pageNum);
+                req.setNumOfRows(MAX_NUM_OF_ROWS);
+                return hiraApiService.searchHospitals(req).getHospitals();
+            }));
         }
+
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+        for (CompletableFuture<List<HospitalDto>> future : futures) {
+            try {
+                List<HospitalDto> batch = future.get();
+                if (batch != null) all.addAll(batch);
+            } catch (Exception e) {
+                log.warn("HIRA 병렬 페이지 조회 실패: {}", e.getMessage());
+            }
+        }
+
+        return all;
     }
 
     private void validate(String name, int page, int size) {
