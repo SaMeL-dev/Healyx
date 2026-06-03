@@ -94,10 +94,10 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         duration: const Duration(seconds: 2),
-        margin: const EdgeInsets.fromLTRB(18, 0, 18, 28),
+        margin: const EdgeInsets.fromLTRB(10, 0, 10, 28),
         content: Container(
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(18),
@@ -138,7 +138,7 @@ class _FindPasswordScreenState extends State<FindPasswordScreen> {
                   overflow: TextOverflow.ellipsis,
                   softWrap: false,
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: 13,
                     height: 1.1,
                     fontWeight: FontWeight.w700,
                     color: isSuccess
