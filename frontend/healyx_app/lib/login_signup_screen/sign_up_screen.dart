@@ -263,6 +263,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
       _showCustomToast(AppLanguage.t('signup_error_password'));
       return;
     }
+    // 비밀번호 형식 검사: 영문+숫자+특수기호 조합, 7~12자
+    final passwordRegex = RegExp(
+      r'^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*()\-_+=\[\]{}|;:,.<>?/~]).{7,12}$',
+    );
+    if (!passwordRegex.hasMatch(passwordController.text)) {
+      _showCustomToast(AppLanguage.t('signup_error_password_rule'));
+      return;
+    }
     if (passwordController.text != passwordCheckController.text) {
       _showCustomToast(AppLanguage.t('pw_error'));
       return;
@@ -271,20 +279,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
       _showCustomToast(AppLanguage.t('signup_error_nickname'));
       return;
     }
-
-    // 생년월일 조합 (선택사항)
-    String? birthDate;
-    if (selectedYear != 'yyyy' && selectedMonth != 'mm' && selectedDay != 'dd') {
-      birthDate = '$selectedYear-$selectedMonth-$selectedDay';
+    if (nicknameController.text.trim().length > 10) {
+      _showCustomToast(AppLanguage.t('signup_error_nickname_too_long'));
+      return;
     }
+    if (selectedGender.isEmpty ||
+        selectedYear == 'yyyy' ||
+        selectedMonth == 'mm' ||
+        selectedDay == 'dd') {
+      _showCustomToast(AppLanguage.t('signup_error_gender_birth_required'));
+      return;
+    }
+
+    // 생년월일 조합
+    final String birthDate = '$selectedYear-$selectedMonth-$selectedDay';
 
     // 성별 변환: 남성 → M, 여성 → F
-    String? gender;
-    if (selectedGender == '남성') {
-      gender = 'M';
-    } else if (selectedGender == '여성') {
-      gender = 'F';
-    }
+    final String gender = selectedGender == '남성' ? 'M' : 'F';
 
     // SharedPreferences에서 선호 언어 조회 (기본값: ko)
     final prefs = await SharedPreferences.getInstance();
