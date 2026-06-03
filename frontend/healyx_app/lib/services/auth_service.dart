@@ -268,14 +268,21 @@ class AuthService {
   static Future<EmailSendResult> sendEmailVerification({
     required String email,
     required String purpose,
+    String? name,
   }) async {
     final url = Uri.parse('$baseUrl/api/email/send');
 
     try {
+      final Map<String, dynamic> requestBody = {
+        'email': email,
+        'purpose': purpose,
+      };
+      if (name != null && name.isNotEmpty) requestBody['name'] = name;
+
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'email': email, 'purpose': purpose}),
+        body: jsonEncode(requestBody),
       );
 
       final decoded = utf8.decode(response.bodyBytes);
