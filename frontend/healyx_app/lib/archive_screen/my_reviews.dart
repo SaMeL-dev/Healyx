@@ -119,6 +119,7 @@ class _MyReviewsScreenState extends State<MyReviewsScreen> {
               context,
               MaterialPageRoute(
                 builder: (_) => FindHospitalDetailScreen(
+                  ykiho: item.ykiho,
                   hospitalName: item.hospitalName,
                   address: item.address,
                   rating: item.rating,
