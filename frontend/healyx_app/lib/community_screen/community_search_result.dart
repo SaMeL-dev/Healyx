@@ -29,9 +29,13 @@ class _CommunitySearchResultScreenState
   static const Color softBg = Color(0xFFECF1FF);
   static const Color pageBg = Color(0xFFE2E9FF);
   static const Color tabInactive = Color(0xFFCAD6FF);
+  static const int _pageSize = 10;
 
   String selectedFilter = '제목+글';
   String selectedSort = '최신순';
+
+  int _currentPage = 0;
+  int _totalPages = 1;
 
   bool _isLoading = false;
   String? _errorMessage;
@@ -40,10 +44,21 @@ class _CommunitySearchResultScreenState
 
   List<_CommunitySearchPostViewData> posts = [];
 
+  final ScrollController _postScrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
-    _loadSearchResults();
+    _loadSearchResults(
+      page: 0,
+      resetScroll: true,
+    );
+  }
+
+  @override
+  void dispose() {
+    _postScrollController.dispose();
+    super.dispose();
   }
 
   String get _searchField {
@@ -65,6 +80,12 @@ class _CommunitySearchResultScreenState
 
     return 'latest';
   }
+
+  bool get _showPagination => posts.isNotEmpty && _totalPages > 1;
+
+  bool get _canGoPrevious => !_isLoading && _currentPage > 0;
+
+  bool get _canGoNext => !_isLoading && _currentPage < _totalPages - 1;
 
   String _normalizeLanguageCode(String? value) {
     final code = value?.trim().toLowerCase();
@@ -200,7 +221,12 @@ class _CommunitySearchResultScreenState
     );
   }
 
-  Future<void> _loadSearchResults() async {
+  Future<void> _loadSearchResults({
+    int? page,
+    bool resetScroll = false,
+  }) async {
+    final int targetPage = page ?? _currentPage;
+
     try {
       setState(() {
         _isLoading = true;
@@ -210,8 +236,8 @@ class _CommunitySearchResultScreenState
       final selectedLanguageCode = await _loadSelectedLanguageCode();
 
       final result = await CommunityService().getPosts(
-        page: 0,
-        size: 10,
+        page: targetPage,
+        size: _pageSize,
         sort: _sort,
         keyword: widget.keyword.trim().isEmpty ? null : widget.keyword.trim(),
         searchField: _searchField,
@@ -230,7 +256,17 @@ class _CommunitySearchResultScreenState
       setState(() {
         _selectedLanguageCode = selectedLanguageCode;
         posts = translatedPosts;
+        _currentPage = result.number;
+        _totalPages = result.totalPages <= 0 ? 1 : result.totalPages;
       });
+
+      if (resetScroll) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_postScrollController.hasClients) {
+            _postScrollController.jumpTo(0);
+          }
+        });
+      }
     } catch (e) {
       if (!mounted) return;
 
@@ -251,9 +287,15 @@ class _CommunitySearchResultScreenState
 
     setState(() {
       selectedFilter = filter;
+      _currentPage = 0;
+      _totalPages = 1;
+      posts = [];
     });
 
-    _loadSearchResults();
+    _loadSearchResults(
+      page: 0,
+      resetScroll: true,
+    );
   }
 
   void _changeSort(String sort) {
@@ -261,9 +303,26 @@ class _CommunitySearchResultScreenState
 
     setState(() {
       selectedSort = sort;
+      _currentPage = 0;
+      _totalPages = 1;
+      posts = [];
     });
 
-    _loadSearchResults();
+    _loadSearchResults(
+      page: 0,
+      resetScroll: true,
+    );
+  }
+
+  void _goToPage(int page) {
+    if (_isLoading) return;
+    if (page < 0 || page >= _totalPages) return;
+    if (page == _currentPage) return;
+
+    _loadSearchResults(
+      page: page,
+      resetScroll: true,
+    );
   }
 
   Future<void> _goToDetailScreen(_CommunitySearchPostViewData item) async {
@@ -277,7 +336,9 @@ class _CommunitySearchResultScreenState
     );
 
     if (result == true) {
-      _loadSearchResults();
+      _loadSearchResults(
+        page: _currentPage,
+      );
     }
   }
 
@@ -316,7 +377,7 @@ class _CommunitySearchResultScreenState
               SizedBox(
                 height: 42,
                 child: ElevatedButton(
-                  onPressed: _loadSearchResults,
+                  onPressed: () => _loadSearchResults(page: _currentPage),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: mainBlue,
                     foregroundColor: Colors.white,
@@ -342,8 +403,9 @@ class _CommunitySearchResultScreenState
     if (posts.isEmpty) {
       return RefreshIndicator(
         color: mainBlue,
-        onRefresh: _loadSearchResults,
+        onRefresh: () => _loadSearchResults(page: _currentPage),
         child: ListView(
+          controller: _postScrollController,
           padding: const EdgeInsets.fromLTRB(14, 40, 14, 20),
           children: [
             const SizedBox(height: 120),
@@ -370,12 +432,17 @@ class _CommunitySearchResultScreenState
 
     return RefreshIndicator(
       color: mainBlue,
-      onRefresh: _loadSearchResults,
+      onRefresh: () => _loadSearchResults(page: _currentPage),
       child: ListView.separated(
+        controller: _postScrollController,
         padding: const EdgeInsets.fromLTRB(14, 6, 14, 20),
-        itemCount: posts.length,
+        itemCount: posts.length + (_showPagination ? 1 : 0),
         separatorBuilder: (_, __) => const SizedBox(height: 14),
         itemBuilder: (context, index) {
+          if (_showPagination && index == posts.length) {
+            return _buildPaginationControls();
+          }
+
           final item = posts[index];
           final post = item.post;
 
@@ -393,6 +460,54 @@ class _CommunitySearchResultScreenState
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildPaginationControls() {
+    return Padding(
+      padding: const EdgeInsets.only(
+        top: 8,
+        bottom: 28,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _PageArrowButton(
+            icon: Icons.chevron_left_rounded,
+            isEnabled: _canGoPrevious,
+            onTap: () => _goToPage(_currentPage - 1),
+          ),
+          const SizedBox(width: 18),
+          RichText(
+            text: TextSpan(
+              children: [
+                TextSpan(
+                  text: '${_currentPage + 1}',
+                  style: const TextStyle(
+                    color: mainBlue,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                TextSpan(
+                  text: ' / $_totalPages',
+                  style: const TextStyle(
+                    color: Colors.black45,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 18),
+          _PageArrowButton(
+            icon: Icons.chevron_right_rounded,
+            isEnabled: _canGoNext,
+            onTap: () => _goToPage(_currentPage + 1),
+          ),
+        ],
       ),
     );
   }
@@ -618,6 +733,42 @@ class _CommunitySearchResultScreenState
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PageArrowButton extends StatelessWidget {
+  final IconData icon;
+  final bool isEnabled;
+  final VoidCallback onTap;
+
+  static const Color mainBlue = Color(0xFF2260FF);
+  static const Color disabledGrey = Color(0xFFCFCFCF);
+
+  const _PageArrowButton({
+    required this.icon,
+    required this.isEnabled,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: isEnabled ? onTap : null,
+      child: Container(
+        width: 34,
+        height: 34,
+        alignment: Alignment.center,
+        decoration: const BoxDecoration(
+          color: Colors.transparent,
+          shape: BoxShape.circle,
+        ),
+        child: Icon(
+          icon,
+          color: isEnabled ? mainBlue : disabledGrey,
+          size: 30,
         ),
       ),
     );
