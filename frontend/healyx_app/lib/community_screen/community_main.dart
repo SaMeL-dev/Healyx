@@ -1,4 +1,4 @@
-﻿  // 커뮤니티 메인 화면 (홈/인기 탭, 게시글 리스트, 검색/글쓰기 버튼)
+﻿// 커뮤니티 메인 화면 (홈/인기 탭, 게시글 리스트, 검색/글쓰기 버튼)
 // 선택 언어 코드 기반으로 게시글 제목/내용 미리보기를 번역해서 표시
 // 단, 내가 작성한 게시글은 번역하지 않고 원문 그대로 표시
 import 'dart:async';
@@ -31,8 +31,11 @@ class _CommunityMainScreenState extends State<CommunityMainScreen> {
   static const Color subBlue = Color(0xFF809CFF);
   static const Color tabInactive = Color(0xFFCAD6FF);
   static const Color pageBg = Color(0xFFE2E9FF);
+  static const int _pageSize = 10;
 
   int _selectedTab = 0; // 0: 홈, 1: 인기
+  int _currentPage = 0;
+  int _totalPages = 1;
 
   bool _isLoading = false;
   String? _errorMessage;
@@ -41,18 +44,24 @@ class _CommunityMainScreenState extends State<CommunityMainScreen> {
 
   List<_CommunityMainPostViewData> _posts = [];
 
+  final ScrollController _postScrollController = ScrollController();
+
   OverlayEntry? _toastEntry;
   Timer? _toastTimer;
 
   @override
   void initState() {
     super.initState();
-    _loadPosts();
+    _loadPosts(
+      page: 0,
+      resetScroll: true,
+    );
   }
 
   @override
   void dispose() {
     _removeCustomToast();
+    _postScrollController.dispose();
     super.dispose();
   }
 
@@ -62,6 +71,12 @@ class _CommunityMainScreenState extends State<CommunityMainScreen> {
     }
     return 'popular';
   }
+
+  bool get _showPagination => _posts.isNotEmpty && _totalPages > 1;
+
+  bool get _canGoPrevious => !_isLoading && _currentPage > 0;
+
+  bool get _canGoNext => !_isLoading && _currentPage < _totalPages - 1;
 
   String _normalizeLanguageCode(String? value) {
     final code = value?.trim().toLowerCase();
@@ -193,7 +208,12 @@ class _CommunityMainScreenState extends State<CommunityMainScreen> {
     );
   }
 
-  Future<void> _loadPosts() async {
+  Future<void> _loadPosts({
+    int? page,
+    bool resetScroll = false,
+  }) async {
+    final int targetPage = page ?? _currentPage;
+
     try {
       setState(() {
         _isLoading = true;
@@ -203,8 +223,8 @@ class _CommunityMainScreenState extends State<CommunityMainScreen> {
       final selectedLanguageCode = await _loadSelectedLanguageCode();
 
       final result = await CommunityService().getPosts(
-        page: 0,
-        size: 10,
+        page: targetPage,
+        size: _pageSize,
         sort: _currentSort,
       );
 
@@ -221,7 +241,17 @@ class _CommunityMainScreenState extends State<CommunityMainScreen> {
       setState(() {
         _selectedLanguageCode = selectedLanguageCode;
         _posts = translatedPosts;
+        _currentPage = result.number;
+        _totalPages = result.totalPages <= 0 ? 1 : result.totalPages;
       });
+
+      if (resetScroll) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_postScrollController.hasClients) {
+            _postScrollController.jumpTo(0);
+          }
+        });
+      }
     } catch (e) {
       if (!mounted) return;
 
@@ -249,9 +279,26 @@ class _CommunityMainScreenState extends State<CommunityMainScreen> {
 
     setState(() {
       _selectedTab = index;
+      _currentPage = 0;
+      _totalPages = 1;
+      _posts = [];
     });
 
-    _loadPosts();
+    _loadPosts(
+      page: 0,
+      resetScroll: true,
+    );
+  }
+
+  void _goToPage(int page) {
+    if (_isLoading) return;
+    if (page < 0 || page >= _totalPages) return;
+    if (page == _currentPage) return;
+
+    _loadPosts(
+      page: page,
+      resetScroll: true,
+    );
   }
 
   Future<void> _goToWriteScreen() async {
@@ -263,7 +310,10 @@ class _CommunityMainScreenState extends State<CommunityMainScreen> {
     );
 
     if (result == true) {
-      _loadPosts();
+      _loadPosts(
+        page: 0,
+        resetScroll: true,
+      );
     }
   }
 
@@ -278,7 +328,9 @@ class _CommunityMainScreenState extends State<CommunityMainScreen> {
     );
 
     if (result == true) {
-      _loadPosts();
+      _loadPosts(
+        page: _currentPage,
+      );
     }
   }
 
@@ -311,8 +363,7 @@ class _CommunityMainScreenState extends State<CommunityMainScreen> {
     isSuccess ? Icons.check_rounded : Icons.priority_high_rounded;
 
     final Color iconColor = isSuccess ? mainBlue : const Color(0xFFFF8A00);
-    final Color iconBg =
-    isSuccess ? softBg : const Color(0xFFFFF3E0);
+    final Color iconBg = isSuccess ? softBg : const Color(0xFFFFF3E0);
     final Color borderColor =
     isSuccess ? const Color(0xFFD8E4FF) : const Color(0xFFFFD6A6);
     final Color textColor = isSuccess ? mainBlue : const Color(0xFFE06B00);
@@ -442,7 +493,7 @@ class _CommunityMainScreenState extends State<CommunityMainScreen> {
               SizedBox(
                 height: 42,
                 child: ElevatedButton(
-                  onPressed: _loadPosts,
+                  onPressed: () => _loadPosts(page: _currentPage),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: mainBlue,
                     foregroundColor: Colors.white,
@@ -468,7 +519,7 @@ class _CommunityMainScreenState extends State<CommunityMainScreen> {
     if (_posts.isEmpty) {
       return RefreshIndicator(
         color: mainBlue,
-        onRefresh: _loadPosts,
+        onRefresh: () => _loadPosts(page: _currentPage),
         child: ListView(
           padding: const EdgeInsets.fromLTRB(14, 40, 14, 20),
           children: [
@@ -496,12 +547,17 @@ class _CommunityMainScreenState extends State<CommunityMainScreen> {
 
     return RefreshIndicator(
       color: mainBlue,
-      onRefresh: _loadPosts,
+      onRefresh: () => _loadPosts(page: _currentPage),
       child: ListView.separated(
+        controller: _postScrollController,
         padding: const EdgeInsets.fromLTRB(14, 20, 14, 20),
-        itemCount: _posts.length,
+        itemCount: _posts.length + (_showPagination ? 1 : 0),
         separatorBuilder: (_, __) => const SizedBox(height: 14),
         itemBuilder: (context, index) {
+          if (_showPagination && index == _posts.length) {
+            return _buildPaginationControls();
+          }
+
           final item = _posts[index];
           final post = item.post;
 
@@ -519,6 +575,54 @@ class _CommunityMainScreenState extends State<CommunityMainScreen> {
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildPaginationControls() {
+    return Padding(
+      padding: const EdgeInsets.only(
+        top: 8,
+        bottom: 70,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _PageArrowButton(
+            icon: Icons.chevron_left_rounded,
+            isEnabled: _canGoPrevious,
+            onTap: () => _goToPage(_currentPage - 1),
+          ),
+          const SizedBox(width: 18),
+          RichText(
+            text: TextSpan(
+              children: [
+                TextSpan(
+                  text: '${_currentPage + 1}',
+                  style: const TextStyle(
+                    color: mainBlue,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                TextSpan(
+                  text: ' / $_totalPages',
+                  style: const TextStyle(
+                    color: Colors.black45,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 18),
+          _PageArrowButton(
+            icon: Icons.chevron_right_rounded,
+            isEnabled: _canGoNext,
+            onTap: () => _goToPage(_currentPage + 1),
+          ),
+        ],
       ),
     );
   }
@@ -704,6 +808,42 @@ class _CommunityMainScreenState extends State<CommunityMainScreen> {
               child: _buildPostList(),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PageArrowButton extends StatelessWidget {
+  final IconData icon;
+  final bool isEnabled;
+  final VoidCallback onTap;
+
+  static const Color mainBlue = Color(0xFF2260FF);
+  static const Color disabledGrey = Color(0xFFCFCFCF);
+
+  const _PageArrowButton({
+    required this.icon,
+    required this.isEnabled,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: isEnabled ? onTap : null,
+      child: Container(
+        width: 34,
+        height: 34,
+        alignment: Alignment.center,
+        decoration: const BoxDecoration(
+          color: Colors.transparent,
+          shape: BoxShape.circle,
+        ),
+        child: Icon(
+          icon,
+          color: isEnabled ? mainBlue : disabledGrey,
+          size: 30,
         ),
       ),
     );
