@@ -6,7 +6,17 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:image/image.dart' as img;
 import 'auth_service.dart';
+
+// compute()용 최상위 함수: EXIF 회전 정보를 픽셀에 적용 후 재인코딩
+// image_picker가 maxWidth/maxHeight 사용 시 EXIF를 제거하는 경우를 방어
+Uint8List _fixImageOrientation(Uint8List bytes) {
+  final decoded = img.decodeImage(bytes);
+  if (decoded == null) return bytes;
+  // decodeImage가 EXIF 회전을 픽셀에 적용하므로 re-encode 시 올바른 방향으로 저장됨
+  return Uint8List.fromList(img.encodeJpg(decoded, quality: 90));
+}
 
 // 번역 요청 결과 모델
 class TranslationResult {
@@ -108,8 +118,9 @@ class TranslationService {
     required String targetLanguage,
   }) async {
     try {
-      // 이미지를 Base64로 인코딩
-      final imageBytes = await File(imagePath).readAsBytes();
+      // EXIF 방향 보정 후 Base64 인코딩 (세로 사진이 가로로 뒤집히는 문제 방지)
+      final rawBytes = await File(imagePath).readAsBytes();
+      final imageBytes = await compute(_fixImageOrientation, rawBytes);
       final imageBase64 = base64Encode(imageBytes);
       debugPrint('[Translation] 이미지 크기: ${(imageBytes.length / 1024).toStringAsFixed(1)} KB');
 

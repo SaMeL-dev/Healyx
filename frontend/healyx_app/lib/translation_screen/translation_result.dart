@@ -41,17 +41,22 @@ class TranslationResultScreen extends StatelessWidget {
 
   // 번역 이미지 위젯 빌드
   // 우선순위: S3 URL → Base64 → 플레이스홀더 텍스트
+  // fitWidth: 이미지 원본 비율(가로/세로)에 맞게 높이 자동 조정
   Widget _buildTranslatedImage(Color grayText) {
     if (translatedImageUrl.isNotEmpty) {
       return Image.network(
         translatedImageUrl,
-        fit: BoxFit.contain,
+        width: double.infinity,
+        fit: BoxFit.fitWidth,
         loadingBuilder: (context, child, progress) {
           if (progress == null) return child;
-          return const Center(
-            child: CircularProgressIndicator(
-              color: Color(0xFF2260FF),
-              strokeWidth: 2,
+          return const SizedBox(
+            height: 200,
+            child: Center(
+              child: CircularProgressIndicator(
+                color: Color(0xFF2260FF),
+                strokeWidth: 2,
+              ),
             ),
           );
         },
@@ -65,7 +70,8 @@ class TranslationResultScreen extends StatelessWidget {
         final bytes = base64Decode(translatedImageBase64);
         return Image.memory(
           bytes,
-          fit: BoxFit.contain,
+          width: double.infinity,
+          fit: BoxFit.fitWidth,
           errorBuilder: (context, error, stackTrace) =>
               _buildPlaceholder(grayText),
         );
@@ -253,9 +259,10 @@ class TranslationResultScreen extends StatelessWidget {
                       const SizedBox(height: 24),
 
                       // 번역된 이미지 (S3 URL 또는 Base64)
+                      // 고정 높이 없이 이미지 원본 비율(가로/세로)로 표시
                       Container(
                         width: double.infinity,
-                        height: 320,
+                        constraints: const BoxConstraints(minHeight: 200),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           border: Border.all(color: const Color(0xFFBDBDBD)),
