@@ -60,13 +60,35 @@ class _ReviewSearchScreenState extends State<ReviewSearchScreen> {
     '제주 (Jeju)',
   ];
 
+  // regionLabels, regions 리스트 아래에 추가
+  final List<String> regionValues = [
+    '서울특별시',
+    '부산광역시',
+    '대구광역시',
+    '인천광역시',
+    '광주광역시',
+    '대전광역시',
+    '울산광역시',
+    '세종특별자치시',
+    '경기도',
+    '강원특별자치도',
+    '충청북도',
+    '충청남도',
+    '전북특별자치도',
+    '전라남도',
+    '경상북도',
+    '경상남도',
+    '제주특별자치도',
+  ];
+
   // 선택된 지역의 인덱스
   // - null: 아무것도 선택 안 된 상태 → 버튼에 '전체' 표시
   // - 0~16: 선택된 인덱스 → regionLabels[index]를 버튼에, regions[index]를 검색에 사용
   int? selectedIndex;
 
+  // selectedRegion getter 수정
   String get selectedRegion =>
-      selectedIndex == null ? AppLanguage.t('region_all') : regionLabels[selectedIndex!];
+      selectedIndex == null ? '' : regionValues[selectedIndex!];
 
   @override
   void dispose() {
