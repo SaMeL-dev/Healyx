@@ -45,8 +45,9 @@ public class ReviewHospitalSearchService {
         int totalCount;
 
         if (StringUtils.hasText(region)) {
+            String normalizedRegion = normalizeRegion(region.trim());
             pageHospitals = fetchAllFromHiraParallel(name.trim()).stream()
-                    .filter(h -> h.getAddress() != null && h.getAddress().startsWith(region.trim()))
+                    .filter(h -> h.getAddress() != null && h.getAddress().contains(normalizedRegion))
                     .toList();
             totalCount = pageHospitals.size();
         } else {
@@ -208,5 +209,29 @@ public class ReviewHospitalSearchService {
                     "페이지 크기는 1~100 사이여야 합니다.",
                     HttpStatus.BAD_REQUEST);
         }
+    }
+
+    /** 약칭 → HIRA 주소 정식명 변환 */
+    private String normalizeRegion(String region) {
+        Map<String, String> aliasMap = Map.ofEntries(
+                Map.entry("서울", "서울"),
+                Map.entry("부산", "부산"),
+                Map.entry("대구", "대구"),
+                Map.entry("인천", "인천"),
+                Map.entry("광주", "광주"),
+                Map.entry("대전", "대전"),
+                Map.entry("울산", "울산"),
+                Map.entry("세종", "세종"),
+                Map.entry("경기", "경기"),
+                Map.entry("강원", "강원"),
+                Map.entry("충북", "충청북도"),
+                Map.entry("충남", "충청남도"),
+                Map.entry("전북", "전북특별자치도"),
+                Map.entry("전남", "전라남도"),
+                Map.entry("경북", "경상북도"),
+                Map.entry("경남", "경상남도"),
+                Map.entry("제주", "제주")
+        );
+        return aliasMap.getOrDefault(region, region);
     }
 }
